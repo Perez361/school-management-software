@@ -1,74 +1,134 @@
 // prisma/schema.prisma
-
 generator client {
-  provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
-// ---------- ADMIN MODEL ----------
-model Admin {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      String   @default("administrator")
-  createdAt DateTime @default(now())
-}
-
-// ---------- PARENT MODEL ----------
-model Parent {
-  id        Int       @id @default(autoincrement())
-  name      String
-  phone     String
-  students  Student[] @relation("ParentStudents")
-}
-
-// ---------- STUDENT MODEL ----------
 model Student {
   id        Int       @id @default(autoincrement())
+  studentId String    @unique // e.g. GHS-2024-001
   name      String
   gender    String
   dob       DateTime
-  class     String
-  photo     String?   
+  phone     String?
+  address   String?
+  photo     String?
+  classId   Int
   parentId  Int?
-  parent    Parent?   @relation("ParentStudents", fields: [parentId], references: [id])
-  fees      Fee[]
-  reports   Report[]
   createdAt DateTime  @default(now())
+
+  class    Class    @relation(fields: [classId], references: [id])
+  parent   Parent?  @relation(fields: [parentId], references: [id])
+  results  Result[]
+  payments Payment[]
 }
 
-// ---------- STAFF MODEL ----------
+model Parent {
+  id       Int       @id @default(autoincrement())
+  name     String
+  phone    String
+  email    String?
+  address  String?
+  students Student[]
+}
+
 model Staff {
-  id         Int      @id @default(autoincrement())
-  name       String
-  role       String
-  department String
-  createdAt  DateTime @default(now())
+  id      Int     @id @default(autoincrement())
+  staffId String  @unique
+  name    String
+  role    String  // Teacher | Admin | Headmaster
+  phone   String?
+  email   String?
+  subject String?
+  classId Int?    // class teacher of
+
+  class   Class?  @relation(fields: [classId], references: [id])
 }
 
-// ---------- FEES MODEL ----------
-model Fee {
-  id         Int      @id @default(autoincrement())
-  studentId  Int
-  student    Student  @relation(fields: [studentId], references: [id])
-  amount     Float
-  term       String
-  status     String   @default("unpaid")
-  createdAt  DateTime @default(now())
+model Class {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique // e.g. JHS 1A, SHS 2B
+  level    String    // e.g. JHS1, JHS2, SHS1
+  section  String?   // A, B, C
+  students Student[]
+  staff    Staff[]
+  subjects ClassSubject[]
 }
 
-// ---------- REPORTS MODEL ----------
-model Report {
-  id         Int      @id @default(autoincrement())
-  studentId  Int
-  student    Student  @relation(fields: [studentId], references: [id])
-  term       String
-  grades     Json     // store subjects & grades as JSON
-  rank       Int?
-  createdAt  DateTime @default(now())
+model Subject {
+  id      Int            @id @default(autoincrement())
+  name    String         @unique
+  code    String         @unique
+  classes ClassSubject[]
+  results Result[]
+}
+
+model ClassSubject {
+  id        Int     @id @default(autoincrement())
+  classId   Int
+  subjectId Int
+  class     Class   @relation(fields: [classId], references: [id])
+  subject   Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([classId, subjectId])
+}
+
+model Result {
+  id        Int     @id @default(autoincrement())
+  studentId Int
+  subjectId Int
+  term      String  // Term 1 | Term 2 | Term 3
+  year      String  // e.g. 2024
+  ca        Float   // Continuous Assessment (30%)
+  exam      Float   // End of term exam (70%)
+  total     Float   // Calculated total
+  grade     String  // A, B, C, D, F
+  remark    String? // Teacher's remark
+
+  student Student @relation(fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId, term, year])
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  term      String
+  year      String
+  feeType   String   // Tuition | PTA | Uniform | Books | Other
+  amount    Float    // Total amount due
+  paid      Float    // Amount paid
+  balance   Float    // Remaining
+  datePaid  DateTime?
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String   // hashed
+  role      String   // admin | teacher
+  name      String
+  createdAt DateTime @default(now())
+}
+
+model SchoolSettings {
+  id         Int    @id @default(autoincrement())
+  schoolName String
+  motto      String?
+  address    String?
+  phone      String?
+  email      String?
+  logo       String?
+  currentTerm String @default("Term 1")
+  currentYear String @default("2024")
 }
