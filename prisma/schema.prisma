@@ -1,0 +1,74 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------- ADMIN MODEL ----------
+model Admin {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("administrator")
+  createdAt DateTime @default(now())
+}
+
+// ---------- PARENT MODEL ----------
+model Parent {
+  id        Int       @id @default(autoincrement())
+  name      String
+  phone     String
+  students  Student[] @relation("ParentStudents")
+}
+
+// ---------- STUDENT MODEL ----------
+model Student {
+  id        Int       @id @default(autoincrement())
+  name      String
+  gender    String
+  dob       DateTime
+  class     String
+  photo     String?   
+  parentId  Int?
+  parent    Parent?   @relation("ParentStudents", fields: [parentId], references: [id])
+  fees      Fee[]
+  reports   Report[]
+  createdAt DateTime  @default(now())
+}
+
+// ---------- STAFF MODEL ----------
+model Staff {
+  id         Int      @id @default(autoincrement())
+  name       String
+  role       String
+  department String
+  createdAt  DateTime @default(now())
+}
+
+// ---------- FEES MODEL ----------
+model Fee {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  student    Student  @relation(fields: [studentId], references: [id])
+  amount     Float
+  term       String
+  status     String   @default("unpaid")
+  createdAt  DateTime @default(now())
+}
+
+// ---------- REPORTS MODEL ----------
+model Report {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  student    Student  @relation(fields: [studentId], references: [id])
+  term       String
+  grades     Json     // store subjects & grades as JSON
+  rank       Int?
+  createdAt  DateTime @default(now())
+}
