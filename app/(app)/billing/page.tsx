@@ -1,7 +1,7 @@
 // app/(app)/billing/page.tsx
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import { Plus, Receipt, AlertCircle, CheckCircle } from 'lucide-react'
+import { Plus, Receipt, AlertCircle, CheckCircle, TrendingUp, Filter } from 'lucide-react'
 
 export default async function BillingPage({
   searchParams
@@ -14,7 +14,7 @@ export default async function BillingPage({
   const term = termParam || ''
   const status = statusParam || ''
 
-  const [classes, payments, summary] = await Promise.all([
+  const [classes, payments, summary, allSummary] = await Promise.all([
     prisma.class.findMany({ orderBy: { name: 'asc' } }),
     prisma.payment.findMany({
       where: {
@@ -28,121 +28,322 @@ export default async function BillingPage({
     }),
     prisma.payment.aggregate({
       _sum: { amount: true, paid: true, balance: true },
-      where: classId ? { student: { classId } } : {},
+      where: {
+        ...(classId ? { student: { classId } } : {}),
+        ...(term ? { term } : {}),
+      },
     }),
+    prisma.payment.aggregate({ _sum: { amount: true, paid: true, balance: true } }),
   ])
 
+  const collected = summary._sum.paid || 0
+  const outstanding = summary._sum.balance || 0
+  const total = summary._sum.amount || 0
+  const collectionRate = total > 0 ? Math.round((collected / total) * 100) : 0
+
+  const isFiltered = !!(classId || term || status)
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="page-header">
+    <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+
+      {/* ── Header ── */}
+      <div style={{
+        padding: '28px 32px 24px', background: 'var(--surface)',
+        borderBottom: '1px solid var(--border-soft)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
         <div>
-          <h1 className="page-title">Billing & Fees</h1>
-          <p className="text-sm text-slate-500">Track fee payments and outstanding balances</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <div style={{ width: 24, height: 3, background: 'var(--gold)', borderRadius: 2 }} />
+            <span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Administration</span>
+          </div>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>
+            Billing & Fees
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 6 }}>
+            <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>
+              Track fee payments and outstanding balances
+            </span>
+            {isFiltered && (
+              <span style={{ fontFamily: 'system-ui', fontSize: 11, color: '#b45309', background: 'rgba(180,83,9,0.07)', padding: '2px 9px', borderRadius: 20, fontWeight: 600 }}>
+                Filtered view
+              </span>
+            )}
+          </div>
         </div>
-        <Link href="/billing/new" className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Record Payment
+        <Link href="/billing/new" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 7,
+          padding: '10px 20px', background: 'var(--navy)', color: '#faf7f0',
+          borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600,
+          textDecoration: 'none', boxShadow: '0 2px 10px rgba(15,31,61,0.2)',
+        }}>
+          <Plus size={15} /> Record Payment
         </Link>
       </div>
 
-      <div className="p-6 space-y-4">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="card p-5">
-            <p className="text-xs font-semibold text-slate-500 uppercase">Total Billed</p>
-            <p className="text-2xl font-display font-bold text-slate-900 mt-1">
-              GHS {(summary._sum.amount || 0).toLocaleString()}
-            </p>
+      <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        {/* ── Summary Cards ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 220px', gap: 12 }}>
+          {/* Total Billed */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px' }}>
+            <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Total Billed</div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)' }}>
+              GHS {(total).toLocaleString('en-GH', { minimumFractionDigits: 2 })}
+            </div>
+            <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+              {payments.length} transaction{payments.length !== 1 ? 's' : ''}
+            </div>
           </div>
-          <div className="card p-5 border-l-4 border-green-400">
-            <p className="text-xs font-semibold text-green-600 uppercase">Collected</p>
-            <p className="text-2xl font-display font-bold text-slate-900 mt-1">
-              GHS {(summary._sum.paid || 0).toLocaleString()}
-            </p>
+
+          {/* Collected */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px', borderLeft: '3px solid #16a34a' }}>
+            <div style={{ fontFamily: 'system-ui', fontSize: 11, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: 6 }}>Collected</div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)' }}>
+              GHS {collected.toLocaleString('en-GH', { minimumFractionDigits: 2 })}
+            </div>
+            <div style={{ fontFamily: 'system-ui', fontSize: 11, color: '#15803d', marginTop: 4 }}>
+              {payments.filter(p => p.balance === 0).length} fully paid
+            </div>
           </div>
-          <div className="card p-5 border-l-4 border-red-400">
-            <p className="text-xs font-semibold text-red-500 uppercase">Outstanding</p>
-            <p className="text-2xl font-display font-bold text-slate-900 mt-1">
-              GHS {(summary._sum.balance || 0).toLocaleString()}
-            </p>
+
+          {/* Outstanding */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px', borderLeft: '3px solid #dc2626' }}>
+            <div style={{ fontFamily: 'system-ui', fontSize: 11, color: '#b91c1c', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: 6 }}>Outstanding</div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)' }}>
+              GHS {outstanding.toLocaleString('en-GH', { minimumFractionDigits: 2 })}
+            </div>
+            <div style={{ fontFamily: 'system-ui', fontSize: 11, color: '#b91c1c', marginTop: 4 }}>
+              {payments.filter(p => p.balance > 0).length} with balance
+            </div>
+          </div>
+
+          {/* Collection rate */}
+          <div style={{
+            background: 'linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%)',
+            border: '1px solid rgba(201,168,76,0.2)',
+            borderRadius: 14, padding: '20px 22px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <TrendingUp size={14} color="var(--gold)" />
+              <span style={{ fontFamily: 'system-ui', fontSize: 11, color: 'rgba(201,168,76,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Collection Rate</span>
+            </div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--gold-light)' }}>
+              {collectionRate}%
+            </div>
+            <div style={{ marginTop: 8, height: 4, background: 'rgba(201,168,76,0.15)', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ width: `${collectionRate}%`, height: '100%', background: 'var(--gold)', borderRadius: 2, transition: 'width 0.4s ease' }} />
+            </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="card p-4">
-          <form className="flex gap-4 flex-wrap">
-            <select name="classId" defaultValue={classIdParam || ''} className="input w-44">
-              <option value="">All Classes</option>
-              {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-            <select name="term" defaultValue={term} className="input w-36">
-              <option value="">All Terms</option>
-              <option value="Term 1">Term 1</option>
-              <option value="Term 2">Term 2</option>
-              <option value="Term 3">Term 3</option>
-            </select>
-            <select name="status" defaultValue={status} className="input w-36">
-              <option value="">All Status</option>
-              <option value="paid">Fully Paid</option>
-              <option value="owing">Has Balance</option>
-            </select>
-            <button type="submit" className="btn-primary">Filter</button>
-            <Link href="/billing" className="btn-secondary">Clear</Link>
-          </form>
+        {/* ── Filters ── */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 10, background: 'var(--gold-pale)' }}>
+            <Filter size={14} color="var(--text-secondary)" />
+            <span style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Filter Records</span>
+          </div>
+          <div style={{ padding: '16px 22px' }}>
+            <form style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div>
+                <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5, letterSpacing: '0.04em' }}>Class</label>
+                <select name="classId" defaultValue={classIdParam || ''} style={{
+                  padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+                  borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)',
+                  outline: 'none', width: 160,
+                }}>
+                  <option value="">All Classes</option>
+                  {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5, letterSpacing: '0.04em' }}>Term</label>
+                <select name="term" defaultValue={term} style={{
+                  padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+                  borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)',
+                  outline: 'none', width: 130,
+                }}>
+                  <option value="">All Terms</option>
+                  <option value="Term 1">Term 1</option>
+                  <option value="Term 2">Term 2</option>
+                  <option value="Term 3">Term 3</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5, letterSpacing: '0.04em' }}>Status</label>
+                <select name="status" defaultValue={status} style={{
+                  padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+                  borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)',
+                  outline: 'none', width: 140,
+                }}>
+                  <option value="">All Status</option>
+                  <option value="paid">Fully Paid</option>
+                  <option value="owing">Has Balance</option>
+                </select>
+              </div>
+              <button type="submit" style={{
+                padding: '9px 20px', background: 'var(--navy)', color: '#faf7f0',
+                border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13,
+                fontWeight: 600, cursor: 'pointer',
+              }}>Apply Filter</button>
+              {isFiltered && (
+                <Link href="/billing" style={{
+                  padding: '9px 16px', background: 'var(--surface)', color: 'var(--text-secondary)',
+                  border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui',
+                  fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
+                }}>Clear</Link>
+              )}
+            </form>
+          </div>
         </div>
 
-        {/* Table */}
-        <div className="card">
-          <div className="table-container">
-            <table className="table">
+        {/* ── Table ── */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+          {/* Table header */}
+          <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--gold-pale)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(22,163,74,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Receipt size={14} color="#15803d" />
+              </div>
+              <div>
+                <div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Payment Records</div>
+                <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>
+                  Showing {payments.length} record{payments.length !== 1 ? 's' : ''}
+                  {isFiltered ? ' (filtered)' : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui' }}>
               <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Class</th>
-                  <th>Fee Type</th>
-                  <th>Term</th>
-                  <th>Amount (GHS)</th>
-                  <th>Paid (GHS)</th>
-                  <th>Balance (GHS)</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+                  {['Student', 'Class', 'Fee Type', 'Term', 'Amount (GHS)', 'Paid (GHS)', 'Balance (GHS)', 'Status', 'Actions'].map(h => (
+                    <th key={h} style={{
+                      padding: '10px 16px', textAlign: 'left',
+                      fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)',
+                      letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                    }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {payments.map(p => (
-                  <tr key={p.id}>
-                    <td className="font-medium text-slate-800">{p.student.name}</td>
-                    <td><span className="badge badge-blue">{p.student.class.name}</span></td>
-                    <td className="text-slate-500">{p.feeType}</td>
-                    <td className="text-slate-500">{p.term}</td>
-                    <td className="font-medium">{p.amount.toFixed(2)}</td>
-                    <td className="text-green-600 font-medium">{p.paid.toFixed(2)}</td>
-                    <td className={p.balance > 0 ? 'text-red-500 font-medium' : 'text-green-600'}>
-                      {p.balance.toFixed(2)}
+                {payments.map((p, i) => (
+                  <tr key={p.id} style={{ borderBottom: i < payments.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
+
+                    {/* Student */}
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          width: 32, height: 32, borderRadius: '50%',
+                          background: 'var(--gold-pale)', border: '1px solid var(--border)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--navy)', flexShrink: 0,
+                        }}>
+                          {p.student.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                        </div>
+                        <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>
+                          {p.student.name}
+                        </span>
+                      </div>
                     </td>
-                    <td>
+
+                    {/* Class */}
+                    <td style={{ padding: '12px 16px' }}>
+                      <span style={{ background: 'rgba(37,99,235,0.07)', color: '#1d4ed8', fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20 }}>
+                        {p.student.class.name}
+                      </span>
+                    </td>
+
+                    {/* Fee Type */}
+                    <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }}>
+                      {p.feeType}
+                    </td>
+
+                    {/* Term */}
+                    <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-muted)' }}>
+                      {p.term}
+                    </td>
+
+                    {/* Amount */}
+                    <td style={{ padding: '12px 16px' }}>
+                      <span style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 600, color: 'var(--navy)' }}>
+                        {p.amount.toFixed(2)}
+                      </span>
+                    </td>
+
+                    {/* Paid */}
+                    <td style={{ padding: '12px 16px' }}>
+                      <span style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 600, color: '#15803d' }}>
+                        {p.paid.toFixed(2)}
+                      </span>
+                    </td>
+
+                    {/* Balance */}
+                    <td style={{ padding: '12px 16px' }}>
+                      <span style={{
+                        fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 600,
+                        color: p.balance > 0 ? '#b91c1c' : '#15803d',
+                      }}>
+                        {p.balance.toFixed(2)}
+                      </span>
+                    </td>
+
+                    {/* Status */}
+                    <td style={{ padding: '12px 16px' }}>
                       {p.balance === 0 ? (
-                        <span className="badge badge-green flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> Paid
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          background: 'rgba(22,163,74,0.07)', color: '#15803d',
+                          fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
+                        }}>
+                          <CheckCircle size={11} /> Paid
                         </span>
                       ) : (
-                        <span className="badge badge-red flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" /> Owing
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          background: 'rgba(185,28,28,0.07)', color: '#b91c1c',
+                          fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
+                        }}>
+                          <AlertCircle size={11} /> Owing
                         </span>
                       )}
                     </td>
-                    <td>
-                      <Link href={`/billing/${p.id}/invoice`} className="text-xs text-brand-600 hover:underline font-medium">
+
+                    {/* Actions */}
+                    <td style={{ padding: '12px 16px' }}>
+                      <Link href={`/billing/${p.id}/invoice`} style={{
+                        fontSize: 12, fontWeight: 600, color: 'var(--navy)',
+                        background: 'rgba(15,31,61,0.06)', padding: '4px 12px',
+                        borderRadius: 7, textDecoration: 'none',
+                        border: '1px solid rgba(15,31,61,0.1)',
+                      }}>
                         Invoice
                       </Link>
                     </td>
                   </tr>
                 ))}
+
                 {payments.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="text-center py-12 text-slate-400">
-                      <Receipt className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                      No payment records found.
+                    <td colSpan={9} style={{ textAlign: 'center', padding: '64px 20px' }}>
+                      <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(201,168,76,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                        <Receipt size={24} color="var(--gold)" style={{ opacity: 0.4 }} />
+                      </div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, color: 'var(--navy)', marginBottom: 6 }}>
+                        {isFiltered ? 'No records match your filters' : 'No payment records yet'}
+                      </div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)', marginBottom: 20 }}>
+                        {isFiltered ? 'Try adjusting or clearing the filters above' : 'Start by recording your first payment'}
+                      </div>
+                      {!isFiltered && (
+                        <Link href="/billing/new" style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6,
+                          padding: '9px 18px', background: 'var(--navy)', color: '#faf7f0',
+                          borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600,
+                        }}><Plus size={13} /> Record First Payment</Link>
+                      )}
                     </td>
                   </tr>
                 )}
@@ -150,6 +351,7 @@ export default async function BillingPage({
             </table>
           </div>
         </div>
+
       </div>
     </div>
   )
