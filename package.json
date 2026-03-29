@@ -5,10 +5,12 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build",
+    "build:next": "next build",
     "start": "next start",
     "lint": "eslint",
-    "tauri:prepare": "node scripts/prepare-tauri.js",
-    "tauri:build": "node scripts/prepare-tauri.js && tauri build"
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.10.1",
@@ -26,7 +28,6 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@tauri-apps/cli": "^2.10.1",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -34,7 +35,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "postcss": "^8.5.8",
-    "prisma": "^7.6.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^5"
   }
