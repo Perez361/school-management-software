@@ -3,16 +3,11 @@
  *
  * Typed wrappers around Tauri's invoke() that mirror the old fetch('/api/...')
  * surface. Drop-in replacements for all API calls throughout the app.
- *
- * Usage:
- *   import { api } from '@/lib/tauri'
- *   const classes = await api.getClasses()
- *   const student = await api.createStudent({ name, gender, dob, classId })
  */
 
 import { invoke } from '@tauri-apps/api/core'
 
-// ─── Types (mirroring Rust models) ──────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface Class {
   id: number
@@ -20,7 +15,6 @@ export interface Class {
   level: string
   section?: string | null
   student_count?: number | null
-  // Aliases for existing UI compatibility
   _count?: { students: number }
   staff?: { name: string }[]
   subjects?: { subject: { name: string } }[]
@@ -147,7 +141,7 @@ export interface TopStudent {
   avg: number
 }
 
-// ─── API wrapper ─────────────────────────────────────────────────────────────
+// ─── API wrapper ──────────────────────────────────────────────────────────────
 
 export const api = {
   // Auth
@@ -180,6 +174,12 @@ export const api = {
     subject?: string; classId?: number
   }): Promise<Staff> =>
     invoke('create_staff', { input }),
+
+  updateStaff: (id: number, input: {
+    name?: string; role?: string; phone?: string; email?: string;
+    subject?: string; classId?: number
+  }): Promise<Staff> =>
+    invoke('update_staff', { id, input }),
 
   // Students
   getStudents: (params?: { classId?: number; q?: string }): Promise<Student[]> =>

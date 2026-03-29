@@ -169,6 +169,53 @@ pub fn create_staff(input: CreateStaffInput) -> Result<Staff, String> {
     })
 }
 
+#[command]
+pub fn update_staff(id: i64, input: UpdateStaffInput) -> Result<Staff, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+
+    // Fetch current staff to merge optional fields
+    let current = conn.query_row(
+        "SELECT s.id, s.staffId, s.name, s.role, s.phone, s.email, s.subject, s.classId
+         FROM Staff s WHERE s.id = ?1",
+        params![id],
+        |row| Ok(Staff {
+            id: row.get(0)?,
+            staff_id: row.get(1)?,
+            name: row.get(2)?,
+            role: row.get(3)?,
+            phone: row.get(4)?,
+            email: row.get(5)?,
+            subject: row.get(6)?,
+            class_id: row.get(7)?,
+            class: None,
+        }),
+    ).map_err(|e| e.to_string())?;
+
+    let name = input.name.unwrap_or(current.name.clone());
+    let role = input.role.unwrap_or(current.role.clone());
+    let phone = input.phone.or(current.phone.clone());
+    let email = input.email.or(current.email.clone());
+    let subject = input.subject.or(current.subject.clone());
+    let class_id = input.class_id.or(current.class_id);
+
+    conn.execute(
+        "UPDATE Staff SET name=?1, role=?2, phone=?3, email=?4, subject=?5, classId=?6 WHERE id=?7",
+        params![name, role, phone, email, subject, class_id, id],
+    ).map_err(|e| e.to_string())?;
+
+    Ok(Staff {
+        id,
+        staff_id: current.staff_id,
+        name,
+        role,
+        phone,
+        email,
+        subject,
+        class_id,
+        class: None,
+    })
+}
+
 // ─── STUDENTS ────────────────────────────────────────────────────────────────
 
 #[command]
@@ -185,21 +232,12 @@ pub fn get_students(class_id: Option<i64>, q: Option<String>) -> Result<Vec<Stud
          LEFT JOIN Parent p ON p.id = s.parentId
          WHERE 1=1"
     );
-    let mut param_vals: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
 
-    if let Some(cid) = class_id {
-        sql.push_str(" AND s.classId = ?");
-        param_vals.push(Box::new(cid));
-    }
-    if let Some(ref query) = q {
-        sql.push_str(" AND s.name LIKE ?");
-        param_vals.push(Box::new(format!("%{}%", query)));
-    }
+    if class_id.is_some() { sql.push_str(" AND s.classId = ?"); }
+    if q.is_some() { sql.push_str(" AND s.name LIKE ?"); }
     sql.push_str(" ORDER BY s.name");
 
-    // rusqlite doesn't easily support dynamic params, use direct queries
-    let query_str = sql.clone();
-    let mut stmt = conn.prepare(&query_str).map_err(|e| e.to_string())?;
+    let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
 
     let map_row = |row: &rusqlite::Row| {
         let parent_id_val: Option<i64> = row.get(8)?;
@@ -226,16 +264,12 @@ pub fn get_students(class_id: Option<i64>, q: Option<String>) -> Result<Vec<Stud
             let like = format!("%{}%", query);
             stmt.query_map(params![cid, like], map_row)
         }
-        (Some(cid), None) => {
-            stmt.query_map(params![cid], map_row)
-        }
+        (Some(cid), None) => stmt.query_map(params![cid], map_row),
         (None, Some(query)) => {
             let like = format!("%{}%", query);
             stmt.query_map(params![like], map_row)
         }
-        (None, None) => {
-            stmt.query_map([], map_row)
-        }
+        (None, None) => stmt.query_map([], map_row),
     }.map_err(|e| e.to_string())?;
 
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
@@ -299,7 +333,6 @@ pub fn create_student(input: CreateStudentInput) -> Result<Student, String> {
 #[command]
 pub fn update_student(id: i64, input: UpdateStudentInput) -> Result<Student, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
-    // Fetch current values and merge
     let current = get_student(id)?;
 
     let name = input.name.unwrap_or(current.name);
@@ -454,7 +487,7 @@ pub fn get_payments(class_id: Option<i64>, term: Option<String>, status: Option<
         Some("owing") => sql.push_str(" AND p.balance > 0"),
         _ => {}
     }
-    sql.push_str(" ORDER BY p.createdAt DESC LIMIT 50");
+    sql.push_str(" ORDER BY p.createdAt DESC LIMIT 200");
 
     let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
 
@@ -580,11 +613,9 @@ pub fn get_report_card(student_id: i64, term: String, year: String) -> Result<Re
         |row| Ok(StudentReportInfo { name: row.get(0)?, student_id: row.get(1)?, gender: row.get(2)?, class: row.get(3)? }),
     ).map_err(|e| e.to_string())?;
 
-    // Get this student's class
     let class_id: i64 = conn.query_row("SELECT classId FROM Student WHERE id=?1", params![student_id], |r| r.get(0))
         .map_err(|e| e.to_string())?;
 
-    // Get results for this student
     let mut stmt = conn.prepare(
         "SELECT sub.name, r.ca, r.exam, r.total FROM Result r JOIN Subject sub ON sub.id=r.subjectId WHERE r.studentId=?1 AND r.term=?2 AND r.year=?3"
     ).map_err(|e| e.to_string())?;
@@ -594,7 +625,6 @@ pub fn get_report_card(student_id: i64, term: String, year: String) -> Result<Re
     }).map_err(|e| e.to_string())?
     .collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
 
-    // Calculate position within class
     let mut avg_stmt = conn.prepare(
         "SELECT r.studentId, AVG(r.total) as avg FROM Result r JOIN Student s ON s.id=r.studentId WHERE s.classId=?1 AND r.term=?2 AND r.year=?3 GROUP BY r.studentId ORDER BY avg DESC"
     ).map_err(|e| e.to_string())?;

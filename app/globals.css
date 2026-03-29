@@ -2,20 +2,20 @@
 
 /* ── Design Tokens ──────────────────────────────────── */
 :root {
-  --navy:        #0f1f3d;
-  --navy-mid:    #162844;
-  --navy-light:  #1e3a5f;
-  --gold:        #c9a84c;
-  --gold-light:  #e2c97e;
-  --gold-pale:   #faf7f0;
-  --cream:       #f5f0e8;
-  --surface:     #ffffff;
-  --surface-2:   #f8f7f4;
-  --border:      #e8e1d4;
-  --border-soft: #f0ebe2;
-  --text-primary:   #0f1f3d;
-  --text-secondary: #5a6a82;
-  --text-muted:     #94a3b8;
+  --navy:        #8B1A1A;   /* Deep Crimson (was dark navy) */
+  --navy-mid:    #9E1F1F;   /* Mid Crimson */
+  --navy-light:  #B52424;   /* Lighter Crimson */
+  --gold:        #C9A84C;   /* Gold — keep as is, matches logo ribbon */
+  --gold-light:  #E2C97E;   /* Light Gold */
+  --gold-pale:   #FDF5F5;   /* Pale crimson-tinted cream */
+  --cream:       #F8F0F0;   /* Warm crimson-tinted background */
+  --surface:     #FFFFFF;
+  --surface-2:   #FDF5F5;
+  --border:      #E8D0D0;   /* Crimson-tinted border */
+  --border-soft: #F2E4E4;
+  --text-primary:   #2C0A0A;   /* Very dark maroon for text */
+  --text-secondary: #7A3535;   /* Mid maroon */
+  --text-muted:     #B08080;   /* Muted rose */
   --green:  #16a34a;
   --red:    #dc2626;
   --amber:  #d97706;

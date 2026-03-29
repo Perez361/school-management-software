@@ -78,7 +78,7 @@ export default function WelcomePage() {
 
       {/* ── LEFT PANEL — decorative ── */}
       <div style={{
-        position:"relative", width:"45%", background:"linear-gradient(160deg,#0f1f3d 0%,#1a3260 50%,#0d1a30 100%)",
+        position:"relative", width:"45%",background: 'linear-gradient(160deg, #5C0F0F 0%, #8B1A1A 50%, #4A0A0A 100%)',
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
         overflow:"hidden", flexShrink:0,
       }}>
@@ -128,18 +128,18 @@ export default function WelcomePage() {
 
           {/* School name on panel */}
           <div style={{ textAlign:"center", animation: mounted ? "fade-up 0.8s ease 0.5s both" : "none" }}>
-            <p style={{ color:"rgba(201,168,76,0.6)", fontSize:11, letterSpacing:4, textTransform:"uppercase", margin:0, marginBottom:8 }}>
+            <p style={{ color:"rgba(204, 182, 105, 0.6)", fontSize:11, letterSpacing:4, textTransform:"uppercase", margin:0, marginBottom:8 }}>
               Welcome to
             </p>
             <h2 style={{
               color:"#e2c97e", fontSize:22, fontWeight:700, margin:0, lineHeight:1.2,
               textShadow:"0 2px 20px rgba(201,168,76,0.3)",
             }}>
-              Ada Senior<br/>High School
+              Ambassadors<br/>Christian School
             </h2>
             <div style={{ width:40, height:1.5, background:"rgba(201,168,76,0.5)", margin:"16px auto 0" }}/>
-            <p style={{ color:"rgba(201,168,76,0.45)", fontSize:11, letterSpacing:2, textTransform:"uppercase", marginTop:12 }}>
-              Est. 1960
+            <p style={{ color:"rgba(255, 255, 255, 0.75)", fontSize:11, letterSpacing:2, textTransform:"uppercase", marginTop:12 }}>
+              Est. 2016
             </p>
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function WelcomePage() {
 
       {/* ── RIGHT PANEL — main content ── */}
       <div style={{
-        flex:1, background:"#faf7f0", display:"flex", flexDirection:"column",
+        flex:1, background:"#FDF5F5", display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center", padding:"48px 56px",
         position:"relative", overflow:"hidden",
       }}>
@@ -179,14 +179,14 @@ export default function WelcomePage() {
               </span>
             </div>
             <h1 style={{
-              fontSize:38, fontWeight:700, color:"#0f1f3d", margin:0, lineHeight:1.1,
+              fontSize:38, fontWeight:700, color:"#8B1A1A", margin:0, lineHeight:1.1,
               letterSpacing:"-0.02em",
             }}>
               School<br/>
               <span style={{ color:"#c9a84c" }}>Management</span><br/>
               System
             </h1>
-            <p style={{ color:"#64748b", fontSize:15, marginTop:16, lineHeight:1.6, fontFamily:"system-ui,sans-serif", fontWeight:400 }}>
+            <p style={{ color:"#B08080", fontSize:15, marginTop:16, lineHeight:1.6, fontFamily:"system-ui,sans-serif", fontWeight:400 }}>
               Streamline academics, administration, and student success — all in one place.
             </p>
           </div>
@@ -198,7 +198,7 @@ export default function WelcomePage() {
               onClick={() => router.push("/login/admin")}
               style={{
                 width:"100%", padding:"18px 28px",
-                background:"linear-gradient(135deg, #0f1f3d 0%, #1e3a5f 100%)",
+                background:"linear-gradient(135deg, #8B1A1A 0%, #9E1F1F 100%)",
                 color:"#faf7f0", border:"none", borderRadius:12,
                 fontSize:15, fontWeight:600, cursor:"pointer",
                 display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -243,7 +243,7 @@ export default function WelcomePage() {
               onClick={() => router.push("/login/staff")}
               style={{
                 width:"100%", padding:"18px 28px",
-                background:"#fff", color:"#0f1f3d",
+                background:"#fff", color:"#8B1A1A",
                 border:"1.5px solid #e2d9c8", borderRadius:12,
                 fontSize:15, fontWeight:600, cursor:"pointer",
                 display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -266,10 +266,10 @@ export default function WelcomePage() {
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
                 <div style={{
                   width:40, height:40, borderRadius:8,
-                  background:"rgba(15,31,61,0.05)", border:"1px solid rgba(15,31,61,0.1)",
+                  background:"rgba(204, 38, 9, 0.05)", border:"1px solid rgba(209, 38, 15, 0.1)",
                   display:"flex", alignItems:"center", justifyContent:"center",
                 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f1f3d" strokeWidth="1.8" strokeLinecap="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B1A1A" strokeWidth="1.8" strokeLinecap="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
@@ -277,10 +277,10 @@ export default function WelcomePage() {
                 </div>
                 <div style={{ textAlign:"left" }}>
                   <div style={{ fontSize:15, fontWeight:700 }}>Staff Login</div>
-                  <div style={{ fontSize:12, color:"rgba(15,31,61,0.4)", marginTop:1 }}>Teachers & staff access</div>
+                  <div style={{ fontSize:12, color:"#B52424", marginTop:1 }}>Teachers & staff access</div>
                 </div>
               </div>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(15,31,61,0.3)" strokeWidth="2" strokeLinecap="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1A1A" strokeWidth="2" strokeLinecap="round">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </button>
@@ -293,11 +293,11 @@ export default function WelcomePage() {
           }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
               <div style={{
-                width:6, height:6, borderRadius:"50%", background:"#c9a84c",
+                width:6, height:6, borderRadius:"50%", background:"#B52424",
                 animation:"pulse-ring 2s ease-out infinite",
               }}/>
-              <p style={{ color:"#94a3b8", fontSize:12, fontFamily:"system-ui,sans-serif", margin:0, fontStyle:"italic" }}>
-                "Excellence in education, character, and service"
+              <p style={{ color:"#B08080", fontSize:12, fontFamily:"system-ui,sans-serif", margin:0, fontStyle:"italic" }}>
+                "Education in the Fear of God"
               </p>
             </div>
           </div>

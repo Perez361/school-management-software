@@ -161,7 +161,7 @@ pub struct User {
     pub name: String,
 }
 
-// ---- Input types ----
+// ─── Input types ─────────────────────────────────────────────────────────────
 
 #[derive(Debug, Deserialize)]
 pub struct CreateClassInput {
@@ -190,6 +190,17 @@ pub struct UpdateParentInput {
 pub struct CreateStaffInput {
     pub name: String,
     pub role: String,
+    pub phone: Option<String>,
+    pub email: Option<String>,
+    pub subject: Option<String>,
+    #[serde(rename = "classId")]
+    pub class_id: Option<i64>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateStaffInput {
+    pub name: Option<String>,
+    pub role: Option<String>,
     pub phone: Option<String>,
     pub email: Option<String>,
     pub subject: Option<String>,
@@ -247,7 +258,6 @@ pub struct CreatePaymentInput {
     #[serde(rename = "studentId")]
     pub student_id: i64,
     pub term: String,
-    pub year: String,
     #[serde(rename = "feeType")]
     pub fee_type: String,
     pub amount: f64,

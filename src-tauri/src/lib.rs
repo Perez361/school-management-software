@@ -34,6 +34,7 @@ pub fn run() {
             // Staff
             get_staff,
             create_staff,
+            update_staff,
             // Students
             get_students,
             get_student,

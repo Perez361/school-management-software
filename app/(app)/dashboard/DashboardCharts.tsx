@@ -18,7 +18,7 @@ export default function DashboardCharts() {
       {
         label: 'Collected (GHS)',
         data: [12000, 9500, 14000, 11000, 8500, 16000],
-        backgroundColor: '#0f1f3d',
+        backgroundColor: '#8B1A1A',
         borderRadius: 7,
         borderSkipped: false,
         barPercentage: 0.65,
@@ -38,7 +38,7 @@ export default function DashboardCharts() {
     labels: ['Male', 'Female'],
     datasets: [{
       data: [54, 46],
-      backgroundColor: ['#0f1f3d', '#c9a84c'],
+      backgroundColor: ['#8B1A1A', '#c9a84c'],
       borderWidth: 0,
       hoverOffset: 6,
     }],
@@ -50,10 +50,10 @@ export default function DashboardCharts() {
       {
         label: 'Enrolment',
         data: [210, 215, 220, 220, 230, 245],
-        borderColor: '#0f1f3d',
-        backgroundColor: 'rgba(15,31,61,0.06)',
+        borderColor: '#8B1A1A',              // was '#0f1f3d'
+        backgroundColor: 'rgba(139,26,26,0.06)',  // was rgba(15,31,61,...)
         borderWidth: 2.5,
-        pointBackgroundColor: '#0f1f3d',
+        pointBackgroundColor: '#8B1A1A',
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
         pointRadius: 5,
