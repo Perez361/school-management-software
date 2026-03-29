@@ -19,12 +19,25 @@ export default function StaffLoginPage() {
   useEffect(() => setMounted(true), []);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!staffId || !password) { setError("Please fill in all fields."); return; }
-    setLoading(true); setError("");
-    await new Promise(r => setTimeout(r, 1000));
-    setLoading(false);
+  e.preventDefault()
+  if (!staffId || !password) { setError('Please fill in all fields.'); return }
+  setLoading(true); setError('')
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: staffId, password }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Login failed')
+    router.push('/dashboard')
+  } catch (e: any) {
+    setError(e.message)
+  } finally {
+    setLoading(false)
   }
+}
 
   const inputStyle = (focused: boolean): React.CSSProperties => ({
     width:"100%", padding:"14px 16px", fontSize:15,

@@ -1,4 +1,4 @@
-// src/app/results/page.tsx
+// app/results/page.tsx
 import { prisma } from '@/lib/prisma'
 import { rankStudents, getPositionSuffix } from '@/lib/grades'
 import Link from 'next/link'
@@ -7,28 +7,24 @@ import { Plus, Trophy } from 'lucide-react'
 export default async function ResultsPage({
   searchParams
 }: {
-  searchParams: { classId?: string; term?: string; year?: string }
+  searchParams: Promise<{ classId?: string; term?: string; year?: string }>
 }) {
-  const classId = searchParams.classId ? parseInt(searchParams.classId) : undefined
-  const term = searchParams.term || 'Term 1'
-  const year = searchParams.year || '2024'
+  const { classId: classIdParam, term: termParam, year: yearParam } = await searchParams
+  const classId = classIdParam ? parseInt(classIdParam) : undefined
+  const term = termParam || 'Term 1'
+  const year = yearParam || '2024'
 
-  const [classes, results] = await Promise.all([
-    prisma.class.findMany({ orderBy: { name: 'asc' } }),
-    classId ? prisma.result.findMany({
-      where: { term, year, student: { classId } },
-      include: { student: true, subject: true },
-    }) : [],
-  ])
+  const classes = await prisma.class.findMany({ orderBy: { name: 'asc' } })
 
-  // Build ranking data
-  type StudentMap = {
-    studentId: number;
-    name: string;
-    results: { total: number }[];
-  };
-  
-  const studentMap: Record<number, StudentMap> = {}
+  // Always call findMany so the return type is consistent (never [])
+  const results = await prisma.result.findMany({
+    where: classId
+      ? { term, year, student: { classId } }
+      : { id: { lt: 0 } }, // returns empty array with correct type
+    include: { student: true, subject: true },
+  })
+
+  const studentMap: Record<number, { studentId: number; name: string; results: { total: number }[] }> = {}
   for (const r of results) {
     if (!studentMap[r.studentId]) {
       studentMap[r.studentId] = { studentId: r.studentId, name: r.student.name, results: [] }
@@ -38,7 +34,6 @@ export default async function ResultsPage({
 
   const rankings = rankStudents(Object.values(studentMap))
 
-  // Group results by student
   const resultsByStudent: Record<number, typeof results> = {}
   for (const r of results) {
     if (!resultsByStudent[r.studentId]) resultsByStudent[r.studentId] = []
@@ -64,7 +59,7 @@ export default async function ResultsPage({
           <form className="flex gap-4 flex-wrap">
             <div>
               <label className="label text-xs">Class</label>
-              <select name="classId" defaultValue={searchParams.classId || ''} className="input w-44">
+              <select name="classId" defaultValue={classIdParam || ''} className="input w-44">
                 <option value="">Select class</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
@@ -106,14 +101,13 @@ export default async function ResultsPage({
 
         {rankings.length > 0 && (
           <div className="grid grid-cols-3 gap-4">
-            {/* Rankings Column */}
             <div className="card">
               <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
                 <Trophy className="w-4 h-4 text-amber-500" />
                 <h3 className="font-semibold text-sm text-slate-800">Class Rankings</h3>
               </div>
               <div className="divide-y divide-slate-50">
-                {rankings.map((r, i) => (
+                {rankings.map((r) => (
                   <div key={r.studentId} className="flex items-center gap-3 px-4 py-3">
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0
                       ${r.position === 1 ? 'bg-amber-100 text-amber-700' :
@@ -135,7 +129,6 @@ export default async function ResultsPage({
               </div>
             </div>
 
-            {/* Detailed Results */}
             <div className="card col-span-2">
               <div className="px-4 py-3 border-b border-slate-100">
                 <h3 className="font-semibold text-sm text-slate-800">Detailed Scores</h3>

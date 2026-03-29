@@ -1,22 +1,30 @@
-// src/app/api/students/[id]/route.ts
+// app/api/students/[id]/route.ts
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  _: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
   const student = await prisma.student.findUnique({
-    where: { id: parseInt(params.id) },
+    where: { id: parseInt(id) },
     include: { class: true, parent: true },
   })
   if (!student) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json(student)
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
   const body = await req.json()
   const { name, gender, dob, classId, parentId, phone, address } = body
 
   const student = await prisma.student.update({
-    where: { id: parseInt(params.id) },
+    where: { id: parseInt(id) },
     data: {
       name,
       gender,
@@ -30,10 +38,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json(student)
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-  // Delete related records first
-  await prisma.result.deleteMany({ where: { studentId: parseInt(params.id) } })
-  await prisma.payment.deleteMany({ where: { studentId: parseInt(params.id) } })
-  await prisma.student.delete({ where: { id: parseInt(params.id) } })
+export async function DELETE(
+  _: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  await prisma.result.deleteMany({ where: { studentId: parseInt(id) } })
+  await prisma.payment.deleteMany({ where: { studentId: parseInt(id) } })
+  await prisma.student.delete({ where: { id: parseInt(id) } })
   return NextResponse.json({ success: true })
 }

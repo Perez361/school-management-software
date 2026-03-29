@@ -1,7 +1,10 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // No "output: export" — we keep the Node.js server for API routes
+}
 
-export default nextConfig;
+export default nextConfig

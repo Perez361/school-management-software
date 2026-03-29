@@ -18,13 +18,26 @@ export default function AdminLoginPage() {
   useEffect(() => setMounted(true), []);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email || !password) { setError("Please fill in all fields."); return; }
-    setLoading(true); setError("");
-    await new Promise(r => setTimeout(r, 1000)); // placeholder
-    setLoading(false);
-    // router.push("/dashboard");
+  e.preventDefault()
+  if (!email || !password) { setError('Please fill in all fields.'); return }
+  setLoading(true); setError('')
+  
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Login failed')
+    if (data.user.role !== 'admin') throw new Error('Access denied. Admin only.')
+    router.push('/dashboard')
+  } catch (e: any) {
+    setError(e.message)
+  } finally {
+    setLoading(false)
   }
+}
 
   const inputStyle = (focused: boolean): React.CSSProperties => ({
     width:"100%", padding:"14px 16px", fontSize:15,

@@ -6,12 +6,11 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model Student {
-  id        Int       @id @default(autoincrement())
-  studentId String    @unique // e.g. GHS-2024-001
+  id        Int      @id @default(autoincrement())
+  studentId String   @unique // e.g. GHS-2024-001
   name      String
   gender    String
   dob       DateTime
@@ -20,10 +19,10 @@ model Student {
   photo     String?
   classId   Int
   parentId  Int?
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  class    Class    @relation(fields: [classId], references: [id])
-  parent   Parent?  @relation(fields: [parentId], references: [id])
+  class    Class     @relation(fields: [classId], references: [id])
+  parent   Parent?   @relation(fields: [parentId], references: [id])
   results  Result[]
   payments Payment[]
 }
@@ -41,20 +40,20 @@ model Staff {
   id      Int     @id @default(autoincrement())
   staffId String  @unique
   name    String
-  role    String  // Teacher | Admin | Headmaster
+  role    String // Teacher | Admin | Headmaster
   phone   String?
-  email   String?
+  email   String? @unique
   subject String?
-  classId Int?    // class teacher of
+  classId Int? // class teacher of
 
-  class   Class?  @relation(fields: [classId], references: [id])
+  class Class? @relation(fields: [classId], references: [id])
 }
 
 model Class {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique // e.g. JHS 1A, SHS 2B
-  level    String    // e.g. JHS1, JHS2, SHS1
-  section  String?   // A, B, C
+  id       Int            @id @default(autoincrement())
+  name     String         @unique // e.g. JHS 1A, SHS 2B
+  level    String // e.g. JHS1, JHS2, SHS1
+  section  String? // A, B, C
   students Student[]
   staff    Staff[]
   subjects ClassSubject[]
@@ -82,12 +81,12 @@ model Result {
   id        Int     @id @default(autoincrement())
   studentId Int
   subjectId Int
-  term      String  // Term 1 | Term 2 | Term 3
-  year      String  // e.g. 2024
-  ca        Float   // Continuous Assessment (30%)
-  exam      Float   // End of term exam (70%)
-  total     Float   // Calculated total
-  grade     String  // A, B, C, D, F
+  term      String // Term 1 | Term 2 | Term 3
+  year      String // e.g. 2024
+  ca        Float // Continuous Assessment (30%)
+  exam      Float // End of term exam (70%)
+  total     Float // Calculated total
+  grade     String // A, B, C, D, F
   remark    String? // Teacher's remark
 
   student Student @relation(fields: [studentId], references: [id])
@@ -97,16 +96,16 @@ model Result {
 }
 
 model Payment {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   studentId Int
   term      String
   year      String
-  feeType   String   // Tuition | PTA | Uniform | Books | Other
-  amount    Float    // Total amount due
-  paid      Float    // Amount paid
-  balance   Float    // Remaining
+  feeType   String // Tuition | PTA | Uniform | Books | Other
+  amount    Float // Total amount due
+  paid      Float // Amount paid
+  balance   Float // Remaining
   datePaid  DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   student Student @relation(fields: [studentId], references: [id])
 }
@@ -115,20 +114,20 @@ model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique
   email     String   @unique
-  password  String   // hashed
-  role      String   // admin | teacher
+  password  String // hashed
+  role      String // admin | teacher
   name      String
   createdAt DateTime @default(now())
 }
 
 model SchoolSettings {
-  id         Int    @id @default(autoincrement())
-  schoolName String
-  motto      String?
-  address    String?
-  phone      String?
-  email      String?
-  logo       String?
-  currentTerm String @default("Term 1")
-  currentYear String @default("2024")
+  id          Int     @id @default(autoincrement())
+  schoolName  String
+  motto       String?
+  address     String?
+  phone       String?
+  email       String?
+  logo        String?
+  currentTerm String  @default("Term 1")
+  currentYear String  @default("2024")
 }

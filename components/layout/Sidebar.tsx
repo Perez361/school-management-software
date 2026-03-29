@@ -58,17 +58,31 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-4 border-t border-slate-100">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-xs">
-            AD
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-slate-800 truncate">Administrator</p>
-            <p className="text-xs text-slate-400">admin@school.edu.gh</p>
-          </div>
-        </div>
-      </div>
+<div className="px-4 py-4 border-t border-slate-100">
+  <div className="flex items-center gap-2.5">
+    <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-xs">
+      AD
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-xs font-semibold text-slate-800 truncate">Administrator</p>
+      <p className="text-xs text-slate-400">admin@school.edu.gh</p>
+    </div>
+    <button
+      onClick={async () => {
+        await fetch('/api/auth/logout', { method: 'POST' })
+        window.location.href = '/'
+      }}
+      title="Logout"
+      className="text-slate-400 hover:text-red-500 transition-colors"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16,17 21,12 16,7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </button>
+  </div>
+</div>
     </aside>
   )
 }
