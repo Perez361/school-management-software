@@ -1,5 +1,5 @@
 use rusqlite::{Connection, Result, params};
-use serde::{Deserialize, Serialize};
+
 use std::path::PathBuf;
 
 pub fn get_db_path() -> PathBuf {

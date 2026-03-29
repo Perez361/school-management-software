@@ -242,6 +242,7 @@ pub struct CreateResultInput {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct CreatePaymentInput {
     #[serde(rename = "studentId")]
     pub student_id: i64,
