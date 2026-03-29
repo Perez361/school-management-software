@@ -1,88 +1,74 @@
 'use client'
-// src/components/layout/Sidebar.tsx
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, UserCheck, UserSquare2, BookOpen,
-  FileText, Receipt, BarChart3, Settings, GraduationCap, ChevronRight
+  FileText, Receipt, BarChart3, Settings, GraduationCap, LogOut, ChevronRight
 } from 'lucide-react'
-import { clsx } from 'clsx'
 
 const nav = [
-  { label: 'Dashboard',   href: '/dashboard',  icon: LayoutDashboard },
-  { label: 'Students',    href: '/students',   icon: Users },
-  { label: 'Parents',     href: '/parents',    icon: UserCheck },
-  { label: 'Staff',       href: '/staff',      icon: UserSquare2 },
-  { label: 'Classes',     href: '/classes',    icon: BookOpen },
-  { label: 'Results',     href: '/results',    icon: BarChart3 },
-  { label: 'Reports',     href: '/reports',    icon: FileText },
-  { label: 'Billing',     href: '/billing',    icon: Receipt },
-  { label: 'Settings',    href: '/settings',   icon: Settings },
+  { label: 'Dashboard',  href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Students',   href: '/students',  icon: Users },
+  { label: 'Parents',    href: '/parents',   icon: UserCheck },
+  { label: 'Staff',      href: '/staff',     icon: UserSquare2 },
+  { label: 'Classes',    href: '/classes',   icon: BookOpen },
+  { label: 'Results',    href: '/results',   icon: BarChart3 },
+  { label: 'Reports',    href: '/reports',   icon: FileText },
+  { label: 'Billing',    href: '/billing',   icon: Receipt },
+  { label: 'Settings',   href: '/settings',  icon: Settings },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
 
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    window.location.href = '/'
+  }
+
   return (
-    <aside className="w-[240px] shrink-0 h-screen bg-white border-r border-slate-100 flex flex-col">
+    <aside className="sidebar">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-slate-100">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center shrink-0">
-            <GraduationCap className="w-5 h-5 text-white" />
+      <div className="sidebar-logo">
+        <div className="sidebar-logo-inner">
+          <div className="sidebar-logo-icon">
+            <GraduationCap size={18} color="#c9a84c" />
           </div>
-          <div>
-            <p className="font-display font-bold text-slate-900 leading-none text-sm">SchoolDesk</p>
-            <p className="text-xs text-slate-400 mt-0.5">Management System</p>
+          <div className="sidebar-logo-text">
+            <div className="sidebar-logo-title">SchoolDesk</div>
+            <div className="sidebar-logo-sub">Management System</div>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Main Menu</p>
+      {/* Nav */}
+      <nav className="sidebar-nav">
+        <div className="sidebar-nav-label">Main Menu</div>
         {nav.map(({ label, href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
-            <Link
-              key={href}
-              href={href}
-              className={clsx('nav-link group', active && 'active')}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              <span className="flex-1">{label}</span>
-              {active && <ChevronRight className="w-3.5 h-3.5 opacity-60" />}
+            <Link key={href} href={href} className={`nav-link${active ? ' active' : ''}`}>
+              <Icon size={15} style={{ flexShrink: 0 }} />
+              <span style={{ flex: 1 }}>{label}</span>
+              {active && <ChevronRight size={12} style={{ opacity: 0.5 }} />}
             </Link>
           )
         })}
       </nav>
 
       {/* Footer */}
-<div className="px-4 py-4 border-t border-slate-100">
-  <div className="flex items-center gap-2.5">
-    <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-xs">
-      AD
-    </div>
-    <div className="flex-1 min-w-0">
-      <p className="text-xs font-semibold text-slate-800 truncate">Administrator</p>
-      <p className="text-xs text-slate-400">admin@school.edu.gh</p>
-    </div>
-    <button
-      onClick={async () => {
-        await fetch('/api/auth/logout', { method: 'POST' })
-        window.location.href = '/'
-      }}
-      title="Logout"
-      className="text-slate-400 hover:text-red-500 transition-colors"
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-        <polyline points="16,17 21,12 16,7"/>
-        <line x1="21" y1="12" x2="9" y2="12"/>
-      </svg>
-    </button>
-  </div>
-</div>
+      <div className="sidebar-footer">
+        <div className="sidebar-user">
+          <div className="sidebar-avatar">AD</div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">Administrator</div>
+            <div className="sidebar-user-role">Admin</div>
+          </div>
+          <button className="sidebar-logout" onClick={handleLogout} title="Sign out">
+            <LogOut size={14} />
+          </button>
+        </div>
+      </div>
     </aside>
   )
 }
