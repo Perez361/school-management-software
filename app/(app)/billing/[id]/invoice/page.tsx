@@ -1,2 +1,2 @@
 export function generateStaticParams() { return [] }
-export { default } from './EditStudent'
+export { default } from './Invoice'
