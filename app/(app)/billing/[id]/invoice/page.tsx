@@ -1,2 +1,3 @@
+import InvoicePage from './Invoice'
 export function generateStaticParams() { return [] }
-export { default } from './Invoice'
+export default function Page() { return <InvoicePage /> }

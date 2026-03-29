@@ -1,2 +1,3 @@
+import StudentDetail from './StudentDetail'
 export function generateStaticParams() { return [] }
-export { default } from './StudentDetail'
+export default function Page() { return <StudentDetail /> }

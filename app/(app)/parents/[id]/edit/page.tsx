@@ -1,2 +1,3 @@
+import EditParent from './EditParent'
 export function generateStaticParams() { return [] }
-export { default } from './EditParent'
+export default function Page() { return <EditParent /> }

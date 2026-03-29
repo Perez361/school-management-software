@@ -1,2 +1,3 @@
+import EditStaff from './EditStaff'
 export function generateStaticParams() { return [] }
-export { default } from './EditStaff'
+export default function Page() { return <EditStaff /> }
