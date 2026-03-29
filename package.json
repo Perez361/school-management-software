@@ -6,7 +6,9 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+     "tauri:prepare": "node scripts/prepare-tauri.js",
+    "tauri:build": "node scripts/prepare-tauri.js && tauri build"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.6.0",
