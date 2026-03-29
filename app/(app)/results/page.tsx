@@ -1,8 +1,8 @@
-// app/results/page.tsx
+// app/(app)/results/page.tsx
 import { prisma } from '@/lib/prisma'
 import { rankStudents, getPositionSuffix } from '@/lib/grades'
 import Link from 'next/link'
-import { Plus, Trophy } from 'lucide-react'
+import { Plus, Trophy, BarChart2, ArrowRight } from 'lucide-react'
 
 export default async function ResultsPage({
   searchParams
@@ -16,11 +16,10 @@ export default async function ResultsPage({
 
   const classes = await prisma.class.findMany({ orderBy: { name: 'asc' } })
 
-  // Always call findMany so the return type is consistent (never [])
   const results = await prisma.result.findMany({
     where: classId
       ? { term, year, student: { classId } }
-      : { id: { lt: 0 } }, // returns empty array with correct type
+      : { id: { lt: 0 } },
     include: { student: true, subject: true },
   })
 
@@ -34,139 +33,233 @@ export default async function ResultsPage({
 
   const rankings = rankStudents(Object.values(studentMap))
 
-  const resultsByStudent: Record<number, typeof results> = {}
-  for (const r of results) {
-    if (!resultsByStudent[r.studentId]) resultsByStudent[r.studentId] = []
-    resultsByStudent[r.studentId].push(r)
-  }
+  const gradeDistribution = results.reduce((acc, r) => {
+    acc[r.grade] = (acc[r.grade] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const avgScore = results.length > 0
+    ? results.reduce((s, r) => s + r.total, 0) / results.length
+    : 0
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="page-header">
+    <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+
+      <div style={{
+        padding: '28px 32px 24px', background: 'var(--surface)',
+        borderBottom: '1px solid var(--border-soft)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
         <div>
-          <h1 className="page-title">Results & Rankings</h1>
-          <p className="text-sm text-slate-500">View and enter student examination results</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <div style={{ width: 24, height: 3, background: 'var(--gold)', borderRadius: 2 }} />
+            <span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Academics</span>
+          </div>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>
+            Results & Rankings
+          </h1>
+          <p style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', marginTop: 5 }}>
+            View and manage student examination results
+          </p>
         </div>
-        <Link href="/results/enter" className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Enter Results
+        <Link href="/results/enter" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 7,
+          padding: '10px 20px', background: 'var(--navy)', color: '#faf7f0',
+          borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600,
+          textDecoration: 'none', boxShadow: '0 2px 10px rgba(15,31,61,0.2)',
+        }}>
+          <Plus size={15} /> Enter Results
         </Link>
       </div>
 
-      <div className="p-6 space-y-4">
+      <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
         {/* Filters */}
-        <div className="card p-4">
-          <form className="flex gap-4 flex-wrap">
-            <div>
-              <label className="label text-xs">Class</label>
-              <select name="classId" defaultValue={classIdParam || ''} className="input w-44">
-                <option value="">Select class</option>
-                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="label text-xs">Term</label>
-              <select name="term" defaultValue={term} className="input w-32">
-                <option value="Term 1">Term 1</option>
-                <option value="Term 2">Term 2</option>
-                <option value="Term 3">Term 3</option>
-              </select>
-            </div>
-            <div>
-              <label className="label text-xs">Year</label>
-              <select name="year" defaultValue={year} className="input w-28">
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              <button type="submit" className="btn-primary">View Results</button>
-            </div>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 20px' }}>
+          <form style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            {[
+              { name: 'classId', label: 'Class', default: classIdParam || '', options: [['', 'Select class'], ...classes.map(c => [String(c.id), c.name])], width: 160 },
+              { name: 'term',    label: 'Term',  default: term, options: [['Term 1','Term 1'],['Term 2','Term 2'],['Term 3','Term 3']], width: 120 },
+              { name: 'year',    label: 'Year',  default: year, options: [['2024','2024'],['2023','2023'],['2025','2025']], width: 100 },
+            ].map(({ name, label, default: def, options, width }) => (
+              <div key={name}>
+                <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5, letterSpacing: '0.04em' }}>{label}</label>
+                <select name={name} defaultValue={def} style={{
+                  width, padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+                  borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none',
+                }}>
+                  {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+            ))}
+            <button type="submit" style={{
+              padding: '9px 20px', background: 'var(--navy)', color: '#faf7f0',
+              border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              alignSelf: 'flex-end',
+            }}>View Results</button>
           </form>
         </div>
 
         {!classId && (
-          <div className="card p-12 text-center text-slate-400">
-            <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="font-medium">Select a class to view rankings and results</p>
+          <div style={{
+            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+            padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)',
+          }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(217,119,6,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Trophy size={26} color="#d97706" />
+            </div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: 'var(--navy)', marginBottom: 6 }}>Select a class to view results</div>
+            <div style={{ fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>Choose a class, term, and year above to see rankings and scores</div>
+            <Link href="/results/enter" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '9px 18px', background: 'var(--navy)', color: '#faf7f0',
+              borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600,
+            }}><Plus size={13} /> Enter Results</Link>
           </div>
         )}
 
         {classId && rankings.length === 0 && (
-          <div className="card p-12 text-center text-slate-400">
-            <p>No results found for this class, term, and year.</p>
-            <Link href="/results/enter" className="btn-primary mt-4 inline-flex">Enter Results</Link>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, marginBottom: 16 }}>No results found for this class, term and year</div>
+            <Link href="/results/enter" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '9px 18px', background: 'var(--navy)', color: '#faf7f0',
+              borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600,
+            }}><Plus size={13} /> Enter Results Now</Link>
           </div>
         )}
 
         {rankings.length > 0 && (
-          <div className="grid grid-cols-3 gap-4">
-            <div className="card">
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-amber-500" />
-                <h3 className="font-semibold text-sm text-slate-800">Class Rankings</h3>
-              </div>
-              <div className="divide-y divide-slate-50">
-                {rankings.map((r) => (
-                  <div key={r.studentId} className="flex items-center gap-3 px-4 py-3">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0
-                      ${r.position === 1 ? 'bg-amber-100 text-amber-700' :
-                        r.position === 2 ? 'bg-slate-100 text-slate-600' :
-                        r.position === 3 ? 'bg-orange-100 text-orange-600' :
-                        'bg-slate-50 text-slate-500'}`}>
-                      {r.position}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">{r.name}</p>
-                      <p className="text-xs text-slate-400">{r.subjectCount} subjects</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-semibold text-brand-600">{r.totalScore.toFixed(1)}%</p>
-                      <p className="text-xs text-slate-400">{getPositionSuffix(r.position)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <>
+            {/* Summary stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+              {[
+                { label: 'Students Ranked', value: rankings.length, color: '#0f1f3d', bg: 'rgba(15,31,61,0.05)' },
+                { label: 'Average Score', value: `${avgScore.toFixed(1)}%`, color: '#2563eb', bg: 'rgba(37,99,235,0.06)' },
+                { label: 'Grade A Count', value: gradeDistribution['A'] || 0, color: '#15803d', bg: 'rgba(22,163,74,0.06)' },
+                { label: 'Below Pass', value: (gradeDistribution['F'] || 0) + (gradeDistribution['E'] || 0), color: '#b91c1c', bg: 'rgba(185,28,28,0.05)' },
+              ].map(({ label, value, color, bg }) => (
+                <div key={label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px' }}>
+                  <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</div>
+                  <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color }}>{value}</div>
+                </div>
+              ))}
             </div>
 
-            <div className="card col-span-2">
-              <div className="px-4 py-3 border-b border-slate-100">
-                <h3 className="font-semibold text-sm text-slate-800">Detailed Scores</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16 }}>
+
+              {/* Rankings panel */}
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+                <div style={{ padding: '15px 18px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 9 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#fffbeb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Trophy size={14} color="#d97706" />
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Class Rankings</div>
+                    <div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>{term} · {year}</div>
+                  </div>
+                </div>
+                <div>
+                  {rankings.map((r, i) => {
+                    const score = r.totalScore
+                    const scoreColor = score >= 80 ? '#15803d' : score >= 60 ? '#2563eb' : score >= 40 ? '#d97706' : '#b91c1c'
+                    const medals = ['🥇','🥈','🥉']
+                    return (
+                      <div key={r.studentId} style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '11px 18px',
+                        borderBottom: i < rankings.length - 1 ? '1px solid var(--border-soft)' : 'none',
+                        background: i === 0 ? 'rgba(201,168,76,0.04)' : 'transparent',
+                      }}>
+                        <div style={{
+                          width: 26, height: 26, borderRadius: '50%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: i < 3 ? 'transparent' : 'var(--surface-2)',
+                          fontSize: i < 3 ? 14 : 11,
+                          fontFamily: 'system-ui', fontWeight: 700,
+                          color: 'var(--text-muted)', flexShrink: 0,
+                        }}>
+                          {i < 3 ? medals[i] : r.position}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {r.name}
+                          </div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>{r.subjectCount} subjects</div>
+                        </div>
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: scoreColor }}>
+                            {score.toFixed(1)}%
+                          </div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>{getPositionSuffix(r.position)}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
-              <div className="table-container">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Student</th>
-                      <th>Subject</th>
-                      <th>CA (30)</th>
-                      <th>Exam (70)</th>
-                      <th>Total</th>
-                      <th>Grade</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {results.map(r => (
-                      <tr key={r.id}>
-                        <td className="font-medium text-slate-800">{r.student.name}</td>
-                        <td className="text-slate-500">{r.subject.name}</td>
-                        <td>{r.ca}</td>
-                        <td>{r.exam}</td>
-                        <td className="font-semibold">{r.total}</td>
-                        <td>
-                          <span className={`badge ${r.grade === 'A' ? 'badge-green' :
-                            r.grade === 'B' ? 'badge-blue' :
-                            r.grade === 'F' ? 'badge-red' : 'badge-amber'}`}>
-                            {r.grade}
-                          </span>
-                        </td>
+
+              {/* Scores table */}
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+                <div style={{ padding: '15px 18px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 9 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(37,99,235,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <BarChart2 size={14} color="#2563eb" />
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Detailed Scores</div>
+                    <div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>{results.length} result entries</div>
+                  </div>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--gold-pale)', borderBottom: '1px solid var(--border)' }}>
+                        {['Student', 'Subject', 'CA (30)', 'Exam (70)', 'Total', 'Grade'].map(h => (
+                          <th key={h} style={{
+                            padding: '10px 16px', textAlign: 'left',
+                            fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)',
+                            letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                          }}>{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {results.map((r, i) => {
+                        const gradeMeta: Record<string, { color: string; bg: string }> = {
+                          A: { color: '#15803d', bg: 'rgba(22,163,74,0.08)' },
+                          B: { color: '#1d4ed8', bg: 'rgba(37,99,235,0.07)' },
+                          C: { color: '#0369a1', bg: 'rgba(3,105,161,0.07)' },
+                          D: { color: '#b45309', bg: 'rgba(180,83,9,0.07)' },
+                          E: { color: '#c2410c', bg: 'rgba(194,65,12,0.07)' },
+                          F: { color: '#b91c1c', bg: 'rgba(185,28,28,0.07)' },
+                        }
+                        const gm = gradeMeta[r.grade] || gradeMeta.F
+                        return (
+                          <tr key={r.id} style={{ borderBottom: i < results.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
+                            <td style={{ padding: '11px 16px', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{r.student.name}</td>
+                            <td style={{ padding: '11px 16px', fontSize: 12, color: 'var(--text-secondary)' }}>{r.subject.name}</td>
+                            <td style={{ padding: '11px 16px', fontSize: 13, color: 'var(--navy)', fontWeight: 500 }}>{r.ca}</td>
+                            <td style={{ padding: '11px 16px', fontSize: 13, color: 'var(--navy)', fontWeight: 500 }}>{r.exam}</td>
+                            <td style={{ padding: '11px 16px' }}>
+                              <span style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: r.total >= 60 ? '#15803d' : '#b91c1c' }}>
+                                {r.total}
+                              </span>
+                            </td>
+                            <td style={{ padding: '11px 16px' }}>
+                              <span style={{
+                                background: gm.bg, color: gm.color,
+                                fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                              }}>{r.grade}</span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>

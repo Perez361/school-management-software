@@ -1,19 +1,29 @@
+// ─────────────────────────────────────────────
+// app/(app)/students/new/page.tsx  (enhanced)
+// ─────────────────────────────────────────────
 'use client'
-// src/app/students/new/page.tsx
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, UserPlus } from 'lucide-react'
 
 interface StudentForm {
-  name: string
-  gender: string
-  dob: string
-  classId: string
-  parentId?: string
-  phone?: string
-  address?: string
+  name: string; gender: string; dob: string
+  classId: string; parentId?: string; phone?: string; address?: string
+}
+
+const label = (text: string, required = false) => (
+  <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, letterSpacing: '0.01em' }}>
+    {text}{required && <span style={{ color: '#b91c1c', marginLeft: 2 }}>*</span>}
+  </label>
+)
+
+const inputCls: React.CSSProperties = {
+  width: '100%', padding: '9px 13px',
+  background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+  borderRadius: 8, fontFamily: 'system-ui', fontSize: 13,
+  color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box',
 }
 
 export default function NewStudentPage() {
@@ -30,97 +40,111 @@ export default function NewStudentPage() {
   }, [])
 
   async function onSubmit(data: StudentForm) {
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     try {
       const res = await fetch('/api/students', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
       if (!res.ok) throw new Error(await res.text())
       router.push('/students')
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setLoading(false)
-    }
+    } catch (e: any) { setError(e.message) }
+    finally { setLoading(false) }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="page-header">
-        <div className="flex items-center gap-3">
-          <Link href="/students" className="text-slate-400 hover:text-slate-700">
-            <ArrowLeft className="w-5 h-5" />
+    <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+      <div style={{ padding: '28px 32px 24px', background: 'var(--surface)', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <Link href="/students" style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+            <ArrowLeft size={16} />
           </Link>
           <div>
-            <h1 className="page-title">Add New Student</h1>
-            <p className="text-sm text-slate-500">Fill in the student's details</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <div style={{ width: 24, height: 3, background: 'var(--gold)', borderRadius: 2 }} />
+              <span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Students</span>
+            </div>
+            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 24, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Add New Student</h1>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(37,99,235,0.07)', border: '1px solid rgba(37,99,235,0.15)', borderRadius: 9, padding: '8px 14px' }}>
+          <UserPlus size={14} color="#2563eb" />
+          <span style={{ fontFamily: 'system-ui', fontSize: 12, color: '#1d4ed8', fontWeight: 600 }}>New enrollment</span>
         </div>
       </div>
 
-      <div className="p-6 max-w-2xl">
-        <form onSubmit={handleSubmit(onSubmit)} className="card p-6 space-y-5">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
-          )}
+      <div style={{ padding: '28px 32px', maxWidth: 680 }}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          {error && <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>{error}</div>}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="label">Full Name *</label>
-              <input {...register('name', { required: 'Name is required' })} className="input" placeholder="e.g. Kofi Mensah" />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
+            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>
+              Personal Details
             </div>
-
-            <div>
-              <label className="label">Gender *</label>
-              <select {...register('gender', { required: true })} className="input">
-                <option value="">Select gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="label">Date of Birth *</label>
-              <input type="date" {...register('dob', { required: true })} className="input" />
-            </div>
-
-            <div>
-              <label className="label">Class *</label>
-              <select {...register('classId', { required: true })} className="input">
-                <option value="">Select class</option>
-                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label className="label">Parent / Guardian</label>
-              <select {...register('parentId')} className="input">
-                <option value="">Select parent (optional)</option>
-                {parents.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label className="label">Phone</label>
-              <input {...register('phone')} className="input" placeholder="+233 XX XXX XXXX" />
-            </div>
-
-            <div>
-              <label className="label">Address</label>
-              <input {...register('address')} className="input" placeholder="Town / Area, Region" />
+            <div style={{ padding: '22px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ gridColumn: '1 / -1' }}>
+                {label('Full Name', true)}
+                <input {...register('name', { required: true })} style={inputCls} placeholder="e.g. Kofi Mensah" />
+                {errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}
+              </div>
+              <div>
+                {label('Gender', true)}
+                <select {...register('gender', { required: true })} style={{ ...inputCls, cursor: 'pointer' } as React.CSSProperties}>
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              <div>
+                {label('Date of Birth', true)}
+                <input type="date" {...register('dob', { required: true })} style={inputCls} />
+              </div>
+              <div>
+                {label('Phone')}
+                <input {...register('phone')} style={inputCls} placeholder="+233 XX XXX XXXX" />
+              </div>
+              <div>
+                {label('Address')}
+                <input {...register('address')} style={inputCls} placeholder="Town / Area, Region" />
+              </div>
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={loading} className="btn-primary flex items-center gap-2">
-              <Save className="w-4 h-4" />
-              {loading ? 'Saving...' : 'Save Student'}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
+            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>
+              Academic & Family
+            </div>
+            <div style={{ padding: '22px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                {label('Class', true)}
+                <select {...register('classId', { required: true })} style={{ ...inputCls, cursor: 'pointer' } as React.CSSProperties}>
+                  <option value="">Select class</option>
+                  {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div>
+                {label('Parent / Guardian')}
+                <select {...register('parentId')} style={{ ...inputCls, cursor: 'pointer' } as React.CSSProperties}>
+                  <option value="">Select parent (optional)</option>
+                  {parents.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button type="submit" disabled={loading} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)',
+              color: loading ? 'var(--text-muted)' : '#faf7f0', border: loading ? '1px solid var(--border)' : 'none',
+              borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer', boxShadow: loading ? 'none' : '0 2px 10px rgba(15,31,61,0.2)',
+            }}>
+              <Save size={15} /> {loading ? 'Saving…' : 'Save Student'}
             </button>
-            <Link href="/students" className="btn-secondary">Cancel</Link>
+            <Link href="/students" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>
+              Cancel
+            </Link>
           </div>
         </form>
       </div>

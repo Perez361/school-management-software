@@ -1,24 +1,36 @@
 'use client'
-// src/app/results/enter/page.tsx
+// app/(app)/results/enter/page.tsx
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Save, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Save, CheckCircle, BookOpen, Users } from 'lucide-react'
 
 interface Student { id: number; name: string; studentId: string }
 interface Subject { id: number; name: string; code: string }
 interface Class   { id: number; name: string }
+
+const labelStyle: React.CSSProperties = {
+  display: 'block', fontFamily: 'system-ui', fontSize: 11,
+  fontWeight: 600, color: 'var(--text-secondary)',
+  marginBottom: 5, letterSpacing: '0.04em',
+}
+
+const selectStyle: React.CSSProperties = {
+  width: '100%', padding: '9px 13px',
+  background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+  borderRadius: 8, fontFamily: 'system-ui', fontSize: 13,
+  color: 'var(--text-primary)', outline: 'none',
+}
 
 export default function EnterResultsPage() {
   const [classes, setClasses]   = useState<Class[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
 
-  const [classId, setClassId]   = useState('')
-  const [term, setTerm]         = useState('Term 1')
-  const [year, setYear]         = useState('2024')
+  const [classId, setClassId]     = useState('')
+  const [term, setTerm]           = useState('Term 1')
+  const [year, setYear]           = useState('2024')
   const [subjectId, setSubjectId] = useState('')
 
-  // scores[studentId] = { ca, exam }
   const [scores, setScores] = useState<Record<number, { ca: string; exam: string }>>({})
   const [saving, setSaving] = useState(false)
   const [saved,  setSaved]  = useState(false)
@@ -39,7 +51,6 @@ export default function EnterResultsPage() {
     })
   }, [classId])
 
-  // Load existing scores when subjectId changes
   useEffect(() => {
     if (!classId || !subjectId || !term || !year) return
     fetch(`/api/results?classId=${classId}&term=${term}&year=${year}`)
@@ -75,49 +86,71 @@ export default function EnterResultsPage() {
     }
   }
 
+  const filledCount = Object.values(scores).filter(v => v.ca !== '' && v.exam !== '').length
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="page-header">
-        <div className="flex items-center gap-3">
-          <Link href="/results" className="text-slate-400 hover:text-slate-700">
-            <ArrowLeft className="w-5 h-5" />
+    <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+
+      <div style={{
+        padding: '28px 32px 24px', background: 'var(--surface)',
+        borderBottom: '1px solid var(--border-soft)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <Link href="/results" style={{
+            width: 34, height: 34, borderRadius: 9,
+            background: 'var(--surface-2)', border: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--text-secondary)', textDecoration: 'none',
+            transition: 'all 0.14s',
+          }}>
+            <ArrowLeft size={16} />
           </Link>
           <div>
-            <h1 className="page-title">Enter Results</h1>
-            <p className="text-sm text-slate-500">Input CA and Exam scores per subject</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <div style={{ width: 24, height: 3, background: 'var(--gold)', borderRadius: 2 }} />
+              <span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Academics</span>
+            </div>
+            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>
+              Enter Results
+            </h1>
           </div>
         </div>
       </div>
 
-      <div className="p-6 space-y-4">
-        {/* Selectors */}
-        <div className="card p-5">
-          <div className="grid grid-cols-4 gap-4">
+      <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        {/* Selectors card */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 24px' }}>
+          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
+            Select Class & Subject
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
             <div>
-              <label className="label">Class *</label>
-              <select className="input" value={classId} onChange={e => setClassId(e.target.value)}>
+              <label style={labelStyle}>Class *</label>
+              <select style={selectStyle} value={classId} onChange={e => setClassId(e.target.value)}>
                 <option value="">Select class</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="label">Subject *</label>
-              <select className="input" value={subjectId} onChange={e => setSubjectId(e.target.value)}>
+              <label style={labelStyle}>Subject *</label>
+              <select style={selectStyle} value={subjectId} onChange={e => setSubjectId(e.target.value)}>
                 <option value="">Select subject</option>
-                {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {subjects.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
               </select>
             </div>
             <div>
-              <label className="label">Term *</label>
-              <select className="input" value={term} onChange={e => setTerm(e.target.value)}>
+              <label style={labelStyle}>Term *</label>
+              <select style={selectStyle} value={term} onChange={e => setTerm(e.target.value)}>
                 <option value="Term 1">Term 1</option>
                 <option value="Term 2">Term 2</option>
                 <option value="Term 3">Term 3</option>
               </select>
             </div>
             <div>
-              <label className="label">Year *</label>
-              <select className="input" value={year} onChange={e => setYear(e.target.value)}>
+              <label style={labelStyle}>Year *</label>
+              <select style={selectStyle} value={year} onChange={e => setYear(e.target.value)}>
                 <option value="2024">2024</option>
                 <option value="2023">2023</option>
                 <option value="2025">2025</option>
@@ -127,107 +160,160 @@ export default function EnterResultsPage() {
         </div>
 
         {/* Score Entry Table */}
-        {students.length > 0 && subjectId && (
-          <div className="card">
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-semibold text-sm text-slate-800">
-                Enter scores — {students.length} students
-              </h3>
-              <div className="flex items-center gap-3">
+        {students.length > 0 && subjectId ? (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+            {/* Table header */}
+            <div style={{
+              padding: '14px 20px', borderBottom: '1px solid var(--border-soft)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(37,99,235,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Users size={14} color="#2563eb" />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>
+                    {students.length} students
+                  </div>
+                  <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>
+                    {filledCount} of {students.length} scores entered
+                  </div>
+                </div>
+                {/* Progress bar */}
+                <div style={{ width: 120, height: 4, background: 'var(--border-soft)', borderRadius: 2, overflow: 'hidden', marginLeft: 6 }}>
+                  <div style={{ width: `${students.length ? (filledCount / students.length) * 100 : 0}%`, height: '100%', background: '#2563eb', borderRadius: 2, transition: 'width 0.3s' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {saved && (
-                  <span className="text-green-600 text-sm flex items-center gap-1.5">
-                    <CheckCircle className="w-4 h-4" /> Saved successfully!
+                  <span style={{ fontFamily: 'system-ui', fontSize: 12, color: '#15803d', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
+                    <CheckCircle size={14} /> Saved successfully!
                   </span>
                 )}
-                {error && <span className="text-red-500 text-sm">{error}</span>}
+                {error && <span style={{ fontFamily: 'system-ui', fontSize: 12, color: '#b91c1c' }}>{error}</span>}
                 <button
                   onClick={saveAll}
-                  disabled={saving}
-                  className="btn-primary flex items-center gap-2"
+                  disabled={saving || filledCount === 0}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 7,
+                    padding: '9px 18px', background: filledCount === 0 ? 'var(--surface-2)' : 'var(--navy)',
+                    color: filledCount === 0 ? 'var(--text-muted)' : '#faf7f0',
+                    border: filledCount === 0 ? '1px solid var(--border)' : 'none',
+                    borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600,
+                    cursor: filledCount === 0 ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.14s',
+                  }}
                 >
-                  <Save className="w-4 h-4" />
-                  {saving ? 'Saving...' : 'Save All Scores'}
+                  <Save size={14} />
+                  {saving ? 'Saving…' : `Save ${filledCount > 0 ? filledCount : ''} Score${filledCount !== 1 ? 's' : ''}`}
                 </button>
               </div>
             </div>
 
-            <div className="p-4">
-              <div className="grid grid-cols-1 gap-2">
-                {/* Header */}
-                <div className="grid grid-cols-12 gap-3 px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 rounded-lg">
-                  <div className="col-span-1">#</div>
-                  <div className="col-span-5">Student Name</div>
-                  <div className="col-span-2">Student ID</div>
-                  <div className="col-span-2">CA Score <span className="text-slate-400">(max 30)</span></div>
-                  <div className="col-span-2">Exam Score <span className="text-slate-400">(max 70)</span></div>
+            {/* Column headers */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: '36px 1fr 120px 110px 110px 56px',
+              gap: 12, padding: '10px 20px',
+              background: 'var(--gold-pale)', borderBottom: '1px solid var(--border)',
+            }}>
+              {['#', 'Student Name', 'Student ID', 'CA (max 30)', 'Exam (max 70)', 'Total'].map(h => (
+                <div key={h} style={{ fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  {h}
                 </div>
+              ))}
+            </div>
 
-                {students.map((s, i) => {
-                  const sc = scores[s.id] || { ca: '', exam: '' }
-                  const total = sc.ca && sc.exam ? parseFloat(sc.ca) + parseFloat(sc.exam) : null
-                  return (
-                    <div
-                      key={s.id}
-                      className="grid grid-cols-12 gap-3 px-3 py-2 items-center rounded-lg hover:bg-slate-50 transition-colors"
-                    >
-                      <div className="col-span-1 text-slate-400 text-sm">{i + 1}</div>
-                      <div className="col-span-5 font-medium text-slate-800 text-sm">{s.name}</div>
-                      <div className="col-span-2 font-mono text-xs text-slate-500">{s.studentId}</div>
-                      <div className="col-span-2">
-                        <input
-                          type="number"
-                          min="0" max="30"
-                          value={sc.ca}
-                          onChange={e => setScores(prev => ({
-                            ...prev,
-                            [s.id]: { ...prev[s.id], ca: e.target.value }
-                          }))}
-                          placeholder="0–30"
-                          className="input text-center"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min="0" max="70"
-                            value={sc.exam}
-                            onChange={e => setScores(prev => ({
-                              ...prev,
-                              [s.id]: { ...prev[s.id], exam: e.target.value }
-                            }))}
-                            placeholder="0–70"
-                            className="input text-center"
-                          />
-                          {total !== null && (
-                            <span className={`text-xs font-bold shrink-0 w-10 text-center py-1 rounded-md
-                              ${total >= 80 ? 'bg-green-100 text-green-700' :
-                                total >= 60 ? 'bg-blue-100 text-blue-700' :
-                                total >= 40 ? 'bg-amber-100 text-amber-700' :
-                                'bg-red-100 text-red-700'}`}>
-                              {total}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+            {/* Score rows */}
+            <div>
+              {students.map((s, i) => {
+                const sc = scores[s.id] || { ca: '', exam: '' }
+                const ca = parseFloat(sc.ca)
+                const exam = parseFloat(sc.exam)
+                const total = !isNaN(ca) && !isNaN(exam) ? ca + exam : null
+                const totalColor = total === null ? 'var(--text-muted)'
+                  : total >= 80 ? '#15803d' : total >= 60 ? '#2563eb'
+                  : total >= 40 ? '#d97706' : '#b91c1c'
+                const totalBg = total === null ? 'var(--surface-2)'
+                  : total >= 80 ? 'rgba(22,163,74,0.08)' : total >= 60 ? 'rgba(37,99,235,0.07)'
+                  : total >= 40 ? 'rgba(217,119,6,0.07)' : 'rgba(185,28,28,0.07)'
+
+                return (
+                  <div
+                    key={s.id}
+                    style={{
+                      display: 'grid', gridTemplateColumns: '36px 1fr 120px 110px 110px 56px',
+                      gap: 12, padding: '10px 20px', alignItems: 'center',
+                      borderBottom: i < students.length - 1 ? '1px solid var(--border-soft)' : 'none',
+                      background: total !== null ? 'rgba(15,31,61,0.01)' : 'transparent',
+                      transition: 'background 0.14s',
+                    }}
+                  >
+                    <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{i + 1}</div>
+                    <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                    <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 8px', borderRadius: 5, width: 'fit-content' }}>
+                      {s.studentId}
                     </div>
-                  )
-                })}
-              </div>
+                    <div>
+                      <input
+                        type="number" min="0" max="30"
+                        value={sc.ca}
+                        onChange={e => setScores(prev => ({ ...prev, [s.id]: { ...prev[s.id], ca: e.target.value } }))}
+                        placeholder="0 – 30"
+                        style={{
+                          width: '100%', padding: '7px 10px', textAlign: 'center',
+                          background: 'var(--surface-2)', border: `1.5px solid ${sc.ca !== '' ? 'var(--navy)' : 'var(--border)'}`,
+                          borderRadius: 8, fontFamily: 'system-ui', fontSize: 13,
+                          color: 'var(--text-primary)', outline: 'none',
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="number" min="0" max="70"
+                        value={sc.exam}
+                        onChange={e => setScores(prev => ({ ...prev, [s.id]: { ...prev[s.id], exam: e.target.value } }))}
+                        placeholder="0 – 70"
+                        style={{
+                          width: '100%', padding: '7px 10px', textAlign: 'center',
+                          background: 'var(--surface-2)', border: `1.5px solid ${sc.exam !== '' ? 'var(--navy)' : 'var(--border)'}`,
+                          borderRadius: 8, fontFamily: 'system-ui', fontSize: 13,
+                          color: 'var(--text-primary)', outline: 'none',
+                        }}
+                      />
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      {total !== null ? (
+                        <span style={{
+                          display: 'inline-block', fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700,
+                          color: totalColor, background: totalBg,
+                          padding: '3px 8px', borderRadius: 7, minWidth: 40, textAlign: 'center',
+                        }}>{total}</span>
+                      ) : (
+                        <span style={{ color: 'var(--border)', fontSize: 16 }}>—</span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
-        )}
-
-        {!classId && (
-          <div className="card p-12 text-center text-slate-400">
-            <p>Select a class and subject to start entering scores.</p>
+        ) : classId && !subjectId ? (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(37,99,235,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <BookOpen size={20} color="#2563eb" />
+            </div>
+            <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, color: 'var(--navy)', marginBottom: 4 }}>Select a subject</div>
+            <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>Choose a subject above to start entering scores for this class</div>
           </div>
-        )}
-        {classId && !subjectId && (
-          <div className="card p-12 text-center text-slate-400">
-            <p>Now select a subject to enter scores for.</p>
+        ) : !classId ? (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(15,31,61,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <Users size={20} color="var(--navy)" />
+            </div>
+            <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, color: 'var(--navy)', marginBottom: 4 }}>Select a class and subject to begin</div>
+            <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>Use the dropdowns above to get started</div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   )

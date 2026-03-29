@@ -1,17 +1,17 @@
+// ─────────────────────────────────────────────
+// app/(app)/parents/new/page.tsx  (enhanced)
+// ─────────────────────────────────────────────
 'use client'
-// src/app/parents/new/page.tsx
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 
-interface ParentForm {
-  name: string
-  phone: string
-  email?: string
-  address?: string
-}
+interface ParentForm { name: string; phone: string; email?: string; address?: string }
+
+const inp: React.CSSProperties = { width: '100%', padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }
+const lbl = (t: string, req = false) => <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>{t}{req && <span style={{ color: '#b91c1c', marginLeft: 2 }}>*</span>}</label>
 
 export default function NewParentPage() {
   const router = useRouter()
@@ -22,68 +22,49 @@ export default function NewParentPage() {
   async function onSubmit(data: ParentForm) {
     setLoading(true); setError('')
     try {
-      const res = await fetch('/api/parents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
+      const res = await fetch('/api/parents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
       if (!res.ok) throw new Error(await res.text())
       router.push('/parents')
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setLoading(false)
-    }
+    } catch (e: any) { setError(e.message) } finally { setLoading(false) }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="page-header">
-        <div className="flex items-center gap-3">
-          <Link href="/parents" className="text-slate-400 hover:text-slate-700">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="page-title">Add Parent / Guardian</h1>
-            <p className="text-sm text-slate-500">Register a new parent or guardian</p>
+    <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+      <div style={{ padding: '28px 32px 24px', background: 'var(--surface)', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <Link href="/parents" style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', textDecoration: 'none' }}><ArrowLeft size={16} /></Link>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <div style={{ width: 24, height: 3, background: 'var(--gold)', borderRadius: 2 }} />
+            <span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Parents</span>
           </div>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 24, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Add Parent / Guardian</h1>
         </div>
       </div>
-
-      <div className="p-6 max-w-xl">
-        <form onSubmit={handleSubmit(onSubmit)} className="card p-6 space-y-5">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
-          )}
-
-          <div>
-            <label className="label">Full Name *</label>
-            <input {...register('name', { required: 'Name is required' })} className="input" placeholder="e.g. Kwame Mensah" />
-            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+      <div style={{ padding: '28px 32px', maxWidth: 560 }}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          {error && <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>{error}</div>}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
+            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Contact Details</div>
+            <div style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                {lbl('Full Name', true)}
+                <input {...register('name', { required: true })} style={inp} placeholder="e.g. Kwame Mensah" />
+                {errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}
+              </div>
+              <div>
+                {lbl('Phone Number', true)}
+                <input {...register('phone', { required: true })} style={inp} placeholder="+233 XX XXX XXXX" />
+                {errors.phone && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Phone is required</p>}
+              </div>
+              <div>{lbl('Email Address')}<input {...register('email')} type="email" style={inp} placeholder="parent@email.com" /></div>
+              <div>{lbl('Home Address')}<input {...register('address')} style={inp} placeholder="Town / Area, Region" /></div>
+            </div>
           </div>
-
-          <div>
-            <label className="label">Phone Number *</label>
-            <input {...register('phone', { required: 'Phone is required' })} className="input" placeholder="+233 XX XXX XXXX" />
-            {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
-          </div>
-
-          <div>
-            <label className="label">Email Address</label>
-            <input {...register('email')} type="email" className="input" placeholder="parent@email.com" />
-          </div>
-
-          <div>
-            <label className="label">Home Address</label>
-            <input {...register('address')} className="input" placeholder="Town / Area, Region" />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={loading} className="btn-primary flex items-center gap-2">
-              <Save className="w-4 h-4" />
-              {loading ? 'Saving...' : 'Save Parent'}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)', color: loading ? 'var(--text-muted)' : '#faf7f0', border: loading ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}>
+              <Save size={15} /> {loading ? 'Saving…' : 'Save Parent'}
             </button>
-            <Link href="/parents" className="btn-secondary">Cancel</Link>
+            <Link href="/parents" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, textDecoration: 'none' }}>Cancel</Link>
           </div>
         </form>
       </div>
