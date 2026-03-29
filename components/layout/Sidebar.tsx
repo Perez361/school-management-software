@@ -236,7 +236,7 @@ export default function Sidebar() {
         }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a', flexShrink: 0 }} />
           <span style={{ fontFamily: 'system-ui', fontSize: 10, color: 'rgba(201,168,76,0.3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            Accra Academy School
+            Ada Senior High School
           </span>
         </div>
 
