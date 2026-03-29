@@ -27,7 +27,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -36,12 +36,15 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "server/**/*": "server/",
-      "../.next/**/*": ".next/",
-      "../node_modules/.prisma/**/*": "node_modules/.prisma/",
-      "../prisma/schema.prisma": "prisma/schema.prisma",
-      "../school.db": "school.db"
-    },
+  "server/**/*": "server/",
+  "../.next/**/*": ".next/",
+  "../node_modules/.prisma/**/*": "node_modules/.prisma/",
+  "../node_modules/next/**/*": "node_modules/next/",
+  "../node_modules/react/**/*": "node_modules/react/",
+  "../node_modules/react-dom/**/*": "node_modules/react-dom/",
+  "../prisma/schema.prisma": "prisma/schema.prisma",
+  "../school.db": "school.db"
+},
     "externalBin": [
       "binaries/node"
     ]
