@@ -1,7 +1,10 @@
-// app/dashboard/page.tsx
+// app/(app)/dashboard/page.tsx
 import { prisma } from '@/lib/prisma'
-import { Users, UserCheck, UserSquare2, BookOpen, TrendingUp, Receipt, Award, ArrowUpRight } from 'lucide-react'
+import { TrendingUp, Receipt, Award, ArrowUpRight } from 'lucide-react'
+
 import DashboardCharts from './DashboardCharts'
+import QuickActions from './QuickActions'
+import StatCards from './StatCards'
 import Link from 'next/link'
 
 export default async function DashboardPage() {
@@ -44,10 +47,10 @@ export default async function DashboardPage() {
   const collectionRate = total > 0 ? Math.round((collected / total) * 100) : 0
 
   const stats = [
-    { label: 'Total Students', value: totalStudents, icon: Users,        accent: '#c9a84c', href: '/students', note: 'enrolled' },
-    { label: 'Parents',        value: totalParents,  icon: UserCheck,     accent: '#16a34a', href: '/parents',  note: 'registered' },
-    { label: 'Staff Members',  value: totalStaff,    icon: UserSquare2,   accent: '#2563eb', href: '/staff',    note: 'active' },
-    { label: 'Classes',        value: totalClasses,  icon: BookOpen,      accent: '#9333ea', href: '/classes',  note: 'running' },
+    { label: 'Total Students', value: totalStudents, iconName: 'Users',       accent: '#c9a84c', href: '/students', note: 'enrolled' },
+    { label: 'Parents',        value: totalParents,  iconName: 'UserCheck',   accent: '#16a34a', href: '/parents',  note: 'registered' },
+    { label: 'Staff Members',  value: totalStaff,    iconName: 'UserSquare2', accent: '#2563eb', href: '/staff',    note: 'active' },
+    { label: 'Classes',        value: totalClasses,  iconName: 'BookOpen',    accent: '#9333ea', href: '/classes',  note: 'running' },
   ]
 
   const termLabel = settings
@@ -57,7 +60,6 @@ export default async function DashboardPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
 
-      {/* ── Page Header ── */}
       <div style={{
         padding: '32px 32px 0',
         background: 'linear-gradient(180deg, #fff 0%, var(--cream) 100%)',
@@ -78,7 +80,6 @@ export default async function DashboardPage() {
               Welcome back, Administrator
             </p>
           </div>
-
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
             background: 'var(--navy)', borderRadius: 10, padding: '10px 16px',
@@ -94,38 +95,12 @@ export default async function DashboardPage() {
 
       <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-        {/* ── Stat Cards ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-          {stats.map(({ label, value, icon: Icon, accent, href, note }) => (
-            <Link key={label} href={href} style={{ textDecoration: 'none' }}>
-              <div className="stat-card" style={{ '--accent-color': accent } as React.CSSProperties}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: `${accent}15`, border: `1px solid ${accent}30`,
-                  }}>
-                    <Icon size={19} color={accent} />
-                  </div>
-                  <ArrowUpRight size={14} color="var(--text-muted)" />
-                </div>
-                <div style={{ fontFamily: 'Georgia, serif', fontSize: 34, fontWeight: 700, color: 'var(--navy)', lineHeight: 1, marginBottom: 4 }}>
-                  {value.toLocaleString()}
-                </div>
-                <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
-                  {label}
-                </div>
-                <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                  {note}
-                </div>
-              </div>
-            </Link>
-          ))}
+          <StatCards stats={stats} />
         </div>
 
-        {/* ── Revenue Row ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: 16 }}>
 
-          {/* Collected */}
           <div className="card-gold" style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(201,168,76,0.08)' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -141,13 +116,12 @@ export default async function DashboardPage() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10 }}>
               <div style={{ flex: 1, height: 4, background: 'rgba(201,168,76,0.15)', borderRadius: 2, overflow: 'hidden' }}>
-                <div style={{ width: `${collectionRate}%`, height: '100%', background: 'var(--gold)', borderRadius: 2, transition: 'width 1s ease' }} />
+                <div style={{ width: `${collectionRate}%`, height: '100%', background: 'var(--gold)', borderRadius: 2 }} />
               </div>
               <span style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--gold)', fontWeight: 600 }}>{collectionRate}%</span>
             </div>
           </div>
 
-          {/* Outstanding */}
           <div className="card" style={{ padding: 24, borderLeft: '3px solid #fbbf24', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: '#fffbeb' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -166,37 +140,16 @@ export default async function DashboardPage() {
             </Link>
           </div>
 
-          {/* Quick Actions */}
           <div className="card" style={{ padding: 24 }}>
             <div style={{ fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>
               Quick Actions
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[
-                { label: 'Add New Student', href: '/students/new', color: 'var(--navy)' },
-                { label: 'Record Payment',  href: '/billing/new',  color: '#16a34a' },
-                { label: 'Enter Results',   href: '/results/enter',color: '#2563eb' },
-                { label: 'Generate Reports',href: '/reports',      color: '#9333ea' },
-              ].map(({ label, href, color }) => (
-                <Link key={href} href={href} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '9px 12px', borderRadius: 8, border: '1px solid var(--border)',
-                  fontFamily: 'system-ui', fontSize: 12, fontWeight: 600, color: color,
-                  textDecoration: 'none', background: 'var(--surface-2)',
-                  transition: 'border-color 0.15s, background 0.15s',
-                }}>
-                  {label}
-                  <ArrowUpRight size={12} />
-                </Link>
-              ))}
-            </div>
+            <QuickActions />
           </div>
         </div>
 
-        {/* ── Bottom Grid ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 16 }}>
 
-          {/* Top Students */}
           <div className="card">
             <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 30, height: 30, borderRadius: 8, background: '#fffbeb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -217,7 +170,8 @@ export default async function DashboardPage() {
                 return (
                   <div key={t.studentId} style={{
                     display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '11px 20px', borderBottom: i < topWithNames.length - 1 ? '1px solid var(--border-soft)' : 'none',
+                    padding: '11px 20px',
+                    borderBottom: i < topWithNames.length - 1 ? '1px solid var(--border-soft)' : 'none',
                   }}>
                     <div style={{
                       width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -238,10 +192,7 @@ export default async function DashboardPage() {
                         {t.student?.class?.name}
                       </div>
                     </div>
-                    <div style={{
-                      fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700,
-                      color: i === 0 ? 'var(--gold)' : 'var(--navy)',
-                    }}>
+                    <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: i === 0 ? 'var(--gold)' : 'var(--navy)' }}>
                       {t._avg.total?.toFixed(1)}
                       <span style={{ fontSize: 10, fontFamily: 'system-ui', color: 'var(--text-muted)', fontWeight: 400 }}>%</span>
                     </div>
@@ -251,7 +202,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Recent Payments */}
           <div className="card">
             <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -313,7 +263,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Charts ── */}
         <DashboardCharts />
 
       </div>

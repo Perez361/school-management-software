@@ -1,4 +1,4 @@
-// src/app/billing/page.tsx
+// app/(app)/billing/page.tsx
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { Plus, Receipt, AlertCircle, CheckCircle } from 'lucide-react'
@@ -6,11 +6,13 @@ import { Plus, Receipt, AlertCircle, CheckCircle } from 'lucide-react'
 export default async function BillingPage({
   searchParams
 }: {
-  searchParams: { classId?: string; term?: string; status?: string }
+  searchParams: Promise<{ classId?: string; term?: string; status?: string }>
 }) {
-  const classId = searchParams.classId ? parseInt(searchParams.classId) : undefined
-  const term = searchParams.term || ''
-  const status = searchParams.status || ''
+  const { classId: classIdParam, term: termParam, status: statusParam } = await searchParams
+
+  const classId = classIdParam ? parseInt(classIdParam) : undefined
+  const term = termParam || ''
+  const status = statusParam || ''
 
   const [classes, payments, summary] = await Promise.all([
     prisma.class.findMany({ orderBy: { name: 'asc' } }),
@@ -69,7 +71,7 @@ export default async function BillingPage({
         {/* Filters */}
         <div className="card p-4">
           <form className="flex gap-4 flex-wrap">
-            <select name="classId" defaultValue={searchParams.classId || ''} className="input w-44">
+            <select name="classId" defaultValue={classIdParam || ''} className="input w-44">
               <option value="">All Classes</option>
               {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>

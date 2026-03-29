@@ -1,4 +1,4 @@
-// src/app/students/page.tsx
+// app/(app)/students/page.tsx
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { Plus, Search, UserCircle } from 'lucide-react'
@@ -6,10 +6,12 @@ import { Plus, Search, UserCircle } from 'lucide-react'
 export default async function StudentsPage({
   searchParams
 }: {
-  searchParams: { q?: string; class?: string }
+  searchParams: Promise<{ q?: string; class?: string }>
 }) {
-  const query = searchParams.q || ''
-  const classFilter = searchParams.class ? parseInt(searchParams.class) : undefined
+  const { q: qParam, class: classParam } = await searchParams
+
+  const query = qParam || ''
+  const classFilter = classParam ? parseInt(classParam) : undefined
 
   const [students, classes] = await Promise.all([
     prisma.student.findMany({
@@ -39,7 +41,6 @@ export default async function StudentsPage({
       </div>
 
       <div className="p-6 space-y-4">
-        {/* Filters */}
         <div className="card p-4 flex gap-4">
           <form className="flex gap-4 flex-1">
             <div className="relative flex-1 max-w-sm">
@@ -51,7 +52,7 @@ export default async function StudentsPage({
                 className="input pl-9"
               />
             </div>
-            <select name="class" defaultValue={searchParams.class || ''} className="input w-44">
+            <select name="class" defaultValue={classParam || ''} className="input w-44">
               <option value="">All Classes</option>
               {classes.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -62,7 +63,6 @@ export default async function StudentsPage({
           </form>
         </div>
 
-        {/* Table */}
         <div className="card">
           <div className="table-container">
             <table className="table">
@@ -88,19 +88,13 @@ export default async function StudentsPage({
                       </div>
                     </td>
                     <td className="font-mono text-xs text-slate-500">{s.studentId}</td>
-                    <td>
-                      <span className="badge badge-blue">{s.class.name}</span>
-                    </td>
+                    <td><span className="badge badge-blue">{s.class.name}</span></td>
                     <td className="text-slate-500">{s.gender}</td>
                     <td className="text-slate-500">{s.parent?.name || '—'}</td>
                     <td>
                       <div className="flex gap-2">
-                        <Link href={`/students/${s.id}`} className="text-xs text-brand-600 hover:underline font-medium">
-                          View
-                        </Link>
-                        <Link href={`/students/${s.id}/edit`} className="text-xs text-slate-500 hover:underline">
-                          Edit
-                        </Link>
+                        <Link href={`/students/${s.id}`} className="text-xs text-brand-600 hover:underline font-medium">View</Link>
+                        <Link href={`/students/${s.id}/edit`} className="text-xs text-slate-500 hover:underline">Edit</Link>
                       </div>
                     </td>
                   </tr>

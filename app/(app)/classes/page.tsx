@@ -1,4 +1,4 @@
-// src/app/classes/page.tsx
+// app/(app)/classes/page.tsx
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { Plus, BookOpen } from 'lucide-react'
@@ -27,9 +27,19 @@ export default async function ClassesPage() {
       </div>
 
       <div className="p-6">
+        {/* CSS hover handled via stylesheet — no JS event handlers */}
+        <style>{`
+          .class-card {
+            transition: box-shadow 0.2s ease;
+          }
+          .class-card:hover {
+            box-shadow: 0 4px 16px rgba(15,31,61,0.10);
+          }
+        `}</style>
+
         <div className="grid grid-cols-3 gap-4">
           {classes.map(c => (
-            <div key={c.id} className="card p-5 hover:shadow-md transition-shadow">
+            <div key={c.id} className="card class-card p-5">
               <div className="flex items-start justify-between mb-3">
                 <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center">
                   <BookOpen className="w-5 h-5 text-brand-600" />
