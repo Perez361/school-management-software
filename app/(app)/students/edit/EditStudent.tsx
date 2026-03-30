@@ -1,5 +1,5 @@
 'use client'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -30,7 +30,8 @@ const lbl = (t: string, req = false) => (
 
 export default function EditStudent() {
   const router = useRouter()
-  const { id } = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id') ?? ''
   const studentId = parseInt(id)
 
   const { register, handleSubmit, reset } = useForm<StudentForm>()
@@ -73,7 +74,7 @@ export default function EditStudent() {
         phone: data.phone || undefined,
         address: data.address || undefined,
       })
-      router.push(`/students/${studentId}`)
+      router.push(`/students/detail?id=${studentId}`)
     } catch (e: any) {
       setError(e.message || String(e))
     } finally {
@@ -105,7 +106,7 @@ export default function EditStudent() {
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
       <div style={{ padding: '28px 32px 24px', background: 'var(--surface)', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <Link href={`/students/${studentId}`} style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+          <Link href={`/students/detail?id=${studentId}`} style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', textDecoration: 'none' }}>
             <ArrowLeft size={16} />
           </Link>
           <div>
@@ -144,7 +145,7 @@ export default function EditStudent() {
             <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)', color: loading ? 'var(--text-muted)' : '#faf7f0', border: loading ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}>
               <Save size={15} /> {loading ? 'Saving…' : 'Save Changes'}
             </button>
-            <Link href={`/students/${studentId}`} style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, textDecoration: 'none' }}>Cancel</Link>
+            <Link href={`/students/detail?id=${studentId}`} style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, textDecoration: 'none' }}>Cancel</Link>
           </div>
         </form>
       </div>

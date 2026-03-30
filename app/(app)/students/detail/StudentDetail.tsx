@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Edit, FileText, Receipt } from 'lucide-react'
 import { api, Student, ResultRow, Payment } from '@/lib/tauri'
@@ -15,7 +15,8 @@ function getGrade(total: number) {
 }
 
 export default function StudentDetail() {
-  const { id } = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id') ?? ''
   const studentId = parseInt(id)
 
   const [student, setStudent] = useState<Student | null>(null)
@@ -72,7 +73,7 @@ export default function StudentDetail() {
             <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{student.studentId}</div>
           </div>
         </div>
-        <Link href={`/students/${student.id}/edit`} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--surface)', color: 'var(--navy)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+        <Link href={`/students/edit?id=${student.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--surface)', color: 'var(--navy)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
           <Edit size={15} /> Edit Student
         </Link>
       </div>

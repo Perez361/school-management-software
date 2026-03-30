@@ -95,8 +95,8 @@ export default function StudentsPage() {
                     <td className="text-slate-500">{s.parent?.name || '—'}</td>
                     <td>
                       <div className="flex gap-2">
-                        <Link href={`/students/${s.id}`} className="text-xs text-brand-600 hover:underline font-medium">View</Link>
-                        <Link href={`/students/${s.id}/edit`} className="text-xs text-slate-500 hover:underline">Edit</Link>
+                        <Link href={`/students/detail?id=${s.id}`} className="text-xs text-brand-600 hover:underline font-medium">View</Link>
+                        <Link href={`/students/edit?id=${s.id}`} className="text-xs text-slate-500 hover:underline">Edit</Link>
                       </div>
                     </td>
                   </tr>

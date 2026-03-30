@@ -85,7 +85,7 @@ export default function StaffPage() {
                           : <span style={{ color: 'var(--text-muted)', fontSize: 12, fontStyle: 'italic' }}>Not assigned</span>}
                       </td>
                       <td style={{ padding: '13px 18px', fontSize: 13, color: 'var(--text-secondary)' }}>{s.phone || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
-                      <td style={{ padding: '13px 18px' }}><Link href={`/staff/${s.id}/edit`} style={{ fontSize: 12, fontWeight: 600, color: '#0f1f3d', background: 'rgba(15,31,61,0.06)', padding: '4px 12px', borderRadius: 7, textDecoration: 'none', border: '1px solid rgba(15,31,61,0.1)' }}>Edit</Link></td>
+                      <td style={{ padding: '13px 18px' }}><Link href={`/staff/edit?id=${s.id}`} style={{ fontSize: 12, fontWeight: 600, color: '#0f1f3d', background: 'rgba(15,31,61,0.06)', padding: '4px 12px', borderRadius: 7, textDecoration: 'none', border: '1px solid rgba(15,31,61,0.1)' }}>Edit</Link></td>
                     </tr>
                   )
                 })}

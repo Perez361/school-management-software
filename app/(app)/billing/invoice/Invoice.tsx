@@ -1,13 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Download, Receipt } from 'lucide-react'
 import { api, Payment } from '@/lib/tauri'
 
 export default function InvoicePage() {
-  const { id } = useParams<{ id: string }>()
-  const paymentId = parseInt(id)
+  const searchParams = useSearchParams()
+  const paymentId = parseInt(searchParams.get('id') ?? '')
 
   const [payment, setPayment] = useState<Payment | null>(null)
   const [loading, setLoading] = useState(true)

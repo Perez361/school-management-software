@@ -66,7 +66,7 @@ export default function ParentsPage() {
                       ) : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>}
                     </td>
                     <td style={{ padding: '13px 18px' }}>
-                      <Link href={`/parents/${p.id}/edit`} style={{ fontSize: 12, fontWeight: 600, color: '#0f1f3d', background: 'rgba(15,31,61,0.06)', padding: '4px 12px', borderRadius: 7, textDecoration: 'none', border: '1px solid rgba(15,31,61,0.1)' }}>Edit</Link>
+                      <Link href={`/parents/edit?id=${p.id}`} style={{ fontSize: 12, fontWeight: 600, color: '#0f1f3d', background: 'rgba(15,31,61,0.06)', padding: '4px 12px', borderRadius: 7, textDecoration: 'none', border: '1px solid rgba(15,31,61,0.1)' }}>Edit</Link>
                     </td>
                   </tr>
                 ))}

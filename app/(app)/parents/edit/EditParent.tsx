@@ -1,5 +1,5 @@
 'use client'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -27,7 +27,8 @@ const lbl = (t: string, req = false) => (
 
 export default function EditParent() {
   const router = useRouter()
-  const { id } = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id') ?? ''
   const parentId = parseInt(id)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ParentForm>()
