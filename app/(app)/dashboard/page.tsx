@@ -6,12 +6,11 @@ import { api, DashboardStats, TopStudent, Payment, SchoolSettings } from '@/lib/
 import DashboardCharts from './DashboardCharts'
 import QuickActions from './QuickActions'
 
-// StatCards - inline since it was a simple client component
 const STAT_CONFIG = [
-  { label: 'Total Students', key: 'totalStudents' as const, accent: '#c9a84c', href: '/students', note: 'enrolled' },
-  { label: 'Total Staff',    key: 'totalStaff'    as const, accent: '#8B1A1A', href: '/staff',    note: 'active'   },
-  { label: 'Classes',        key: 'totalClasses'  as const, accent: '#C9A84C', href: '/classes',  note: 'running'  },
-  { label: 'Parents',        key: 'totalParents'  as const, accent: '#16a34a', href: '/parents',  note: 'registered'},
+  { label: 'Total Students', key: 'totalStudents' as const, accent: '#C9A84C', href: '/students', note: 'enrolled' },
+  { label: 'Total Staff',    key: 'totalStaff'    as const, accent: '#8B1A1A', href: '/staff',    note: 'active'    },
+  { label: 'Classes',        key: 'totalClasses'  as const, accent: '#C9A84C', href: '/classes',  note: 'running'   },
+  { label: 'Parents',        key: 'totalParents'  as const, accent: '#16a34a', href: '/parents',  note: 'registered' },
 ]
 
 export default function DashboardPage() {
@@ -34,15 +33,21 @@ export default function DashboardPage() {
     })
   }, [])
 
-  const collected = stats?.totalCollected ?? 0
-  const outstanding = stats?.totalOutstanding ?? 0
-  const total = collected + outstanding
+  const collected    = stats?.totalCollected ?? 0
+  const outstanding  = stats?.totalOutstanding ?? 0
+  const total        = collected + outstanding
   const collectionRate = total > 0 ? Math.round((collected / total) * 100) : 0
-  const termLabel = settings ? `${settings.currentTerm} — ${settings.currentYear}` : 'Term 1 — 2024'
+  const termLabel    = settings ? `${settings.currentTerm} — ${settings.currentYear}` : 'Term 1 — 2024'
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
-      <div style={{ padding: '32px 32px 0', background: 'linear-gradient(180deg, #fff 0%, var(--cream) 100%)', borderBottom: '1px solid var(--border-soft)' }}>
+
+      {/* ── Page header ── */}
+      <div style={{
+        padding: '32px 32px 0',
+        background: 'linear-gradient(180deg, #fff 0%, var(--cream) 100%)',
+        borderBottom: '1px solid var(--border-soft)',
+      }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', paddingBottom: 24 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -52,25 +57,38 @@ export default function DashboardPage() {
             <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 28, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>School Dashboard</h1>
             <p style={{ fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>Welcome back, Administrator</p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--navy)', borderRadius: 10, padding: '10px 16px', border: '1px solid rgba(201,168,76,0.2)' }}>
+
+          {/* Term badge — dark crimson bg → must use gold/pale text */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: 'var(--navy)', borderRadius: 10, padding: '10px 16px',
+            border: '1px solid rgba(201,168,76,0.2)',
+          }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--gold)', display: 'inline-block' }} />
+            {/* ↓ gold-light on crimson bg ✓ */}
             <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--gold-light)', fontWeight: 600 }}>{termLabel}</span>
           </div>
         </div>
       </div>
 
       <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-        {/* Stat cards */}
+
+        {/* ── Stat cards (white bg → dark text) ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
           {STAT_CONFIG.map(({ label, key, accent, href, note }) => (
             <Link key={label} href={href} style={{ textDecoration: 'none', display: 'block' }}>
               <div className="stat-card" style={{ '--accent-color': accent } as React.CSSProperties}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <div style={{ width: 42, height: 42, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${accent}15`, border: `1px solid ${accent}30` }}>
+                  <div style={{
+                    width: 42, height: 42, borderRadius: 11,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: `${accent}15`, border: `1px solid ${accent}30`,
+                  }}>
                     <span style={{ fontFamily: 'Georgia, serif', fontSize: 16, color: accent, fontWeight: 700 }}>#</span>
                   </div>
                   <ArrowUpRight size={14} color="var(--text-muted)" />
                 </div>
+                {/* text on white → var(--navy) ✓ */}
                 <div style={{ fontFamily: 'Georgia, serif', fontSize: 34, fontWeight: 700, color: 'var(--navy)', lineHeight: 1, marginBottom: 4 }}>
                   {stats ? stats[key].toLocaleString() : '—'}
                 </div>
@@ -81,14 +99,26 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        {/* ── Finance strip + quick actions ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: 16 }}>
-          {/* Collected */}
+
+          {/* Fees Collected — dark crimson card */}
           <div className="card-gold" style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><TrendingUp size={16} color="var(--gold)" /></div>
-              <span style={{ fontFamily: 'system-ui', fontSize: 11, color: 'rgba(201,168,76,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>Fees Collected</span>
+              <div style={{
+                width: 36, height: 36, borderRadius: 9,
+                background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <TrendingUp size={16} color="var(--gold)" />
+              </div>
+              {/* label on dark bg → faint gold */}
+              <span style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--on-crimson-faint)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>Fees Collected</span>
             </div>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, fontWeight: 700, color: 'var(--gold-light)', letterSpacing: '-0.02em' }}>GHS {collected.toLocaleString('en-GH', { minimumFractionDigits: 2 })}</div>
+            {/* value on dark bg → gold-light */}
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, fontWeight: 700, color: 'var(--gold-light)', letterSpacing: '-0.02em' }}>
+              GHS {collected.toLocaleString('en-GH', { minimumFractionDigits: 2 })}
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10 }}>
               <div style={{ flex: 1, height: 4, background: 'rgba(201,168,76,0.15)', borderRadius: 2, overflow: 'hidden' }}>
                 <div style={{ width: `${collectionRate}%`, height: '100%', background: 'var(--gold)', borderRadius: 2 }} />
@@ -97,35 +127,48 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Outstanding */}
-          <div className="card" style={{ padding: 24, borderLeft: '3px solid #fbbf24', position: 'relative', overflow: 'hidden' }}>
+          {/* Outstanding — white card with amber accent */}
+          <div className="card" style={{ padding: 24, borderLeft: '3px solid #fbbf24' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 9, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Receipt size={16} color="#d97706" /></div>
+              <div style={{ width: 36, height: 36, borderRadius: 9, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Receipt size={16} color="#d97706" />
+              </div>
               <span style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>Outstanding</span>
             </div>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>GHS {outstanding.toLocaleString('en-GH', { minimumFractionDigits: 2 })}</div>
-            <Link href="/billing?status=owing" style={{ fontFamily: 'system-ui', fontSize: 11, color: '#d97706', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 10 }}>View unpaid <ArrowUpRight size={11} /></Link>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>
+              GHS {outstanding.toLocaleString('en-GH', { minimumFractionDigits: 2 })}
+            </div>
+            <Link href="/billing?status=owing" style={{ fontFamily: 'system-ui', fontSize: 11, color: '#d97706', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 10 }}>
+              View unpaid <ArrowUpRight size={11} />
+            </Link>
           </div>
 
-          {/* Quick Actions */}
+          {/* Quick Actions — white card */}
           <div className="card" style={{ padding: 24 }}>
             <div style={{ fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>Quick Actions</div>
             <QuickActions />
           </div>
         </div>
 
+        {/* ── Top students + recent payments ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 16 }}>
+
           {/* Top Students */}
           <div className="card">
             <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: '#fffbeb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Award size={15} color="#d97706" /></div>
-              <div><div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Top Students</div><div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>By average score</div></div>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: '#fffbeb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Award size={15} color="#d97706" />
+              </div>
+              <div>
+                <div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Top Students</div>
+                <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>By average score</div>
+              </div>
             </div>
             <div style={{ padding: '8px 0' }}>
               {topStudents.length === 0 ? (
                 <div style={{ padding: '32px 20px', textAlign: 'center', fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>No results entered yet</div>
               ) : topStudents.map((t, i) => {
-                const medals = ['🥇','🥈','🥉']
+                const medals = ['🥇', '🥈', '🥉']
                 return (
                   <div key={t.studentId} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 20px', borderBottom: i < topStudents.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
                     <div style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: i < 3 ? 14 : 12, flexShrink: 0 }}>
@@ -148,10 +191,17 @@ export default function DashboardPage() {
           <div className="card">
             <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><TrendingUp size={15} color="#16a34a" /></div>
-                <div><div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Recent Payments</div><div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>Latest fee transactions</div></div>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TrendingUp size={15} color="#16a34a" />
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Recent Payments</div>
+                  <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>Latest fee transactions</div>
+                </div>
               </div>
-              <Link href="/billing" style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--gold)', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>View all <ArrowUpRight size={11} /></Link>
+              <Link href="/billing" style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--gold)', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+                View all <ArrowUpRight size={11} />
+              </Link>
             </div>
             <div>
               {recentPayments.length === 0 ? (
@@ -159,7 +209,12 @@ export default function DashboardPage() {
               ) : recentPayments.map((p, i) => (
                 <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: i < recentPayments.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--gold-pale)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: 'var(--navy)', flexShrink: 0 }}>
+                    <div style={{
+                      width: 34, height: 34, borderRadius: 9,
+                      background: 'var(--gold-pale)', border: '1px solid var(--border)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: 'var(--navy)', flexShrink: 0,
+                    }}>
                       {p.student?.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                     </div>
                     <div>

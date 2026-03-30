@@ -11,6 +11,14 @@ ChartJS.register(
   PointElement, LineElement, Filler
 )
 
+// Design tokens — mirror globals.css
+const NAVY    = '#5C0F0F'
+const CRIMSON = '#8B1A1A'
+const GOLD    = '#C9A84C'
+const GOLD_LT = '#E2C97E'
+const GRID_LN = '#F2E4E0'
+const TICK_CL = '#B08080'
+
 export default function DashboardCharts() {
   const feeData = {
     labels: ['JHS 1A', 'JHS 1B', 'JHS 2A', 'JHS 2B', 'JHS 3A', 'SHS 1A'],
@@ -18,7 +26,7 @@ export default function DashboardCharts() {
       {
         label: 'Collected (GHS)',
         data: [12000, 9500, 14000, 11000, 8500, 16000],
-        backgroundColor: '#8B1A1A',
+        backgroundColor: CRIMSON,
         borderRadius: 7,
         borderSkipped: false,
         barPercentage: 0.65,
@@ -26,7 +34,7 @@ export default function DashboardCharts() {
       {
         label: 'Outstanding (GHS)',
         data: [2000, 3500, 1000, 2500, 4000, 1500],
-        backgroundColor: '#c9a84c',
+        backgroundColor: GOLD,
         borderRadius: 7,
         borderSkipped: false,
         barPercentage: 0.65,
@@ -38,7 +46,7 @@ export default function DashboardCharts() {
     labels: ['Male', 'Female'],
     datasets: [{
       data: [54, 46],
-      backgroundColor: ['#8B1A1A', '#c9a84c'],
+      backgroundColor: [NAVY, GOLD],
       borderWidth: 0,
       hoverOffset: 6,
     }],
@@ -50,10 +58,10 @@ export default function DashboardCharts() {
       {
         label: 'Enrolment',
         data: [210, 215, 220, 220, 230, 245],
-        borderColor: '#8B1A1A',              // was 'var(--navy)'
-        backgroundColor: 'rgba(139,26,26,0.06)',  // was rgba(15,31,61,...)
+        borderColor: CRIMSON,
+        backgroundColor: 'rgba(139,26,26,0.06)',
         borderWidth: 2.5,
-        pointBackgroundColor: '#8B1A1A',
+        pointBackgroundColor: CRIMSON,
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
         pointRadius: 5,
@@ -63,45 +71,57 @@ export default function DashboardCharts() {
     ],
   }
 
+  const tooltipBase = {
+    backgroundColor: NAVY,
+    titleFont: { family: 'Georgia', size: 12 },
+    bodyFont: { family: 'system-ui', size: 11 },
+    titleColor: GOLD_LT,
+    bodyColor: '#FDF5F0',
+    padding: 12,
+    cornerRadius: 10,
+  }
+
+  const legendBase = {
+    position: 'bottom' as const,
+    labels: {
+      boxWidth: 10, boxHeight: 10, borderRadius: 3,
+      font: { size: 11, family: 'system-ui' },
+      color: TICK_CL,
+      padding: 18,
+    },
+  }
+
+  const axisBase = {
+    x: {
+      grid: { display: false },
+      ticks: { font: { size: 11, family: 'system-ui' }, color: TICK_CL },
+      border: { display: false },
+    },
+    y: {
+      grid: { color: GRID_LN, lineWidth: 1 },
+      ticks: { font: { size: 11, family: 'system-ui' }, color: TICK_CL },
+      border: { display: false },
+    },
+  }
+
   const barOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          boxWidth: 10,
-          boxHeight: 10,
-          borderRadius: 3,
-          font: { size: 11, family: 'system-ui' },
-          color: '#5a6a82',
-          padding: 18,
-        },
-      },
+      legend: legendBase,
       tooltip: {
-        backgroundColor: 'var(--navy)',
-        titleFont: { family: 'Georgia', size: 12 },
-        bodyFont: { family: 'system-ui', size: 11 },
-        padding: 12,
-        cornerRadius: 10,
-        callbacks: {
-          label: (ctx: any) => ` GHS ${ctx.parsed.y.toLocaleString()}`,
-        },
+        ...tooltipBase,
+        callbacks: { label: (ctx: any) => ` GHS ${ctx.parsed.y.toLocaleString()}` },
       },
     },
     scales: {
-      x: {
-        grid: { display: false },
-        ticks: { font: { size: 11, family: 'system-ui' }, color: '#5a6a82' },
-        border: { display: false },
-      },
+      ...axisBase,
       y: {
-        grid: { color: '#f5f0e8', lineWidth: 1 },
+        ...axisBase.y,
         ticks: {
-          font: { size: 11, family: 'system-ui' }, color: '#5a6a82',
+          ...axisBase.y.ticks,
           callback: (v: any) => `${(v / 1000).toFixed(0)}k`,
         },
-        border: { display: false },
       },
     },
   }
@@ -111,25 +131,10 @@ export default function DashboardCharts() {
     maintainAspectRatio: false,
     cutout: '74%',
     plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          boxWidth: 10,
-          boxHeight: 10,
-          borderRadius: 3,
-          font: { size: 11, family: 'system-ui' },
-          color: '#5a6a82',
-          padding: 18,
-        },
-      },
+      legend: legendBase,
       tooltip: {
-        backgroundColor: 'var(--navy)',
-        bodyFont: { family: 'system-ui', size: 11 },
-        padding: 12,
-        cornerRadius: 10,
-        callbacks: {
-          label: (ctx: any) => ` ${ctx.parsed}%`,
-        },
+        ...tooltipBase,
+        callbacks: { label: (ctx: any) => ` ${ctx.parsed}%` },
       },
     },
   }
@@ -140,28 +145,13 @@ export default function DashboardCharts() {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: 'var(--navy)',
-        titleFont: { family: 'Georgia', size: 12 },
-        bodyFont: { family: 'system-ui', size: 11 },
-        padding: 12,
-        cornerRadius: 10,
-        callbacks: {
-          label: (ctx: any) => ` ${ctx.parsed.y} students`,
-        },
+        ...tooltipBase,
+        callbacks: { label: (ctx: any) => ` ${ctx.parsed.y} students` },
       },
     },
     scales: {
-      x: {
-        grid: { display: false },
-        ticks: { font: { size: 11, family: 'system-ui' }, color: '#5a6a82' },
-        border: { display: false },
-      },
-      y: {
-        grid: { color: '#f5f0e8', lineWidth: 1 },
-        ticks: { font: { size: 11, family: 'system-ui' }, color: '#5a6a82' },
-        border: { display: false },
-        min: 200,
-      },
+      ...axisBase,
+      y: { ...axisBase.y, min: 200 },
     },
   }
 
@@ -172,34 +162,16 @@ export default function DashboardCharts() {
     padding: 24,
   }
 
-  const cardHeaderStyle = {
-    marginBottom: 20,
-  }
-
-  const cardTitleStyle = {
-    fontFamily: 'Georgia, serif',
-    fontSize: 15,
-    fontWeight: 700,
-    color: 'var(--navy)',
-  }
-
-  const cardSubStyle = {
-    fontFamily: 'system-ui',
-    fontSize: 11,
-    color: 'var(--text-muted)',
-    marginTop: 2,
-  }
-
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 16 }}>
 
-      {/* Bar chart — full-width-ish */}
+      {/* Bar chart */}
       <div style={cardStyle}>
-        <div style={cardHeaderStyle}>
+        <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
-              <div style={cardTitleStyle}>Fee Collection by Class</div>
-              <div style={cardSubStyle}>Collected vs outstanding per class</div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>Fee Collection by Class</div>
+              <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Collected vs outstanding per class</div>
             </div>
             <div style={{
               background: '#f0fdf4', border: '1px solid rgba(22,163,74,0.2)',
@@ -217,21 +189,19 @@ export default function DashboardCharts() {
 
       {/* Donut */}
       <div style={cardStyle}>
-        <div style={cardHeaderStyle}>
-          <div style={cardTitleStyle}>Gender Split</div>
-          <div style={cardSubStyle}>Student gender breakdown</div>
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>Gender Split</div>
+          <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Student gender breakdown</div>
         </div>
         <div style={{ height: 160 }}>
           <Doughnut data={genderData} options={donutOptions} />
         </div>
-        {/* Centre label */}
         <div style={{ textAlign: 'center', marginTop: 8 }}>
           <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, fontWeight: 700, color: 'var(--navy)' }}>54 / 46</div>
           <div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>Male / Female ratio</div>
         </div>
-        {/* Legend bars */}
         <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {[{ label: 'Male', pct: 54, color: 'var(--navy)' }, { label: 'Female', pct: 46, color: '#c9a84c' }].map(item => (
+          {[{ label: 'Male', pct: 54, color: NAVY }, { label: 'Female', pct: 46, color: GOLD }].map(item => (
             <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 8, height: 8, borderRadius: 2, background: item.color, flexShrink: 0 }} />
               <span style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-secondary)', flex: 1 }}>{item.label}</span>
@@ -244,29 +214,26 @@ export default function DashboardCharts() {
         </div>
       </div>
 
-      {/* Line chart — enrolment trend */}
+      {/* Line chart */}
       <div style={cardStyle}>
-        <div style={cardHeaderStyle}>
-          <div style={cardTitleStyle}>Enrolment Trend</div>
-          <div style={cardSubStyle}>Students Jan–Jun 2024</div>
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>Enrolment Trend</div>
+          <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Students Jan–Jun 2024</div>
         </div>
         <div style={{ height: 160 }}>
           <Line data={trendData} options={lineOptions} />
         </div>
-        {/* Summary stat */}
         <div style={{ marginTop: 14, padding: '10px 14px', background: 'var(--surface-2)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-secondary)' }}>6-month growth</span>
           <span style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: '#16a34a' }}>+16.7%</span>
         </div>
         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-          <div style={{ flex: 1, padding: '8px 10px', background: 'rgba(139,26,26,0.04)', borderRadius: 8, textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>210</div>
-            <div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>Jan start</div>
-          </div>
-          <div style={{ flex: 1, padding: '8px 10px', background: 'rgba(139,26,26,0.04)', borderRadius: 8, textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>245</div>
-            <div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>Jun now</div>
-          </div>
+          {[{ label: 'Jan start', val: '210' }, { label: 'Jun now', val: '245' }].map(s => (
+            <div key={s.label} style={{ flex: 1, padding: '8px 10px', background: 'rgba(92,15,15,0.04)', borderRadius: 8, textAlign: 'center' }}>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>{s.val}</div>
+              <div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>{s.label}</div>
+            </div>
+          ))}
         </div>
       </div>
 
