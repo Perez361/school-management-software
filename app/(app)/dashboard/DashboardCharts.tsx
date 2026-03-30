@@ -50,7 +50,7 @@ export default function DashboardCharts() {
       {
         label: 'Enrolment',
         data: [210, 215, 220, 220, 230, 245],
-        borderColor: '#8B1A1A',              // was '#0f1f3d'
+        borderColor: '#8B1A1A',              // was 'var(--navy)'
         backgroundColor: 'rgba(139,26,26,0.06)',  // was rgba(15,31,61,...)
         borderWidth: 2.5,
         pointBackgroundColor: '#8B1A1A',
@@ -79,7 +79,7 @@ export default function DashboardCharts() {
         },
       },
       tooltip: {
-        backgroundColor: '#0f1f3d',
+        backgroundColor: 'var(--navy)',
         titleFont: { family: 'Georgia', size: 12 },
         bodyFont: { family: 'system-ui', size: 11 },
         padding: 12,
@@ -123,7 +123,7 @@ export default function DashboardCharts() {
         },
       },
       tooltip: {
-        backgroundColor: '#0f1f3d',
+        backgroundColor: 'var(--navy)',
         bodyFont: { family: 'system-ui', size: 11 },
         padding: 12,
         cornerRadius: 10,
@@ -140,7 +140,7 @@ export default function DashboardCharts() {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#0f1f3d',
+        backgroundColor: 'var(--navy)',
         titleFont: { family: 'Georgia', size: 12 },
         bodyFont: { family: 'system-ui', size: 11 },
         padding: 12,
@@ -231,7 +231,7 @@ export default function DashboardCharts() {
         </div>
         {/* Legend bars */}
         <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {[{ label: 'Male', pct: 54, color: '#0f1f3d' }, { label: 'Female', pct: 46, color: '#c9a84c' }].map(item => (
+          {[{ label: 'Male', pct: 54, color: 'var(--navy)' }, { label: 'Female', pct: 46, color: '#c9a84c' }].map(item => (
             <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 8, height: 8, borderRadius: 2, background: item.color, flexShrink: 0 }} />
               <span style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-secondary)', flex: 1 }}>{item.label}</span>
@@ -259,11 +259,11 @@ export default function DashboardCharts() {
           <span style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: '#16a34a' }}>+16.7%</span>
         </div>
         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-          <div style={{ flex: 1, padding: '8px 10px', background: 'rgba(15,31,61,0.04)', borderRadius: 8, textAlign: 'center' }}>
+          <div style={{ flex: 1, padding: '8px 10px', background: 'rgba(139,26,26,0.04)', borderRadius: 8, textAlign: 'center' }}>
             <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>210</div>
             <div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>Jan start</div>
           </div>
-          <div style={{ flex: 1, padding: '8px 10px', background: 'rgba(15,31,61,0.04)', borderRadius: 8, textAlign: 'center' }}>
+          <div style={{ flex: 1, padding: '8px 10px', background: 'rgba(139,26,26,0.04)', borderRadius: 8, textAlign: 'center' }}>
             <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: 'var(--navy)' }}>245</div>
             <div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>Jun now</div>
           </div>

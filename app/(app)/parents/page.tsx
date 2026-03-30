@@ -25,7 +25,7 @@ export default function ParentsPage() {
             <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>{parents.length} registered</span>
           </div>
         </div>
-        <Link href="/parents/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: '#faf7f0', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(15,31,61,0.2)' }}>
+        <Link href="/parents/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(139,26,26,0.2)' }}>
           <Plus size={15} /> Add Parent
         </Link>
       </div>
@@ -43,7 +43,14 @@ export default function ParentsPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={4} style={{ textAlign: 'center', padding: '40px', fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-muted)' }}>Loading…</td></tr>
+                  [1, 2, 3].map(i => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                      <td style={{ padding: '13px 18px' }}><div style={{ display: 'flex', alignItems: 'center', gap: 11 }}><div className="skeleton skeleton-avatar" style={{ width: 36, height: 36, flexShrink: 0 }} /><div className="skeleton skeleton-text" style={{ width: 140 }} /></div></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 120 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 160 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text skeleton-btn" style={{ width: 60, height: 28 }} /></td>
+                    </tr>
+                  ))
                 ) : parents.map((p, i) => (
                   <tr key={p.id} style={{ borderBottom: i < parents.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
                     <td style={{ padding: '13px 18px' }}>
@@ -66,15 +73,17 @@ export default function ParentsPage() {
                       ) : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>}
                     </td>
                     <td style={{ padding: '13px 18px' }}>
-                      <Link href={`/parents/edit?id=${p.id}`} style={{ fontSize: 12, fontWeight: 600, color: '#0f1f3d', background: 'rgba(15,31,61,0.06)', padding: '4px 12px', borderRadius: 7, textDecoration: 'none', border: '1px solid rgba(15,31,61,0.1)' }}>Edit</Link>
+                      <Link href={`/parents/edit?id=${p.id}`} className="action-link">Edit</Link>
                     </td>
                   </tr>
                 ))}
                 {!loading && parents.length === 0 && (
-                  <tr><td colSpan={4} style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
-                    <UserCheck size={44} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.25 }} />
-                    <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, marginBottom: 16 }}>No parents registered yet</div>
-                    <Link href="/parents/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: '#faf7f0', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Add First Parent</Link>
+                  <tr><td colSpan={4}>
+                    <div className="empty-state">
+                      <div className="empty-icon-wrap"><UserCheck size={24} color="var(--gold)" /></div>
+                      <div className="empty-title">No parents registered yet</div>
+                      <Link href="/parents/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Add First Parent</Link>
+                    </div>
                   </td></tr>
                 )}
               </tbody>

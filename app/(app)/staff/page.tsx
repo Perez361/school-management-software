@@ -5,10 +5,10 @@ import { Plus, UserSquare2 } from 'lucide-react'
 import { api, Staff } from '@/lib/api'
 
 const roleMeta: Record<string, { color: string; bg: string; dot: string }> = {
-  Teacher:    { color: '#1d4ed8', bg: 'rgba(37,99,235,0.07)',  dot: '#2563eb' },
+  Teacher:    { color: 'var(--navy)', bg: 'rgba(139,26,26,0.07)',  dot: 'var(--gold)' },
   Admin:      { color: '#b45309', bg: 'rgba(217,119,6,0.07)',  dot: '#d97706' },
   Headmaster: { color: '#15803d', bg: 'rgba(22,163,74,0.07)',  dot: '#16a34a' },
-  Bursar:     { color: '#7c3aed', bg: 'rgba(124,58,237,0.07)', dot: '#8b5cf6' },
+  Bursar:     { color: '#8B1A1A', bg: 'rgba(139,26,26,0.07)', dot: '#C9A84C' },
 }
 
 export default function StaffPage() {
@@ -46,7 +46,7 @@ export default function StaffPage() {
             })}
           </div>
         </div>
-        <Link href="/staff/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: '#faf7f0', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(15,31,61,0.2)' }}>
+        <Link href="/staff/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(139,26,26,0.2)' }}>
           <Plus size={15} /> Add Staff
         </Link>
       </div>
@@ -64,7 +64,17 @@ export default function StaffPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px', fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-muted)' }}>Loading…</td></tr>
+                  [1, 2, 3].map(i => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                      <td style={{ padding: '13px 18px' }}><div style={{ display: 'flex', alignItems: 'center', gap: 11 }}><div className="skeleton skeleton-avatar" style={{ width: 34, height: 34, flexShrink: 0 }} /><div className="skeleton skeleton-text" style={{ width: 130 }} /></div></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 70 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 80 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 100 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 80 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 100 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text skeleton-btn" style={{ width: 60, height: 28 }} /></td>
+                    </tr>
+                  ))
                 ) : staff.map((s, i) => {
                   const m = roleMeta[s.role] || { color: '#555', bg: '#f5f5f5', dot: '#888' }
                   return (
@@ -77,23 +87,25 @@ export default function StaffPage() {
                           <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{s.name}</span>
                         </div>
                       </td>
-                      <td style={{ padding: '13px 18px' }}><span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '3px 8px', borderRadius: 5 }}>{s.staffId}</span></td>
+                      <td style={{ padding: '13px 18px' }}><span className="mono-tag">{s.staffId}</span></td>
                       <td style={{ padding: '13px 18px' }}><span style={{ background: m.bg, color: m.color, fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 5, height: 5, borderRadius: '50%', background: m.dot }} />{s.role}</span></td>
                       <td style={{ padding: '13px 18px', fontSize: 13, color: 'var(--text-secondary)' }}>{s.subject || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
                       <td style={{ padding: '13px 18px' }}>
-                        {s.class ? <span style={{ background: 'rgba(22,163,74,0.07)', color: '#15803d', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>{s.class.name}</span>
+                        {s.class ? <span className="badge badge-green">{s.class.name}</span>
                           : <span style={{ color: 'var(--text-muted)', fontSize: 12, fontStyle: 'italic' }}>Not assigned</span>}
                       </td>
                       <td style={{ padding: '13px 18px', fontSize: 13, color: 'var(--text-secondary)' }}>{s.phone || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
-                      <td style={{ padding: '13px 18px' }}><Link href={`/staff/edit?id=${s.id}`} style={{ fontSize: 12, fontWeight: 600, color: '#0f1f3d', background: 'rgba(15,31,61,0.06)', padding: '4px 12px', borderRadius: 7, textDecoration: 'none', border: '1px solid rgba(15,31,61,0.1)' }}>Edit</Link></td>
+                      <td style={{ padding: '13px 18px' }}><Link href={`/staff/edit?id=${s.id}`} className="action-link">Edit</Link></td>
                     </tr>
                   )
                 })}
                 {!loading && staff.length === 0 && (
-                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
-                    <UserSquare2 size={44} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.25 }} />
-                    <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, marginBottom: 16 }}>No staff members yet</div>
-                    <Link href="/staff/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: '#faf7f0', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Add First Staff Member</Link>
+                  <tr><td colSpan={7}>
+                    <div className="empty-state">
+                      <div className="empty-icon-wrap"><UserSquare2 size={24} color="var(--gold)" /></div>
+                      <div className="empty-title">No staff members yet</div>
+                      <Link href="/staff/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Add First Staff Member</Link>
+                    </div>
                   </td></tr>
                 )}
               </tbody>

@@ -41,10 +41,10 @@ export default function StaffLoginPage() {
 
   const inputStyle = (focused: boolean): React.CSSProperties => ({
     width:"100%", padding:"14px 16px", fontSize:15,
-    background: focused ? "#fff" : "#f8fafc",
-    border: focused ? "2px solid #1e3a5f" : "2px solid #e2e8f0",
+    background: focused ? "#fff" : "var(--gold-pale)",
+    border: focused ? "2px solid #8B1A1A" : "2px solid #e2d9c8",
     borderRadius:10, outline:"none", fontFamily:"system-ui,sans-serif",
-    color:"#0f1f3d", transition:"all 0.2s ease", boxSizing:"border-box",
+    color:"var(--navy)", transition:"all 0.2s ease", boxSizing:"border-box",
   });
 
   const roles = [
@@ -55,7 +55,7 @@ export default function StaffLoginPage() {
   ];
 
   return (
-    <div style={{ minHeight:"100vh", display:"flex", background:"#f1f5f9", fontFamily:"system-ui,sans-serif" }}>
+    <div style={{ minHeight:"100vh", display:"flex", background:"#f5f0e8", fontFamily:"system-ui,sans-serif" }}>
 
       {/* ── FORM (left, wider) ── */}
       <div style={{
@@ -66,7 +66,7 @@ export default function StaffLoginPage() {
         <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:0.025}} viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
           <defs>
             <pattern id="dots" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1.5" fill="#0f1f3d"/>
+              <circle cx="2" cy="2" r="1.5" fill="var(--navy)"/>
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#dots)"/>
@@ -79,7 +79,7 @@ export default function StaffLoginPage() {
             color:"#94a3b8", fontSize:13, textDecoration:"none", marginBottom:32,
             transition:"color 0.2s",
           }}
-            onMouseEnter={e => (e.currentTarget.style.color="#0f1f3d")}
+            onMouseEnter={e => (e.currentTarget.style.color="var(--navy)")}
             onMouseLeave={e => (e.currentTarget.style.color="#94a3b8")}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -91,17 +91,17 @@ export default function StaffLoginPage() {
           {/* Card */}
           <div style={{
             background:"#fff", borderRadius:20, padding:"40px",
-            boxShadow:"0 4px 40px rgba(15,31,61,0.08), 0 1px 0 rgba(255,255,255,0.6) inset",
+            boxShadow:"0 4px 40px rgba(139,26,26,0.08), 0 1px 0 rgba(255,255,255,0.6) inset",
             border:"1px solid rgba(226,217,200,0.6)",
             animation: mounted?"scale-in 0.5s ease 0.1s both":"none", opacity: mounted?undefined:0,
           }}>
             {/* Header */}
             <div style={{ marginBottom:32 }}>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-                <div style={{ width:24, height:3, background:"#1e3a5f", borderRadius:2 }}/>
-                <span style={{ color:"#1e3a5f", fontSize:11, letterSpacing:3, textTransform:"uppercase", fontWeight:700 }}>Staff Portal</span>
+                <div style={{ width:24, height:3, background:"#c9a84c", borderRadius:2 }}/>
+                <span style={{ color:"#c9a84c", fontSize:11, letterSpacing:3, textTransform:"uppercase", fontWeight:700 }}>Staff Portal</span>
               </div>
-              <h1 style={{ fontSize:28, fontWeight:700, color:"#0f1f3d", margin:0, letterSpacing:"-0.02em", lineHeight:1.2 }}>
+              <h1 style={{ fontSize:28, fontWeight:700, color:"var(--navy)", margin:0, letterSpacing:"-0.02em", lineHeight:1.2 }}>
                 Good to see you! 👋
               </h1>
               <p style={{ color:"#64748b", fontSize:14, margin:"8px 0 0", lineHeight:1.6 }}>
@@ -118,13 +118,13 @@ export default function StaffLoginPage() {
                 {roles.map(r => (
                   <button key={r.id} type="button" onClick={() => setRole(r.id)} style={{
                     padding:"10px 12px", borderRadius:8, cursor:"pointer", textAlign:"left",
-                    background: role===r.id ? "rgba(15,31,61,0.06)" : "#f8fafc",
-                    border: role===r.id ? "2px solid #1e3a5f" : "2px solid transparent",
+                    background: role===r.id ? "rgba(139,26,26,0.06)" : "var(--gold-pale)",
+                    border: role===r.id ? "2px solid #8B1A1A" : "2px solid transparent",
                     transition:"all 0.15s ease", display:"flex", alignItems:"center", gap:8,
                     outline:"none",
                   }}>
                     <span style={{ fontSize:16 }}>{r.icon}</span>
-                    <span style={{ fontSize:13, fontWeight: role===r.id ? 600 : 400, color: role===r.id ? "#0f1f3d" : "#64748b" }}>
+                    <span style={{ fontSize:13, fontWeight: role===r.id ? 600 : 400, color: role===r.id ? "var(--navy)" : "#64748b" }}>
                       {r.label}
                     </span>
                   </button>
@@ -152,7 +152,7 @@ export default function StaffLoginPage() {
                 </label>
                 <div style={{ position:"relative" }}>
                   <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={idFocused?"#1e3a5f":"#9ca3af"} strokeWidth="1.8" strokeLinecap="round">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={idFocused?"#8B1A1A":"#9ca3af"} strokeWidth="1.8" strokeLinecap="round">
                       <rect x="2" y="5" width="20" height="14" rx="2"/>
                       <path d="M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
                       <path d="M6 19c0-2.5 2.7-4 6-4s6 1.5 6 4"/>
@@ -173,13 +173,13 @@ export default function StaffLoginPage() {
               <div>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:7 }}>
                   <label style={{ fontSize:13, fontWeight:600, color:"#374151" }}>Password</label>
-                  <button type="button" style={{ background:"none", border:"none", cursor:"pointer", color:"#1e3a5f", fontSize:12, fontWeight:600, padding:0 }}>
+                  <button type="button" style={{ background:"none", border:"none", cursor:"pointer", color:"#8B1A1A", fontSize:12, fontWeight:600, padding:0 }}>
                     Reset password
                   </button>
                 </div>
                 <div style={{ position:"relative" }}>
                   <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={passFocused?"#1e3a5f":"#9ca3af"} strokeWidth="1.8" strokeLinecap="round">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={passFocused?"#8B1A1A":"#9ca3af"} strokeWidth="1.8" strokeLinecap="round">
                       <rect x="3" y="11" width="18" height="11" rx="2"/>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                     </svg>
@@ -206,7 +206,7 @@ export default function StaffLoginPage() {
 
               {/* Remember me */}
               <label style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", userSelect:"none" }}>
-                <input type="checkbox" style={{ width:16, height:16, cursor:"pointer", accentColor:"#1e3a5f" }}/>
+                <input type="checkbox" style={{ width:16, height:16, cursor:"pointer", accentColor:"#8B1A1A" }}/>
                 <span style={{ fontSize:13, color:"#64748b" }}>Keep me signed in for this session</span>
               </label>
 
@@ -215,11 +215,11 @@ export default function StaffLoginPage() {
                 type="submit" disabled={loading}
                 style={{
                   width:"100%", padding:"15px", marginTop:4,
-                  background: loading ? "#94a3b8" : "linear-gradient(135deg,#162844 0%,#1e3a5f 100%)",
+                  background: loading ? "#94a3b8" : "linear-gradient(135deg,#4A0A0A 0%,#8B1A1A 100%)",
                   color:"#fff", border:"none", borderRadius:10,
                   fontSize:15, fontWeight:700, cursor: loading?"not-allowed":"pointer",
                   fontFamily:"system-ui,sans-serif",
-                  boxShadow: loading ? "none" : "0 4px 16px rgba(15,31,61,0.25)",
+                  boxShadow: loading ? "none" : "0 4px 16px rgba(139,26,26,0.25)",
                   transition:"all 0.2s ease",
                   display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                 }}
@@ -242,7 +242,7 @@ export default function StaffLoginPage() {
           {/* Help note */}
           <p style={{ textAlign:"center", color:"#94a3b8", fontSize:12, marginTop:20, lineHeight:1.6 }}>
             New staff member?{" "}
-            <span style={{ color:"#1e3a5f", fontWeight:600, cursor:"pointer" }}>
+            <span style={{ color:"#8B1A1A", fontWeight:600, cursor:"pointer" }}>
               Contact HR to get your credentials
             </span>
           </p>
@@ -251,7 +251,7 @@ export default function StaffLoginPage() {
 
       {/* ── RIGHT — stats panel ── */}
       <div style={{
-        width:"36%", background:"linear-gradient(160deg,#0f1f3d 0%,#1e3a5f 60%,#162844 100%)",
+        width:"36%", background:"linear-gradient(170deg, #4A0A0A 0%, #7A1515 40%, #5C1010 100%)",
         display:"flex", flexDirection:"column", justifyContent:"center",
         padding:"48px 40px", position:"relative", overflow:"hidden", flexShrink:0,
       }}>

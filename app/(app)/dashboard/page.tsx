@@ -9,8 +9,8 @@ import QuickActions from './QuickActions'
 // StatCards - inline since it was a simple client component
 const STAT_CONFIG = [
   { label: 'Total Students', key: 'totalStudents' as const, accent: '#c9a84c', href: '/students', note: 'enrolled' },
-  { label: 'Total Staff',    key: 'totalStaff'    as const, accent: '#2563eb', href: '/staff',    note: 'active'   },
-  { label: 'Classes',        key: 'totalClasses'  as const, accent: '#9333ea', href: '/classes',  note: 'running'  },
+  { label: 'Total Staff',    key: 'totalStaff'    as const, accent: '#8B1A1A', href: '/staff',    note: 'active'   },
+  { label: 'Classes',        key: 'totalClasses'  as const, accent: '#C9A84C', href: '/classes',  note: 'running'  },
   { label: 'Parents',        key: 'totalParents'  as const, accent: '#16a34a', href: '/parents',  note: 'registered'},
 ]
 

@@ -85,7 +85,7 @@ export default function StudentDetail() {
               {student.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </div>
             <div style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: 'var(--navy)', marginBottom: 6 }}>{student.name}</div>
-            <span style={{ background: 'rgba(37,99,235,0.07)', color: '#1d4ed8', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>{student.class?.name}</span>
+            <span style={{ background: 'rgba(139,26,26,0.07)', color: 'var(--navy)', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>{student.class?.name}</span>
           </div>
           <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
             {([
@@ -129,18 +129,18 @@ export default function StudentDetail() {
 
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
             <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <FileText size={15} color="#2563eb" />
+              <FileText size={15} color="var(--gold)" />
               <span style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Academic Results</span>
             </div>
             {Object.keys(groupedResults).length === 0 ? (
               <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-muted)' }}>No results recorded yet.</div>
             ) : Object.entries(groupedResults).map(([termYear, termResults]) => (
               <div key={termYear} style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-soft)' }}>
-                <div style={{ fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{termYear}</div>
+                <div style={{ fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--navy)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{termYear}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {termResults.map(r => {
                     const grade = getGrade(r.total)
-                    const gradeColors: Record<string, string> = { A: '#15803d', B: '#1d4ed8', C: '#0369a1', D: '#b45309', E: '#c2410c', F: '#b91c1c' }
+                    const gradeColors: Record<string, string> = { A: '#15803d', B: '#C9A84C', C: '#8B1A1A', D: '#b45309', E: '#c2410c', F: '#b91c1c' }
                     return (
                       <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontFamily: 'system-ui', fontSize: 13, color: 'var(--navy)' }}>{r.subject?.name}</span>

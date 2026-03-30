@@ -79,7 +79,7 @@ export default function BillingPage() {
             {isFiltered && <span style={{ fontFamily: 'system-ui', fontSize: 11, color: '#b45309', background: 'rgba(180,83,9,0.07)', padding: '2px 9px', borderRadius: 20, fontWeight: 600 }}>Filtered view</span>}
           </div>
         </div>
-        <Link href="/billing/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: '#faf7f0', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(15,31,61,0.2)' }}>
+        <Link href="/billing/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(139,26,26,0.2)' }}>
           <Plus size={15} /> Record Payment
         </Link>
       </div>
@@ -144,7 +144,7 @@ export default function BillingPage() {
                   <option value="owing">Has Balance</option>
                 </select>
               </div>
-              <button type="submit" style={{ padding: '9px 20px', background: 'var(--navy)', color: '#faf7f0', border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Apply Filter</button>
+              <button type="submit" style={{ padding: '9px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Apply Filter</button>
               {isFiltered && <button type="button" onClick={() => { setClassFilter(''); setTermFilter(''); setStatusFilter(''); }} style={{ padding: '9px 16px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer' }}>Clear</button>}
             </form>
           </div>
@@ -170,13 +170,24 @@ export default function BillingPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px', fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-muted)' }}>Loading…</td></tr>
+                  [1, 2, 3, 4].map(i => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                      <td style={{ padding: '12px 16px' }}><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><div className="skeleton skeleton-avatar" style={{ width: 32, height: 32, flexShrink: 0 }} /><div className="skeleton skeleton-text" style={{ width: 120 }} /></div></td>
+                      <td style={{ padding: '12px 16px' }}><div className="skeleton skeleton-text" style={{ width: 70 }} /></td>
+                      <td style={{ padding: '12px 16px' }}><div className="skeleton skeleton-text" style={{ width: 90 }} /></td>
+                      <td style={{ padding: '12px 16px' }}><div className="skeleton skeleton-text" style={{ width: 60 }} /></td>
+                      <td style={{ padding: '12px 16px' }}><div className="skeleton skeleton-text" style={{ width: 70 }} /></td>
+                      <td style={{ padding: '12px 16px' }}><div className="skeleton skeleton-text" style={{ width: 70 }} /></td>
+                      <td style={{ padding: '12px 16px' }}><div className="skeleton skeleton-text" style={{ width: 70 }} /></td>
+                      <td style={{ padding: '12px 16px' }}><div className="skeleton skeleton-text" style={{ width: 60, borderRadius: 20 }} /></td>
+                    </tr>
+                  ))
                 ) : payments.length === 0 ? (
                   <tr>
                     <td colSpan={8} style={{ textAlign: 'center', padding: '64px 20px' }}>
                       <Receipt size={24} color="var(--gold)" style={{ opacity: 0.4, display: 'block', margin: '0 auto 14px' }} />
                       <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, color: 'var(--navy)', marginBottom: 6 }}>{isFiltered ? 'No records match your filters' : 'No payment records yet'}</div>
-                      {!isFiltered && <Link href="/billing/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: '#faf7f0', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Record First Payment</Link>}
+                      {!isFiltered && <Link href="/billing/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Record First Payment</Link>}
                     </td>
                   </tr>
                 ) : payments.map((p, i) => (
@@ -189,7 +200,7 @@ export default function BillingPage() {
                         <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{p.student?.name}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '12px 16px' }}><span style={{ background: 'rgba(37,99,235,0.07)', color: '#1d4ed8', fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20 }}>{p.student?.class.name}</span></td>
+                    <td style={{ padding: '12px 16px' }}><span className="badge badge-blue">{p.student?.class.name}</span></td>
                     <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }}>{p.feeType}</td>
                     <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-muted)' }}>{p.term}</td>
                     <td style={{ padding: '12px 16px' }}><span style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 600, color: 'var(--navy)' }}>{p.amount.toFixed(2)}</span></td>
@@ -197,8 +208,8 @@ export default function BillingPage() {
                     <td style={{ padding: '12px 16px' }}><span style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 600, color: p.balance > 0 ? '#b91c1c' : '#15803d' }}>{p.balance.toFixed(2)}</span></td>
                     <td style={{ padding: '12px 16px' }}>
                       {p.balance === 0
-                        ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(22,163,74,0.07)', color: '#15803d', fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20 }}><CheckCircle size={11} /> Paid</span>
-                        : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(185,28,28,0.07)', color: '#b91c1c', fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20 }}><AlertCircle size={11} /> Owing</span>
+                        ? <span className="status-paid"><CheckCircle size={11} /> Paid</span>
+                        : <span className="status-owing"><AlertCircle size={11} /> Owing</span>
                       }
                     </td>
                   </tr>

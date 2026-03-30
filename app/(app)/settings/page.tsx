@@ -46,7 +46,7 @@ function SettingsForm({ settings }: { settings: SchoolSettings | null }) {
 
       <div style={sectionStyle}>
         <div style={sectionHeaderStyle}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Building2 size={15} color="#2563eb" /></div>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(139,26,26,0.08)', border: '1px solid rgba(139,26,26,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Building2 size={15} color="var(--gold)" /></div>
           <div><div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>School Information</div><div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>Displayed on all generated documents and reports</div></div>
         </div>
         <div style={sectionBodyStyle}>
@@ -82,7 +82,7 @@ function SettingsForm({ settings }: { settings: SchoolSettings | null }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button type="submit" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: saving ? 'var(--surface-2)' : 'var(--navy)', color: saving ? 'var(--text-muted)' : '#faf7f0', border: saving ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', boxShadow: saving ? 'none' : '0 2px 10px rgba(15,31,61,0.2)' }}>
+        <button type="submit" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: saving ? 'var(--surface-2)' : 'var(--navy)', color: saving ? 'var(--text-muted)' : 'var(--gold-pale)', border: saving ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', boxShadow: saving ? 'none' : '0 2px 10px rgba(139,26,26,0.2)' }}>
           <Save size={15} />{saving ? 'Saving…' : 'Save Settings'}
         </button>
         {saved && <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'system-ui', fontSize: 13, color: '#15803d', fontWeight: 600 }}><CheckCircle size={15} /> Settings saved successfully!</div>}

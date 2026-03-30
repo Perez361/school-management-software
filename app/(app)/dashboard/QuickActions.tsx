@@ -6,8 +6,8 @@ import { ArrowUpRight } from 'lucide-react'
 const actions = [
   { label: 'Add New Student',  href: '/students/new',  color: 'var(--navy)' },
   { label: 'Record Payment',   href: '/billing/new',   color: '#16a34a' },
-  { label: 'Enter Results',    href: '/results/enter', color: '#2563eb' },
-  { label: 'Generate Reports', href: '/reports',       color: '#9333ea' },
+  { label: 'Enter Results',    href: '/results/enter', color: 'var(--navy)' },
+  { label: 'Generate Reports', href: '/reports',       color: '#C9A84C' },
 ]
 
 export default function QuickActions() {

@@ -94,19 +94,19 @@ export default function EnterResultsPage() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
             <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(37,99,235,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Users size={14} color="#2563eb" /></div>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(139,26,26,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Users size={14} color="var(--gold)" /></div>
                 <div>
                   <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{students.length} students</div>
                   <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>{filledCount} of {students.length} scores entered</div>
                 </div>
                 <div style={{ width: 120, height: 4, background: 'var(--border-soft)', borderRadius: 2, overflow: 'hidden', marginLeft: 6 }}>
-                  <div style={{ width: `${students.length ? (filledCount / students.length) * 100 : 0}%`, height: '100%', background: '#2563eb', borderRadius: 2 }} />
+                  <div style={{ width: `${students.length ? (filledCount / students.length) * 100 : 0}%`, height: '100%', background: 'var(--navy)', borderRadius: 2 }} />
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {saved && <span style={{ fontFamily: 'system-ui', fontSize: 12, color: '#15803d', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}><CheckCircle size={14} /> Saved!</span>}
                 {error && <span style={{ fontFamily: 'system-ui', fontSize: 12, color: '#b91c1c' }}>{error}</span>}
-                <button onClick={saveAll} disabled={saving || filledCount === 0} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: filledCount === 0 ? 'var(--surface-2)' : 'var(--navy)', color: filledCount === 0 ? 'var(--text-muted)' : '#faf7f0', border: filledCount === 0 ? '1px solid var(--border)' : 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: filledCount === 0 ? 'not-allowed' : 'pointer' }}>
+                <button onClick={saveAll} disabled={saving || filledCount === 0} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: filledCount === 0 ? 'var(--surface-2)' : 'var(--navy)', color: filledCount === 0 ? 'var(--text-muted)' : 'var(--gold-pale)', border: filledCount === 0 ? '1px solid var(--border)' : 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: filledCount === 0 ? 'not-allowed' : 'pointer' }}>
                   <Save size={14} />{saving ? 'Saving…' : `Save ${filledCount > 0 ? filledCount : ''} Score${filledCount !== 1 ? 's' : ''}`}
                 </button>
               </div>
@@ -118,8 +118,8 @@ export default function EnterResultsPage() {
               const sc = scores[s.id] || { ca: '', exam: '' }
               const ca = parseFloat(sc.ca); const exam = parseFloat(sc.exam)
               const total = !isNaN(ca) && !isNaN(exam) ? ca + exam : null
-              const totalColor = total === null ? 'var(--text-muted)' : total >= 80 ? '#15803d' : total >= 60 ? '#2563eb' : total >= 40 ? '#d97706' : '#b91c1c'
-              const totalBg = total === null ? 'var(--surface-2)' : total >= 80 ? 'rgba(22,163,74,0.08)' : total >= 60 ? 'rgba(37,99,235,0.07)' : total >= 40 ? 'rgba(217,119,6,0.07)' : 'rgba(185,28,28,0.07)'
+              const totalColor = total === null ? 'var(--text-muted)' : total >= 80 ? '#15803d' : total >= 60 ? '#C9A84C' : total >= 40 ? '#d97706' : '#b91c1c'
+              const totalBg = total === null ? 'var(--surface-2)' : total >= 80 ? 'rgba(22,163,74,0.08)' : total >= 60 ? 'rgba(139,26,26,0.07)' : total >= 40 ? 'rgba(217,119,6,0.07)' : 'rgba(185,28,28,0.07)'
               return (
                 <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 120px 110px 110px 56px', gap: 12, padding: '10px 20px', alignItems: 'center', borderBottom: i < students.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
                   <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{i + 1}</div>
@@ -137,7 +137,7 @@ export default function EnterResultsPage() {
           </div>
         ) : classId && !subjectId ? (
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '48px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <BookOpen size={20} color="#2563eb" style={{ display: 'block', margin: '0 auto 12px' }} />
+            <BookOpen size={20} color="var(--gold)" style={{ display: 'block', margin: '0 auto 12px' }} />
             <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, color: 'var(--navy)', marginBottom: 4 }}>Select a subject</div>
           </div>
         ) : !classId ? (

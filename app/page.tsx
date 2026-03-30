@@ -74,7 +74,7 @@ export default function WelcomePage() {
   }, []);
 
   return (
-    <div style={{ display:"flex", height:"100vh", width:"100vw", overflow:"hidden", fontFamily:"'Georgia', serif", background:"#0f1f3d" }}>
+    <div style={{ display:"flex", height:"100vh", width:"100vw", overflow:"hidden", fontFamily:"'Georgia', serif", background:"var(--navy)" }}>
 
       {/* ── LEFT PANEL — decorative ── */}
       <div style={{
@@ -165,7 +165,7 @@ export default function WelcomePage() {
         }}/>
         <div style={{
           position:"absolute", bottom:-40, left:-40, width:160, height:160,
-          borderRadius:"50%", background:"radial-gradient(circle, rgba(15,31,61,0.05) 0%, transparent 70%)",
+          borderRadius:"50%", background:"radial-gradient(circle, rgba(139,26,26,0.05) 0%, transparent 70%)",
           pointerEvents:"none",
         }}/>
 
@@ -199,21 +199,21 @@ export default function WelcomePage() {
               style={{
                 width:"100%", padding:"18px 28px",
                 background:"linear-gradient(135deg, #8B1A1A 0%, #9E1F1F 100%)",
-                color:"#faf7f0", border:"none", borderRadius:12,
+                color:"var(--gold-pale)", border:"none", borderRadius:12,
                 fontSize:15, fontWeight:600, cursor:"pointer",
                 display:"flex", alignItems:"center", justifyContent:"space-between",
                 fontFamily:"system-ui,sans-serif",
-                boxShadow:"0 4px 24px rgba(15,31,61,0.25), 0 1px 0 rgba(255,255,255,0.05) inset",
+                boxShadow:"0 4px 24px rgba(139,26,26,0.25), 0 1px 0 rgba(255,255,255,0.05) inset",
                 transition:"all 0.2s ease",
                 letterSpacing:"0.01em",
               }}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)";
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 32px rgba(15,31,61,0.35), 0 1px 0 rgba(255,255,255,0.05) inset";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 32px rgba(139,26,26,0.35), 0 1px 0 rgba(255,255,255,0.05) inset";
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 24px rgba(15,31,61,0.25), 0 1px 0 rgba(255,255,255,0.05) inset";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 24px rgba(139,26,26,0.25), 0 1px 0 rgba(255,255,255,0.05) inset";
               }}
             >
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
@@ -248,19 +248,19 @@ export default function WelcomePage() {
                 fontSize:15, fontWeight:600, cursor:"pointer",
                 display:"flex", alignItems:"center", justifyContent:"space-between",
                 fontFamily:"system-ui,sans-serif",
-                boxShadow:"0 2px 12px rgba(15,31,61,0.06)",
+                boxShadow:"0 2px 12px rgba(139,26,26,0.06)",
                 transition:"all 0.2s ease",
                 letterSpacing:"0.01em",
               }}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)";
                 (e.currentTarget as HTMLButtonElement).style.borderColor = "#c9a84c";
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 6px 20px rgba(15,31,61,0.12)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 6px 20px rgba(139,26,26,0.12)";
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
                 (e.currentTarget as HTMLButtonElement).style.borderColor = "#e2d9c8";
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 2px 12px rgba(15,31,61,0.06)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 2px 12px rgba(139,26,26,0.06)";
               }}
             >
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>

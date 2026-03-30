@@ -70,9 +70,9 @@ export default function NewStudentPage() {
             <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 24, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Add New Student</h1>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(37,99,235,0.07)', border: '1px solid rgba(37,99,235,0.15)', borderRadius: 9, padding: '8px 14px' }}>
-          <UserPlus size={14} color="#2563eb" />
-          <span style={{ fontFamily: 'system-ui', fontSize: 12, color: '#1d4ed8', fontWeight: 600 }}>New enrollment</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(139,26,26,0.07)', border: '1px solid rgba(139,26,26,0.15)', borderRadius: 9, padding: '8px 14px' }}>
+          <UserPlus size={14} color="var(--gold)" />
+          <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--navy)', fontWeight: 600 }}>New enrollment</span>
         </div>
       </div>
 
@@ -132,7 +132,7 @@ export default function NewStudentPage() {
           </div>
 
           <div style={{ display: 'flex', gap: 10 }}>
-            <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)', color: loading ? 'var(--text-muted)' : '#faf7f0', border: loading ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: loading ? 'none' : '0 2px 10px rgba(15,31,61,0.2)' }}>
+            <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)', color: loading ? 'var(--text-muted)' : 'var(--gold-pale)', border: loading ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: loading ? 'none' : '0 2px 10px rgba(139,26,26,0.2)' }}>
               <Save size={15} /> {loading ? 'Saving…' : 'Save Student'}
             </button>
             <Link href="/students" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>Cancel</Link>

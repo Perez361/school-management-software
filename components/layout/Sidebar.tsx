@@ -97,20 +97,20 @@ export default function Sidebar() {
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '8px 10px', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13,
                     fontWeight: active ? 600 : 400,
-                    color: active ? '#e2c97e' : 'rgba(201,168,76,0.45)',
+                    color: active ? '#e2c97e' : 'rgba(255,255,255,0.75)',
                     textDecoration: 'none', transition: 'all 0.14s ease',
                     marginBottom: 1, position: 'relative',
                     background: active ? 'rgba(201,168,76,0.1)' : 'transparent',
                     border: active ? '1px solid rgba(201,168,76,0.15)' : '1px solid transparent',
                   }}
-                  onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'rgba(201,168,76,0.06)'; (e.currentTarget as HTMLElement).style.color = 'rgba(201,168,76,0.75)'; }}}
-                  onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(201,168,76,0.45)'; }}}
+                  onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLElement).style.color = '#fff'; }}}
+                  onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.75)'; }}}
                 >
                   {active && (
                     <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: '55%', background: '#c9a84c', borderRadius: '0 2px 2px 0' }} />
                   )}
                   <div style={{ width: 28, height: 28, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? 'rgba(201,168,76,0.15)' : 'transparent', flexShrink: 0 }}>
-                    <Icon size={15} color={active ? '#c9a84c' : 'rgba(201,168,76,0.45)'} strokeWidth={active ? 2 : 1.75} />
+                    <Icon size={15} color={active ? '#c9a84c' : 'rgba(255,255,255,0.6)'} strokeWidth={active ? 2 : 1.75} />
                   </div>
                   <span style={{ flex: 1 }}>{label}</span>
                   {active && <ChevronRight size={12} style={{ opacity: 0.4, flexShrink: 0 }} color="#c9a84c" />}

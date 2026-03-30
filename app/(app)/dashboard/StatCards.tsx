@@ -27,7 +27,7 @@ export default function StatCards({ stats }: { stats: StatItem[] }) {
         .stat-card-link { text-decoration: none; display: block; }
         .stat-card-link .stat-card { transition: box-shadow 0.2s ease, transform 0.2s ease; }
         .stat-card-link:hover .stat-card {
-          box-shadow: 0 8px 32px rgba(15,31,61,0.08);
+          box-shadow: 0 8px 32px rgba(139,26,26,0.08);
           transform: translateY(-1px);
         }
       `}</style>

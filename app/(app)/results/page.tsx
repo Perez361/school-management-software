@@ -66,7 +66,7 @@ export default function ResultsPage() {
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Results & Rankings</h1>
           <p style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', marginTop: 5 }}>View and manage student examination results</p>
         </div>
-        <Link href="/results/enter" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: '#faf7f0', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(15,31,61,0.2)' }}>
+        <Link href="/results/enter" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(139,26,26,0.2)' }}>
           <Plus size={15} /> Enter Results
         </Link>
       </div>
@@ -87,7 +87,7 @@ export default function ResultsPage() {
                 </select>
               </div>
             ))}
-            <button type="submit" style={{ padding: '9px 20px', background: 'var(--navy)', color: '#faf7f0', border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer', alignSelf: 'flex-end' }}>View Results</button>
+            <button type="submit" style={{ padding: '9px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer', alignSelf: 'flex-end' }}>View Results</button>
           </form>
         </div>
 
@@ -98,18 +98,25 @@ export default function ResultsPage() {
             <div style={{ fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-muted)' }}>Choose a class, term, and year above to see rankings and scores</div>
           </div>
         ) : loading ? (
-          <div style={{ textAlign: 'center', padding: 60, fontFamily: 'system-ui', color: 'var(--text-muted)' }}>Loading…</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16 }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+              {[1,2,3,4,5].map(i => <div key={i} style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 10 }}><div className="skeleton skeleton-avatar" style={{ width: 26, height: 26, flexShrink: 0 }} /><div className="skeleton skeleton-text" style={{ width: '60%' }} /></div>)}
+            </div>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[1,2,3,4,5,6].map(i => <div key={i} className="skeleton skeleton-text" style={{ width: `${60 + i * 5}%` }} />)}
+            </div>
+          </div>
         ) : rankings.length === 0 ? (
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
             <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, marginBottom: 16 }}>No results found for this class, term and year</div>
-            <Link href="/results/enter" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: '#faf7f0', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Enter Results Now</Link>
+            <Link href="/results/enter" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Enter Results Now</Link>
           </div>
         ) : (
           <>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
               {[
-                { label: 'Students Ranked', value: rankings.length, color: '#0f1f3d' },
-                { label: 'Average Score', value: `${avgScore.toFixed(1)}%`, color: '#2563eb' },
+                { label: 'Students Ranked', value: rankings.length, color: 'var(--navy)' },
+                { label: 'Average Score', value: `${avgScore.toFixed(1)}%`, color: 'var(--navy)' },
                 { label: 'Grade A Count', value: gradeDistribution['A'] || 0, color: '#15803d' },
                 { label: 'Below Pass', value: (gradeDistribution['F'] || 0) + (gradeDistribution['E'] || 0), color: '#b91c1c' },
               ].map(({ label, value, color }) => (
@@ -128,7 +135,7 @@ export default function ResultsPage() {
                 </div>
                 {rankings.map((r, i) => {
                   const medals = ['🥇','🥈','🥉']
-                  const scoreColor = r.avg >= 80 ? '#15803d' : r.avg >= 60 ? '#2563eb' : r.avg >= 40 ? '#d97706' : '#b91c1c'
+                  const scoreColor = r.avg >= 80 ? '#15803d' : r.avg >= 60 ? '#C9A84C' : r.avg >= 40 ? '#d97706' : '#b91c1c'
                   return (
                     <div key={r.studentId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 18px', borderBottom: i < rankings.length - 1 ? '1px solid var(--border-soft)' : 'none', background: i === 0 ? 'rgba(201,168,76,0.04)' : 'transparent' }}>
                       <div style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: i < 3 ? 14 : 11, fontFamily: 'system-ui', fontWeight: 700, color: 'var(--text-muted)', flexShrink: 0 }}>
@@ -149,7 +156,7 @@ export default function ResultsPage() {
               {/* Detailed scores */}
               <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
                 <div style={{ padding: '15px 18px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 9 }}>
-                  <BarChart2 size={14} color="#2563eb" />
+                  <BarChart2 size={14} color="var(--gold)" />
                   <div><div style={{ fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Detailed Scores</div><div style={{ fontFamily: 'system-ui', fontSize: 10, color: 'var(--text-muted)' }}>{results.length} result entries</div></div>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
@@ -163,7 +170,7 @@ export default function ResultsPage() {
                     </thead>
                     <tbody>
                       {results.map((r, i) => {
-                        const gradeMeta: Record<string, { color: string; bg: string }> = { A:{color:'#15803d',bg:'rgba(22,163,74,0.08)'}, B:{color:'#1d4ed8',bg:'rgba(37,99,235,0.07)'}, C:{color:'#0369a1',bg:'rgba(3,105,161,0.07)'}, D:{color:'#b45309',bg:'rgba(180,83,9,0.07)'}, E:{color:'#c2410c',bg:'rgba(194,65,12,0.07)'}, F:{color:'#b91c1c',bg:'rgba(185,28,28,0.07)'} }
+                        const gradeMeta: Record<string, { color: string; bg: string }> = { A:{color:'#15803d',bg:'rgba(22,163,74,0.08)'}, B:{color:'#C9A84C',bg:'rgba(201,168,76,0.08)'}, C:{color:'#8B1A1A',bg:'rgba(139,26,26,0.07)'}, D:{color:'#b45309',bg:'rgba(180,83,9,0.07)'}, E:{color:'#c2410c',bg:'rgba(194,65,12,0.07)'}, F:{color:'#b91c1c',bg:'rgba(185,28,28,0.07)'} }
                         const gm = gradeMeta[r.grade] || gradeMeta['F']
                         return (
                           <tr key={r.id} style={{ borderBottom: i < results.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>

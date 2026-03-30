@@ -102,7 +102,7 @@ export default function InvoicePage() {
             <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 24, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Invoice #{payment.id}</h1>
           </div>
         </div>
-        <button onClick={handleDownload} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--navy)', color: '#faf7f0', border: 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 10px rgba(15,31,61,0.2)' }}>
+        <button onClick={handleDownload} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 10px rgba(139,26,26,0.2)' }}>
           <Download size={15} /> Download PDF
         </button>
       </div>

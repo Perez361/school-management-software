@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
 
   const inputStyle = (focused: boolean): React.CSSProperties => ({
     width: "100%", padding: "14px 16px", fontSize: 15,
-    background: focused ? "#fff" : "#faf7f0",
+    background: focused ? "#fff" : "var(--gold-pale)",
     border: focused ? "2px solid #2C0A0A" : "2px solid #e2d9c8",
     borderRadius: 10, outline: "none", fontFamily: "system-ui,sans-serif",
     color: "#2C0A0A", transition: "all 0.2s ease", boxSizing: "border-box",
@@ -149,7 +149,7 @@ export default function AdminLoginPage() {
               style={{
                 width: "100%", padding: "16px", marginTop: 4,
                 background: loading ? "#64748b" : "linear-gradient(135deg, #8B1A1A 0%, #B52424 100%)",
-                color: "#faf7f0", border: "none", borderRadius: 10, fontSize: 15,
+                color: "var(--gold-pale)", border: "none", borderRadius: 10, fontSize: 15,
                 fontWeight: 700, cursor: loading ? "not-allowed" : "pointer",
                 fontFamily: "system-ui,sans-serif",
               }}

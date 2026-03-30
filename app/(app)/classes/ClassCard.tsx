@@ -60,7 +60,7 @@ export default function ClassCard({ cls, lc }: ClassCardProps) {
           </Link>
         </div>
       </div>
-      <style>{`.class-card { transition: box-shadow 0.2s ease, transform 0.2s ease; } .class-card:hover { box-shadow: 0 6px 24px rgba(15,31,61,0.10); transform: translateY(-2px); } .class-card-btn { transition: border-color 0.14s, background 0.14s; } .class-card-btn:hover { border-color: var(--gold) !important; background: var(--gold-pale) !important; }`}</style>
+      <style>{`.class-card { transition: box-shadow 0.2s ease, transform 0.2s ease; } .class-card:hover { box-shadow: 0 6px 24px rgba(139,26,26,0.10); transform: translateY(-2px); } .class-card-btn { transition: border-color 0.14s, background 0.14s; } .class-card-btn:hover { border-color: var(--gold) !important; background: var(--gold-pale) !important; }`}</style>
     </div>
   )
 }

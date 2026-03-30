@@ -8,18 +8,18 @@ import ClassCard from './ClassCard'
 interface LevelColor { accent: string; bg: string; border: string; dot: string }
 
 const levelColors: Record<string, LevelColor> = {
-  JHS1:   { accent: '#2563eb', bg: 'rgba(37,99,235,0.07)',   border: 'rgba(37,99,235,0.15)',   dot: '#2563eb' },
-  JHS2:   { accent: '#7c3aed', bg: 'rgba(124,58,237,0.07)',  border: 'rgba(124,58,237,0.15)',  dot: '#7c3aed' },
-  JHS3:   { accent: '#0369a1', bg: 'rgba(3,105,161,0.07)',   border: 'rgba(3,105,161,0.15)',   dot: '#0369a1' },
+  JHS1:   { accent: '#8B1A1A', bg: 'rgba(139,26,26,0.07)',   border: 'rgba(139,26,26,0.15)',   dot: '#C9A84C' },
+  JHS2:   { accent: '#A52020', bg: 'rgba(165,32,32,0.07)',   border: 'rgba(165,32,32,0.15)',   dot: '#C9A84C' },
+  JHS3:   { accent: '#7A1515', bg: 'rgba(122,21,21,0.07)',   border: 'rgba(122,21,21,0.15)',   dot: '#C9A84C' },
   SHS1:   { accent: '#b45309', bg: 'rgba(180,83,9,0.07)',    border: 'rgba(180,83,9,0.15)',    dot: '#d97706' },
   SHS2:   { accent: '#15803d', bg: 'rgba(22,163,74,0.07)',   border: 'rgba(22,163,74,0.15)',   dot: '#16a34a' },
   SHS3:   { accent: '#b91c1c', bg: 'rgba(185,28,28,0.07)',   border: 'rgba(185,28,28,0.15)',   dot: '#dc2626' },
-  Basic1: { accent: '#0891b2', bg: 'rgba(8,145,178,0.07)',   border: 'rgba(8,145,178,0.15)',   dot: '#0891b2' },
-  Basic2: { accent: '#0891b2', bg: 'rgba(8,145,178,0.07)',   border: 'rgba(8,145,178,0.15)',   dot: '#0891b2' },
-  Basic3: { accent: '#0891b2', bg: 'rgba(8,145,178,0.07)',   border: 'rgba(8,145,178,0.15)',   dot: '#0891b2' },
-  Basic4: { accent: '#7c3aed', bg: 'rgba(124,58,237,0.07)',  border: 'rgba(124,58,237,0.15)',  dot: '#7c3aed' },
-  Basic5: { accent: '#7c3aed', bg: 'rgba(124,58,237,0.07)',  border: 'rgba(124,58,237,0.15)',  dot: '#7c3aed' },
-  Basic6: { accent: '#7c3aed', bg: 'rgba(124,58,237,0.07)',  border: 'rgba(124,58,237,0.15)',  dot: '#7c3aed' },
+  Basic1: { accent: '#C9A84C', bg: 'rgba(201,168,76,0.07)',  border: 'rgba(201,168,76,0.15)',  dot: '#C9A84C' },
+  Basic2: { accent: '#C9A84C', bg: 'rgba(201,168,76,0.07)',  border: 'rgba(201,168,76,0.15)',  dot: '#C9A84C' },
+  Basic3: { accent: '#C9A84C', bg: 'rgba(201,168,76,0.07)',  border: 'rgba(201,168,76,0.15)',  dot: '#C9A84C' },
+  Basic4: { accent: '#8B1A1A', bg: 'rgba(139,26,26,0.07)',   border: 'rgba(139,26,26,0.15)',   dot: '#C9A84C' },
+  Basic5: { accent: '#8B1A1A', bg: 'rgba(139,26,26,0.07)',   border: 'rgba(139,26,26,0.15)',   dot: '#C9A84C' },
+  Basic6: { accent: '#8B1A1A', bg: 'rgba(139,26,26,0.07)',   border: 'rgba(139,26,26,0.15)',   dot: '#C9A84C' },
 }
 
 function getLevelColor(level: string): LevelColor {
@@ -59,7 +59,7 @@ export default function ClassesPage() {
             <span style={{ fontFamily: 'system-ui', fontSize: 11, color: '#15803d', background: 'rgba(22,163,74,0.07)', padding: '2px 9px', borderRadius: 20, fontWeight: 600 }}>{totalStudents} students enrolled</span>
           </div>
         </div>
-        <Link href="/classes/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: '#faf7f0', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(15,31,61,0.2)' }}>
+        <Link href="/classes/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(139,26,26,0.2)' }}>
           <Plus size={15} /> Add Class
         </Link>
       </div>
@@ -71,7 +71,7 @@ export default function ClassesPage() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '80px 20px', textAlign: 'center' }}>
             <BookOpen size={26} color="var(--gold)" style={{ display: 'block', margin: '0 auto 16px' }} />
             <div style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: 'var(--navy)', marginBottom: 6 }}>No classes created yet</div>
-            <Link href="/classes/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: '#faf7f0', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}>
+            <Link href="/classes/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}>
               <Plus size={13} /> Create First Class
             </Link>
           </div>
@@ -81,7 +81,7 @@ export default function ClassesPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
               {[
                 { label: 'Total Classes',      value: classes.length,       color: 'var(--navy)' },
-                { label: 'Total Students',     value: totalStudents,        color: '#2563eb'     },
+                { label: 'Total Students',     value: totalStudents,        color: 'var(--navy)'     },
                 { label: 'Avg Class Size',     value: classes.length ? Math.round(totalStudents / classes.length) : 0, color: '#15803d' },
                 { label: 'Total Levels',       value: Object.keys(levelGroups).length, color: '#b45309' },
               ].map(({ label, value, color }) => (

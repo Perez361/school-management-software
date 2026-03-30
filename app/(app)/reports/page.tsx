@@ -15,7 +15,7 @@ export default function ReportsPage() {
   }, [])
 
   const reportTypes = [
-    { type: 'report-card' as const, title: 'Terminal Report Cards', description: 'Generate individual PDF report cards with grades, scores, and class position for each student', icon: FileText, color: '#2563eb', bg: 'rgba(37,99,235,0.07)', border: 'rgba(37,99,235,0.15)', tag: 'Per student' },
+    { type: 'report-card' as const, title: 'Terminal Report Cards', description: 'Generate individual PDF report cards with grades, scores, and class position for each student', icon: FileText, color: 'var(--navy)', bg: 'rgba(139,26,26,0.07)', border: 'rgba(139,26,26,0.15)', tag: 'Per student' },
     { type: 'class-list' as const, title: 'Class Registers', description: 'Print full class lists with student IDs, names, gender, and parent contact information', icon: Users, color: '#15803d', bg: 'rgba(22,163,74,0.07)', border: 'rgba(22,163,74,0.15)', tag: 'Per class' },
     { type: 'fee-invoice' as const, title: 'Fee Invoices', description: 'Generate billing invoices showing amounts due, paid, and outstanding balances per student', icon: Receipt, color: '#b45309', bg: 'rgba(180,83,9,0.07)', border: 'rgba(180,83,9,0.15)', tag: 'Per class' },
   ]

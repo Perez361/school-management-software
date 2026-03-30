@@ -1,13 +1,12 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Plus, Search, UserCircle } from 'lucide-react'
 import { api, Student, Class } from '@/lib/api'
 
 export default function StudentsPage() {
   const searchParams = useSearchParams()
-  const router = useRouter()
 
   const [students, setStudents] = useState<Student[]>([])
   const [classes, setClasses] = useState<Class[]>([])
@@ -41,71 +40,123 @@ export default function StudentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="page-header">
+    <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+      {/* Header */}
+      <div style={{ padding: '28px 32px 24px', background: 'var(--surface)', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 className="page-title">Students</h1>
-          <p className="text-sm text-slate-500 mt-0.5">{students.length} students enrolled</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <div style={{ width: 24, height: 3, background: 'var(--gold)', borderRadius: 2 }} />
+            <span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>People</span>
+          </div>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Students</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 6 }}>
+            <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>
+              {students.length} student{students.length !== 1 ? 's' : ''} enrolled
+            </span>
+          </div>
         </div>
-        <Link href="/students/new" className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Student
+        <Link href="/students/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(139,26,26,0.2)' }}>
+          <Plus size={15} /> Add Student
         </Link>
       </div>
 
-      <div className="p-6 space-y-4">
-        <div className="card p-4 flex gap-4">
-          <form className="flex gap-4 flex-1" onSubmit={handleFilter}>
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input name="q" defaultValue={query} placeholder="Search students..." className="input pl-9" />
+      <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Search & Filter */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 20px' }}>
+          <form onSubmit={handleFilter} style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Search</label>
+              <div style={{ position: 'relative' }}>
+                <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                <input
+                  name="q"
+                  defaultValue={query}
+                  placeholder="Search by name…"
+                  style={{ width: '100%', padding: '9px 13px 9px 36px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
             </div>
-            <select name="class" defaultValue={classFilter} className="input w-44">
-              <option value="">All Classes</option>
-              {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-            <button type="submit" className="btn-primary">Filter</button>
-            <button type="button" onClick={() => { setQuery(''); setClassFilter('') }} className="btn-secondary">Clear</button>
+            <div>
+              <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Class</label>
+              <select name="class" defaultValue={classFilter} style={{ padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', width: 160, cursor: 'pointer' }}>
+                <option value="">All Classes</option>
+                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <button type="submit" style={{ padding: '9px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Search</button>
+            <button type="button" onClick={() => { setQuery(''); setClassFilter('') }} style={{ padding: '9px 16px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer' }}>Clear</button>
           </form>
         </div>
 
-        <div className="card">
-          <div className="table-container">
-            <table className="table">
+        {/* Table */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui' }}>
               <thead>
-                <tr>
-                  <th>Student</th><th>ID</th><th>Class</th><th>Gender</th><th>Parent</th><th>Actions</th>
+                <tr style={{ background: 'var(--gold-pale)', borderBottom: '1px solid var(--border)' }}>
+                  {['Student', 'ID', 'Class', 'Gender', 'Parent', 'Actions'].map(h => (
+                    <th key={h} style={{ padding: '11px 18px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="text-center py-12 text-slate-400">Loading…</td></tr>
-                ) : students.map(s => (
-                  <tr key={s.id}>
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-semibold text-xs shrink-0">
+                  [1, 2, 3, 4, 5].map(i => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                      <td style={{ padding: '13px 18px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                          <div className="skeleton skeleton-avatar" style={{ width: 34, height: 34, flexShrink: 0 }} />
+                          <div className="skeleton skeleton-text" style={{ width: 130 }} />
+                        </div>
+                      </td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 80 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 70 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 50 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 100 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 80 }} /></td>
+                    </tr>
+                  ))
+                ) : students.map((s, i) => (
+                  <tr key={s.id} style={{ borderBottom: i < students.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
+                    <td style={{ padding: '13px 18px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--gold-pale)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: 'var(--navy)', flexShrink: 0 }}>
                           {s.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                         </div>
-                        <span className="font-medium text-slate-800">{s.name}</span>
+                        <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{s.name}</span>
                       </div>
                     </td>
-                    <td className="font-mono text-xs text-slate-500">{s.studentId}</td>
-                    <td><span className="badge badge-blue">{s.class?.name}</span></td>
-                    <td className="text-slate-500">{s.gender}</td>
-                    <td className="text-slate-500">{s.parent?.name || '—'}</td>
-                    <td>
-                      <div className="flex gap-2">
-                        <Link href={`/students/detail?id=${s.id}`} className="text-xs text-brand-600 hover:underline font-medium">View</Link>
-                        <Link href={`/students/edit?id=${s.id}`} className="text-xs text-slate-500 hover:underline">Edit</Link>
+                    <td style={{ padding: '13px 18px' }}>
+                      <span className="mono-tag">{s.studentId}</span>
+                    </td>
+                    <td style={{ padding: '13px 18px' }}>
+                      <span className="badge badge-blue">{s.class?.name}</span>
+                    </td>
+                    <td style={{ padding: '13px 18px', fontSize: 13, color: 'var(--text-secondary)' }}>{s.gender}</td>
+                    <td style={{ padding: '13px 18px', fontSize: 13, color: 'var(--text-secondary)' }}>
+                      {s.parent?.name || <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                    </td>
+                    <td style={{ padding: '13px 18px' }}>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <Link href={`/students/detail?id=${s.id}`} className="action-link">View</Link>
+                        <Link href={`/students/edit?id=${s.id}`} className="action-link-ghost">Edit</Link>
                       </div>
                     </td>
                   </tr>
                 ))}
                 {!loading && students.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-slate-400">
-                      <UserCircle className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                      No students found. <Link href="/students/new" className="text-brand-600 hover:underline">Add one?</Link>
+                    <td colSpan={6}>
+                      <div className="empty-state">
+                        <div className="empty-icon-wrap">
+                          <UserCircle size={24} color="var(--gold)" />
+                        </div>
+                        <div className="empty-title">No students found</div>
+                        <div className="empty-desc">Try adjusting your search or add a new student</div>
+                        <Link href="/students/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}>
+                          <Plus size={13} /> Add Student
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 )}
