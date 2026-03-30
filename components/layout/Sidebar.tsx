@@ -48,7 +48,7 @@ function getPageTitle(pathname: string) {
       }
     }
   }
-  return 'SchoolDesk'
+  return 'Abassadors Christian School'
 }
 
 export default function Sidebar() {
@@ -84,10 +84,10 @@ export default function Sidebar() {
       <div className="sidebar-logo">
         <div className="sidebar-logo-inner">
           <div className="sidebar-logo-icon">
-            <GraduationCap size={19} color="#c9a84c" />
+            <GraduationCap size={20} color="#c9a84c" />
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div className="sidebar-logo-title">SchoolDesk</div>
+            <div className="sidebar-logo-title">Ambassadors</div>
             <div className="sidebar-logo-sub">Management System</div>
           </div>
           {/* Close button — visible only on mobile */}
@@ -154,7 +154,7 @@ export default function Sidebar() {
         <button className="hamburger-btn" onClick={() => setOpen(true)} aria-label="Open menu">
           <Menu size={20} />
         </button>
-        <span className="mobile-topbar-title">SchoolDesk</span>
+        <span className="mobile-topbar-title">Ambassadors</span>
         <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'rgba(201,168,76,0.5)' }}>{pageTitle}</span>
       </div>
 
