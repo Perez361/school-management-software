@@ -9,9 +9,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/')
-    }
+    if (!loading && !user) router.replace('/')
   }, [user, loading, router])
 
   if (loading || !user) {
@@ -23,11 +21,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="app-shell">
-      <Sidebar />
-      <main className="main-content">
-        {children}
-      </main>
+    <div className="app-shell" style={{ flexDirection: 'column' }}>
+      {/*
+        On mobile the sidebar turns into a fixed drawer (CSS handles it).
+        The mobile-topbar inside Sidebar renders as a sticky bar at the top of main-content.
+        On desktop the sidebar sits as a flex child side-by-side with main-content.
+      */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+        <Sidebar />
+        <main className="main-content">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }
