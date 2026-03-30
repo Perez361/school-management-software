@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
-import { api, Class } from '@/lib/tauri'
+import { api, Class } from '@/lib/api'
 
 interface StaffForm { name: string; role: string; phone?: string; email?: string; subject?: string; classId?: string }
 

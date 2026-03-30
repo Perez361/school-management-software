@@ -1,18 +1,15 @@
 /**
- * lib/tauri.ts
+ * lib/api.ts
  *
- * Typed wrappers around Tauri's invoke() that mirror the old fetch('/api/...')
- * surface. Drop-in replacements for all API calls throughout the app.
+ * Universal API adapter.
  *
- * Usage:
- *   import { api } from '@/lib/tauri'
- *   const classes = await api.getClasses()
- *   const student = await api.createStudent({ name, gender, dob, classId })
+ * - Inside a Tauri window   → uses invoke() (IPC, zero network hops)
+ * - Inside a plain browser  → uses fetch() + JWT (school WiFi clients)
+ *
+ * All page components import from this file; nothing else changes.
  */
 
-import { invoke } from '@tauri-apps/api/core'
-
-// ─── Types (mirroring Rust models) ──────────────────────────────────────────
+// ─── Types (re-exported so all pages keep their existing imports) ─────────────
 
 export interface Class {
   id: number
@@ -20,7 +17,6 @@ export interface Class {
   level: string
   section?: string | null
   student_count?: number | null
-  // Aliases for existing UI compatibility
   _count?: { students: number }
   staff?: { name: string }[]
   subjects?: { subject: { name: string } }[]
@@ -147,74 +143,159 @@ export interface TopStudent {
   avg: number
 }
 
-// ─── API wrapper ─────────────────────────────────────────────────────────────
+// ─── Token management (browser mode only) ────────────────────────────────────
+
+const TOKEN_KEY = 'sms_token'
+
+// Initialised once at module load; safe on server (SSR returns '').
+let _token: string =
+  typeof window !== 'undefined' ? (localStorage.getItem(TOKEN_KEY) ?? '') : ''
+
+/** Called by auth-context after a successful browser login. */
+export function setAuthToken(token: string): void {
+  _token = token
+  if (typeof window !== 'undefined') localStorage.setItem(TOKEN_KEY, token)
+}
+
+/** Called by auth-context on logout. */
+export function clearAuthToken(): void {
+  _token = ''
+  if (typeof window !== 'undefined') localStorage.removeItem(TOKEN_KEY)
+}
+
+// ─── Transport ───────────────────────────────────────────────────────────────
+
+const isTauri: boolean =
+  typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+
+/**
+ * Core dispatcher.
+ * params is the exact object that `invoke(command, params)` would receive,
+ * so the call sites in every page are identical for both modes.
+ */
+async function call<T>(
+  command: string,
+  params: Record<string, unknown> = {},
+): Promise<T> {
+  if (isTauri) {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<T>(command, params)
+  }
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (_token) headers['Authorization'] = `Bearer ${_token}`
+
+  const res = await fetch(`/api/${command}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(params),
+  })
+
+  if (!res.ok) {
+    const msg = await res.text().catch(() => `HTTP ${res.status}`)
+    throw new Error(msg || `Request failed: ${res.status}`)
+  }
+
+  return res.json() as Promise<T>
+}
+
+// ─── Login (special — browser returns { user, token }) ───────────────────────
+
+async function loginCall(email: string, password: string): Promise<User> {
+  if (isTauri) {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<User>('login', { input: { email, password } })
+  }
+
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ input: { email, password } }),
+  })
+
+  if (!res.ok) {
+    const msg = await res.text().catch(() => 'Invalid credentials')
+    throw new Error(msg || 'Invalid credentials')
+  }
+
+  const data = (await res.json()) as { user: User; token: string }
+  setAuthToken(data.token)
+  return data.user
+}
+
+// ─── API surface (identical to former lib/tauri.ts) ──────────────────────────
 
 export const api = {
   // Auth
-  login: (email: string, password: string): Promise<User> =>
-    invoke('login', { input: { email, password } }),
+  login: loginCall,
 
   // Classes
   getClasses: (): Promise<Class[]> =>
-    invoke('get_classes'),
+    call('get_classes'),
 
   createClass: (input: { name: string; level: string; section?: string }): Promise<Class> =>
-    invoke('create_class', { input }),
+    call('create_class', { input }),
 
   // Parents
   getParents: (): Promise<Parent[]> =>
-    invoke('get_parents'),
+    call('get_parents'),
 
   createParent: (input: { name: string; phone: string; email?: string; address?: string }): Promise<Parent> =>
-    invoke('create_parent', { input }),
+    call('create_parent', { input }),
 
   updateParent: (id: number, input: { name: string; phone: string; email?: string; address?: string }): Promise<Parent> =>
-    invoke('update_parent', { id, input }),
+    call('update_parent', { id, input }),
 
   // Staff
   getStaff: (): Promise<Staff[]> =>
-    invoke('get_staff'),
+    call('get_staff'),
 
   createStaff: (input: {
     name: string; role: string; phone?: string; email?: string;
     subject?: string; classId?: number
   }): Promise<Staff> =>
-    invoke('create_staff', { input }),
+    call('create_staff', { input }),
+
+  updateStaff: (id: number, input: {
+    name?: string; role?: string; phone?: string; email?: string;
+    subject?: string; classId?: number
+  }): Promise<Staff> =>
+    call('update_staff', { id, input }),
 
   // Students
   getStudents: (params?: { classId?: number; q?: string }): Promise<Student[]> =>
-    invoke('get_students', { classId: params?.classId ?? null, q: params?.q ?? null }),
+    call('get_students', { classId: params?.classId ?? null, q: params?.q ?? null }),
 
   getStudent: (id: number): Promise<Student> =>
-    invoke('get_student', { id }),
+    call('get_student', { id }),
 
   createStudent: (input: {
     name: string; gender: string; dob: string; classId: number;
     parentId?: number; phone?: string; address?: string
   }): Promise<Student> =>
-    invoke('create_student', { input }),
+    call('create_student', { input }),
 
   updateStudent: (id: number, input: {
     name?: string; gender?: string; dob?: string; classId?: number;
     parentId?: number | null; phone?: string; address?: string
   }): Promise<Student> =>
-    invoke('update_student', { id, input }),
+    call('update_student', { id, input }),
 
   deleteStudent: (id: number): Promise<void> =>
-    invoke('delete_student', { id }),
+    call('delete_student', { id }),
 
   // Subjects
   getSubjects: (): Promise<Subject[]> =>
-    invoke('get_subjects'),
+    call('get_subjects'),
 
   createSubject: (input: { name: string; code: string }): Promise<Subject> =>
-    invoke('create_subject', { input }),
+    call('create_subject', { input }),
 
   // Results
   getResults: (params?: {
     classId?: number; term?: string; year?: string; studentId?: number
   }): Promise<ResultRow[]> =>
-    invoke('get_results', {
+    call('get_results', {
       classId: params?.classId ?? null,
       term: params?.term ?? null,
       year: params?.year ?? null,
@@ -224,11 +305,11 @@ export const api = {
   upsertResult: (input: {
     studentId: number; subjectId: number; term: string; year: string; ca: number; exam: number
   }): Promise<ResultRow> =>
-    invoke('upsert_result', { input }),
+    call('upsert_result', { input }),
 
   // Payments
   getPayments: (params?: { classId?: number; term?: string; status?: string }): Promise<Payment[]> =>
-    invoke('get_payments', {
+    call('get_payments', {
       classId: params?.classId ?? null,
       term: params?.term ?? null,
       status: params?.status ?? null,
@@ -237,32 +318,32 @@ export const api = {
   createPayment: (input: {
     studentId: number; term: string; feeType: string; amount: number; paid: number
   }): Promise<Payment> =>
-    invoke('create_payment', { input }),
+    call('create_payment', { input }),
 
   getPaymentSummary: (params?: { classId?: number; term?: string }): Promise<PaymentSummary> =>
-    invoke('get_payment_summary', {
+    call('get_payment_summary', {
       classId: params?.classId ?? null,
       term: params?.term ?? null,
     }),
 
   // Settings
   getSettings: (): Promise<SchoolSettings | null> =>
-    invoke('get_settings'),
+    call('get_settings'),
 
   upsertSettings: (input: {
     schoolName: string; motto?: string; address?: string; phone?: string;
     email?: string; currentTerm: string; currentYear: string
   }): Promise<SchoolSettings> =>
-    invoke('upsert_settings', { input }),
+    call('upsert_settings', { input }),
 
   // Reports
   getReportCard: (studentId: number, term: string, year: string): Promise<ReportCardData> =>
-    invoke('get_report_card', { studentId, term, year }),
+    call('get_report_card', { studentId, term, year }),
 
   // Dashboard
   getDashboardStats: (): Promise<DashboardStats> =>
-    invoke('get_dashboard_stats'),
+    call('get_dashboard_stats'),
 
   getTopStudents: (): Promise<TopStudent[]> =>
-    invoke('get_top_students'),
+    call('get_top_students'),
 }

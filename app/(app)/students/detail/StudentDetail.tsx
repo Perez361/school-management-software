@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Edit, FileText, Receipt } from 'lucide-react'
-import { api, Student, ResultRow, Payment } from '@/lib/tauri'
+import { api, Student, ResultRow, Payment } from '@/lib/api'
 
 function getGrade(total: number) {
   if (total >= 80) return 'A'

@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { BookOpen, Users, BarChart2 } from 'lucide-react'
-import { Class } from '@/lib/tauri'
+import { Class } from '@/lib/api'
 
 interface LevelColor { accent: string; bg: string; border: string; dot: string }
 

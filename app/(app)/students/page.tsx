@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Plus, Search, UserCircle } from 'lucide-react'
-import { api, Student, Class } from '@/lib/tauri'
+import { api, Student, Class } from '@/lib/api'
 
 export default function StudentsPage() {
   const searchParams = useSearchParams()

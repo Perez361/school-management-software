@@ -27,17 +27,23 @@ fn get_remark(total: f64) -> &'static str {
 pub fn login(input: LoginInput) -> Result<User, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
     let result = conn.query_row(
-        "SELECT id, username, email, role, name FROM User WHERE email = ?1 AND password = ?2",
-        params![input.email, input.password],
-        |row| Ok(User {
-            id: row.get(0)?,
-            username: row.get(1)?,
-            email: row.get(2)?,
-            role: row.get(3)?,
-            name: row.get(4)?,
-        }),
+        "SELECT id, username, email, role, name, password FROM User WHERE email = ?1",
+        params![input.email],
+        |row| Ok((
+            User { id: row.get(0)?, username: row.get(1)?, email: row.get(2)?, role: row.get(3)?, name: row.get(4)? },
+            row.get::<_, String>(5)?,
+        )),
     );
-    result.map_err(|_| "Invalid credentials".to_string())
+    match result {
+        Ok((user, hash)) => {
+            if bcrypt::verify(&input.password, &hash).unwrap_or(false) {
+                Ok(user)
+            } else {
+                Err("Invalid credentials".to_string())
+            }
+        }
+        Err(_) => Err("Invalid credentials".to_string()),
+    }
 }
 
 // ─── CLASSES ─────────────────────────────────────────────────────────────────

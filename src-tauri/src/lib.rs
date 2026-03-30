@@ -1,6 +1,8 @@
 mod db;
 mod models;
 mod commands;
+mod auth;
+mod http_server;
 
 use commands::*;
 
@@ -9,6 +11,9 @@ pub fn run() {
     let conn = db::get_conn().expect("Failed to open database");
     db::run_migrations(&conn).expect("Failed to run migrations");
     drop(conn);
+
+    // Start HTTP server for browser clients (school WiFi)
+    http_server::start(http_server::HTTP_PORT);
 
     tauri::Builder::default()
         .setup(|app| {

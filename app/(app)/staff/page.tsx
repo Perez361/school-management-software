@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, UserSquare2 } from 'lucide-react'
-import { api, Staff } from '@/lib/tauri'
+import { api, Staff } from '@/lib/api'
 
 const roleMeta: Record<string, { color: string; bg: string; dot: string }> = {
   Teacher:    { color: '#1d4ed8', bg: 'rgba(37,99,235,0.07)',  dot: '#2563eb' },

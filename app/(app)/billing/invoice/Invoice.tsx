@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Download, Receipt } from 'lucide-react'
-import { api, Payment } from '@/lib/tauri'
+import { api, Payment } from '@/lib/api'
 
 export default function InvoicePage() {
   const searchParams = useSearchParams()

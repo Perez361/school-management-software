@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Save, CheckCircle, Building2, Calendar, School } from 'lucide-react'
-import { api, SchoolSettings } from '@/lib/tauri'
+import { api, SchoolSettings } from '@/lib/api'
 
 interface SettingsFormData {
   schoolName: string; motto?: string; address?: string

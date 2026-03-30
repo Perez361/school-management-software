@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save, Receipt } from 'lucide-react'
-import { api, Class, Student } from '@/lib/tauri'
+import { api, Class, Student } from '@/lib/api'
 
 interface PaymentForm {
   studentId: string; term: string; feeType: string; amount: string; paid: string

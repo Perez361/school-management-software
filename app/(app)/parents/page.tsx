@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, UserCheck, Phone, Mail, MapPin } from 'lucide-react'
-import { api, Parent } from '@/lib/tauri'
+import { api, Parent } from '@/lib/api'
 
 export default function ParentsPage() {
   const [parents, setParents] = useState<Parent[]>([])

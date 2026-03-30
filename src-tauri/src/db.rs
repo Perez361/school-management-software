@@ -1,5 +1,4 @@
 use rusqlite::{Connection, Result, params};
-
 use std::path::PathBuf;
 
 pub fn get_db_path() -> PathBuf {
@@ -130,11 +129,36 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
     ).unwrap_or(0);
 
     if count == 0 {
+        let hashed = bcrypt::hash("admin123", bcrypt::DEFAULT_COST)
+            .expect("bcrypt hash failed");
         conn.execute(
             "INSERT INTO User (username, email, password, role, name) VALUES (?1, ?2, ?3, ?4, ?5)",
-            params!["admin", "admin@school.com", "admin123", "admin", "Administrator"],
+            params!["admin", "admin@school.com", hashed, "admin", "Administrator"],
         )?;
     }
 
+    // Migrate any remaining plaintext passwords (password < 60 chars = not a bcrypt hash)
+    migrate_passwords(conn);
+
     Ok(())
+}
+
+/// Hash any passwords that are still stored as plaintext (bcrypt hashes are always 60 chars).
+pub fn migrate_passwords(conn: &Connection) {
+    let users: Vec<(i64, String)> = {
+        let mut stmt = match conn.prepare("SELECT id, password FROM User WHERE LENGTH(password) < 60") {
+            Ok(s) => s,
+            Err(_) => return,
+        };
+        stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+            .unwrap_or_else(|_| unreachable!())
+            .filter_map(|r| r.ok())
+            .collect()
+    };
+
+    for (id, plaintext) in users {
+        if let Ok(hashed) = bcrypt::hash(&plaintext, bcrypt::DEFAULT_COST) {
+            let _ = conn.execute("UPDATE User SET password=?1 WHERE id=?2", params![hashed, id]);
+        }
+    }
 }

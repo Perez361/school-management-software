@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Trophy, BarChart2 } from 'lucide-react'
-import { api, Class, ResultRow } from '@/lib/tauri'
+import { api, Class, ResultRow } from '@/lib/api'
 
 function rankStudents(results: ResultRow[]) {
   const map: Record<number, { studentId: number; name: string; total: number; count: number }> = {}

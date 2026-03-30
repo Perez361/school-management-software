@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { TrendingUp, Receipt, Award, ArrowUpRight } from 'lucide-react'
-import { api, DashboardStats, TopStudent, Payment, SchoolSettings } from '@/lib/tauri'
+import { api, DashboardStats, TopStudent, Payment, SchoolSettings } from '@/lib/api'
 import DashboardCharts from './DashboardCharts'
 import QuickActions from './QuickActions'
 

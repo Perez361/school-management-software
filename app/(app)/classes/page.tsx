@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, BookOpen } from 'lucide-react'
-import { api, Class } from '@/lib/tauri'
+import { api, Class } from '@/lib/api'
 import ClassCard from './ClassCard'
 
 interface LevelColor { accent: string; bg: string; border: string; dot: string }

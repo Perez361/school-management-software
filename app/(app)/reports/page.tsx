@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { FileText, Users, Receipt, Download } from 'lucide-react'
-import { api, Class, SchoolSettings } from '@/lib/tauri'
+import { api, Class, SchoolSettings } from '@/lib/api'
 import ReportActions from './ReportActions'
 
 export default function ReportsPage() {

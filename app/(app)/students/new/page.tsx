@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save, UserPlus } from 'lucide-react'
-import { api, Class, Parent } from '@/lib/tauri'
+import { api, Class, Parent } from '@/lib/api'
 
 interface StudentForm {
   name: string; gender: string; dob: string

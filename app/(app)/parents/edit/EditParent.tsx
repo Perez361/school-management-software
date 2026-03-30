@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
-import { api } from '@/lib/tauri'
+import { api } from '@/lib/api'
 
 interface ParentForm {
   name: string

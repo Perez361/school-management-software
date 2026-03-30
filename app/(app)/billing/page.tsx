@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Plus, Receipt, AlertCircle, CheckCircle, TrendingUp, Filter } from 'lucide-react'
-import { api, Payment, Class, PaymentSummary } from '@/lib/tauri'
+import { api, Payment, Class, PaymentSummary } from '@/lib/api'
 
 export default function BillingPage() {
   const searchParams = useSearchParams()

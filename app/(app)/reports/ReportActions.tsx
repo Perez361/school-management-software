@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Download, Loader } from 'lucide-react'
-import { api, Class } from '@/lib/tauri'
+import { api, Class } from '@/lib/api'
 
 interface Props {
   type: 'report-card' | 'class-list' | 'fee-invoice'
