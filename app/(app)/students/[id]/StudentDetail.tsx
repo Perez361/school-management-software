@@ -78,7 +78,6 @@ export default function StudentDetail() {
       </div>
 
       <div style={{ padding: '24px 32px', display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16 }}>
-        {/* Profile Card */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', alignSelf: 'start' }}>
           <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', borderBottom: '1px solid var(--border-soft)' }}>
             <div style={{ width: 64, height: 64, borderRadius: 16, background: 'var(--gold-pale)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif', fontSize: 22, fontWeight: 700, color: 'var(--navy)', marginBottom: 12 }}>
@@ -111,9 +110,7 @@ export default function StudentDetail() {
           )}
         </div>
 
-        {/* Right column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Fee Summary */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px' }}>
               <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Total Billed</div>
@@ -129,7 +126,6 @@ export default function StudentDetail() {
             </div>
           </div>
 
-          {/* Academic Results */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
             <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
               <FileText size={15} color="#2563eb" />
@@ -160,7 +156,6 @@ export default function StudentDetail() {
             ))}
           </div>
 
-          {/* Payment History */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
             <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Receipt size={15} color="#15803d" />

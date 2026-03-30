@@ -116,87 +116,35 @@ export default function EditStudent() {
             <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 24, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Edit Student</h1>
           </div>
         </div>
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: deleting ? 'not-allowed' : 'pointer' }}
-        >
+        <button onClick={handleDelete} disabled={deleting} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: deleting ? 'not-allowed' : 'pointer' }}>
           <Trash2 size={14} /> {deleting ? 'Deleting…' : 'Delete Student'}
         </button>
       </div>
-
       <div style={{ padding: '28px 32px', maxWidth: 680 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          {error && (
-            <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>
-              {error}
-            </div>
-          )}
-
+          {error && <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>{error}</div>}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
-            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>
-              Personal Details
-            </div>
+            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Personal Details</div>
             <div style={{ padding: '22px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div style={{ gridColumn: '1 / -1' }}>
-                {lbl('Full Name', true)}
-                <input {...register('name', { required: true })} style={inp} />
-              </div>
-              <div>
-                {lbl('Gender', true)}
-                <select {...register('gender', { required: true })} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-              </div>
-              <div>
-                {lbl('Date of Birth')}
-                <input type="date" {...register('dob')} style={inp} />
-              </div>
-              <div>
-                {lbl('Phone')}
-                <input {...register('phone')} style={inp} placeholder="+233 XX XXX XXXX" />
-              </div>
-              <div>
-                {lbl('Address')}
-                <input {...register('address')} style={inp} placeholder="Town / Area, Region" />
-              </div>
+              <div style={{ gridColumn: '1 / -1' }}>{lbl('Full Name', true)}<input {...register('name', { required: true })} style={inp} /></div>
+              <div>{lbl('Gender', true)}<select {...register('gender', { required: true })} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}><option value="Male">Male</option><option value="Female">Female</option></select></div>
+              <div>{lbl('Date of Birth')}<input type="date" {...register('dob')} style={inp} /></div>
+              <div>{lbl('Phone')}<input {...register('phone')} style={inp} placeholder="+233 XX XXX XXXX" /></div>
+              <div>{lbl('Address')}<input {...register('address')} style={inp} placeholder="Town / Area, Region" /></div>
             </div>
           </div>
-
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
-            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>
-              Academic & Family
-            </div>
+            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Academic & Family</div>
             <div style={{ padding: '22px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                {lbl('Class', true)}
-                <select {...register('classId', { required: true })} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}>
-                  <option value="">Select class</option>
-                  {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                {lbl('Parent / Guardian')}
-                <select {...register('parentId')} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}>
-                  <option value="">No parent linked</option>
-                  {parents.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-              </div>
+              <div>{lbl('Class', true)}<select {...register('classId', { required: true })} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}><option value="">Select class</option>{classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+              <div>{lbl('Parent / Guardian')}<select {...register('parentId')} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}><option value="">No parent linked</option>{parents.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
             </div>
           </div>
-
           <div style={{ display: 'flex', gap: 10 }}>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)', color: loading ? 'var(--text-muted)' : '#faf7f0', border: loading ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
-            >
+            <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)', color: loading ? 'var(--text-muted)' : '#faf7f0', border: loading ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}>
               <Save size={15} /> {loading ? 'Saving…' : 'Save Changes'}
             </button>
-            <Link href={`/students/${studentId}`} style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, textDecoration: 'none' }}>
-              Cancel
-            </Link>
+            <Link href={`/students/${studentId}`} style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, textDecoration: 'none' }}>Cancel</Link>
           </div>
         </form>
       </div>

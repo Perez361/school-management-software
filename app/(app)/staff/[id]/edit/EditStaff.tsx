@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
-import { api, Class, Staff } from '@/lib/tauri'
+import { api, Class } from '@/lib/tauri'
 
 interface StaffForm {
   name: string
@@ -97,26 +97,17 @@ export default function EditStaff() {
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 24, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Edit Staff Member</h1>
         </div>
       </div>
-
       <div style={{ padding: '28px 32px', maxWidth: 600 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          {error && (
-            <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>
-              {error}
-            </div>
-          )}
-
+          {error && <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>{error}</div>}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
-            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>
-              Staff Details
-            </div>
+            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Staff Details</div>
             <div style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 {lbl('Full Name', true)}
                 <input {...register('name', { required: true })} style={inp} placeholder="e.g. Mr. Emmanuel Asare" />
                 {errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}
               </div>
-
               <div>
                 {lbl('Role', true)}
                 <select {...register('role', { required: true })} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}>
@@ -126,13 +117,9 @@ export default function EditStaff() {
                   <option value="Bursar">Bursar</option>
                 </select>
               </div>
-
               {role === 'Teacher' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <div>
-                    {lbl('Subject Taught')}
-                    <input {...register('subject')} style={inp} placeholder="e.g. Mathematics" />
-                  </div>
+                  <div>{lbl('Subject Taught')}<input {...register('subject')} style={inp} placeholder="e.g. Mathematics" /></div>
                   <div>
                     {lbl('Class Teacher Of')}
                     <select {...register('classId')} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}>
@@ -142,31 +129,17 @@ export default function EditStaff() {
                   </div>
                 </div>
               )}
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div>
-                  {lbl('Phone')}
-                  <input {...register('phone')} style={inp} placeholder="+233 XX XXX XXXX" />
-                </div>
-                <div>
-                  {lbl('Email')}
-                  <input {...register('email')} type="email" style={inp} placeholder="staff@school.edu.gh" />
-                </div>
+                <div>{lbl('Phone')}<input {...register('phone')} style={inp} placeholder="+233 XX XXX XXXX" /></div>
+                <div>{lbl('Email')}<input {...register('email')} type="email" style={inp} placeholder="staff@school.edu.gh" /></div>
               </div>
             </div>
           </div>
-
           <div style={{ display: 'flex', gap: 10 }}>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)', color: loading ? 'var(--text-muted)' : '#faf7f0', border: loading ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
-            >
+            <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)', color: loading ? 'var(--text-muted)' : '#faf7f0', border: loading ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}>
               <Save size={15} /> {loading ? 'Saving…' : 'Save Changes'}
             </button>
-            <Link href="/staff" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, textDecoration: 'none' }}>
-              Cancel
-            </Link>
+            <Link href="/staff" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, textDecoration: 'none' }}>Cancel</Link>
           </div>
         </form>
       </div>

@@ -88,52 +88,23 @@ export default function EditParent() {
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 24, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Edit Parent / Guardian</h1>
         </div>
       </div>
-
       <div style={{ padding: '28px 32px', maxWidth: 560 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          {error && (
-            <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>
-              {error}
-            </div>
-          )}
-
+          {error && <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>{error}</div>}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
-            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>
-              Contact Details
-            </div>
+            <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Contact Details</div>
             <div style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                {lbl('Full Name', true)}
-                <input {...register('name', { required: true })} style={inp} placeholder="e.g. Kwame Mensah" />
-                {errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}
-              </div>
-              <div>
-                {lbl('Phone Number', true)}
-                <input {...register('phone', { required: true })} style={inp} placeholder="+233 XX XXX XXXX" />
-                {errors.phone && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Phone is required</p>}
-              </div>
-              <div>
-                {lbl('Email Address')}
-                <input {...register('email')} type="email" style={inp} placeholder="parent@email.com" />
-              </div>
-              <div>
-                {lbl('Home Address')}
-                <input {...register('address')} style={inp} placeholder="Town / Area, Region" />
-              </div>
+              <div>{lbl('Full Name', true)}<input {...register('name', { required: true })} style={inp} placeholder="e.g. Kwame Mensah" />{errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}</div>
+              <div>{lbl('Phone Number', true)}<input {...register('phone', { required: true })} style={inp} placeholder="+233 XX XXX XXXX" />{errors.phone && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Phone is required</p>}</div>
+              <div>{lbl('Email Address')}<input {...register('email')} type="email" style={inp} placeholder="parent@email.com" /></div>
+              <div>{lbl('Home Address')}<input {...register('address')} style={inp} placeholder="Town / Area, Region" /></div>
             </div>
           </div>
-
           <div style={{ display: 'flex', gap: 10 }}>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)', color: loading ? 'var(--text-muted)' : '#faf7f0', border: loading ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
-            >
+            <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: loading ? 'var(--surface-2)' : 'var(--navy)', color: loading ? 'var(--text-muted)' : '#faf7f0', border: loading ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}>
               <Save size={15} /> {loading ? 'Saving…' : 'Save Changes'}
             </button>
-            <Link href="/parents" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, textDecoration: 'none' }}>
-              Cancel
-            </Link>
+            <Link href="/parents" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 20px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, textDecoration: 'none' }}>Cancel</Link>
           </div>
         </form>
       </div>

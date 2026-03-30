@@ -127,7 +127,6 @@ export default function InvoicePage() {
                 </div>
               ))}
             </div>
-
             <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'var(--navy)', padding: '10px 16px' }}>
                 {['Total Billed (GHS)', 'Paid (GHS)', 'Balance (GHS)'].map(h => (
@@ -140,7 +139,6 @@ export default function InvoicePage() {
                 <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, fontWeight: 700, color: payment.balance > 0 ? '#b91c1c' : '#15803d' }}>{payment.balance.toFixed(2)}</div>
               </div>
             </div>
-
             {payment.balance === 0 && (
               <div style={{ marginTop: 16, padding: '10px 16px', borderRadius: 8, background: 'rgba(22,163,74,0.07)', border: '1px solid rgba(22,163,74,0.2)', fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: '#15803d' }}>
                 ✅ Fully Paid — No outstanding balance
