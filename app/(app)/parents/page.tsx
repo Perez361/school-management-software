@@ -3,14 +3,21 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, UserCheck, Phone, Mail, MapPin } from 'lucide-react'
 import { api, Parent } from '@/lib/api'
+import Pagination from '@/components/Pagination'
+
+const PAGE_SIZE = 15
 
 export default function ParentsPage() {
-  const [parents, setParents] = useState<Parent[]>([])
-  const [loading, setLoading] = useState(true)
+  const [parents, setParents]   = useState<Parent[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [page, setPage]         = useState(1)
 
   useEffect(() => {
     api.getParents().then(setParents).finally(() => setLoading(false))
   }, [])
+
+  const totalPages = Math.ceil(parents.length / PAGE_SIZE)
+  const paged = parents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
@@ -21,9 +28,7 @@ export default function ParentsPage() {
             <span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>People</span>
           </div>
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Parents & Guardians</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 6 }}>
-            <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>{parents.length} registered</span>
-          </div>
+          <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>{parents.length} registered</span>
         </div>
         <Link href="/parents/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: '0 2px 10px rgba(139,26,26,0.2)' }}>
           <Plus size={15} /> Add Parent
@@ -51,8 +56,8 @@ export default function ParentsPage() {
                       <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text skeleton-btn" style={{ width: 60, height: 28 }} /></td>
                     </tr>
                   ))
-                ) : parents.map((p, i) => (
-                  <tr key={p.id} style={{ borderBottom: i < parents.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
+                ) : paged.map((p, i) => (
+                  <tr key={p.id} style={{ borderBottom: i < paged.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
                     <td style={{ padding: '13px 18px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                         <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: '#15803d', flexShrink: 0 }}>
@@ -68,9 +73,9 @@ export default function ParentsPage() {
                       </div>
                     </td>
                     <td style={{ padding: '13px 18px' }}>
-                      {p.address ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><MapPin size={11} color="var(--text-muted)" /><span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>{p.address}</span></div>
-                      ) : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>}
+                      {p.address
+                        ? <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><MapPin size={11} color="var(--text-muted)" /><span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>{p.address}</span></div>
+                        : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>}
                     </td>
                     <td style={{ padding: '13px 18px' }}>
                       <Link href={`/parents/edit?id=${p.id}`} className="action-link">Edit</Link>
@@ -89,6 +94,7 @@ export default function ParentsPage() {
               </tbody>
             </table>
           </div>
+          <Pagination page={page} totalPages={totalPages} totalItems={parents.length} pageSize={PAGE_SIZE} onPage={setPage} />
         </div>
       </div>
     </div>

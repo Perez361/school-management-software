@@ -24,9 +24,9 @@
   --text-muted:     #B08080;
 
   /* Text ON crimson/dark backgrounds */
-  --on-crimson:       #FDF5F0;
-  --on-crimson-muted: rgba(253,245,240,0.65);
-  --on-crimson-faint: rgba(253,245,240,0.35);
+  --on-crimson:       #FFFFFF;
+  --on-crimson-muted: rgba(255,255,255,0.85);
+  --on-crimson-faint: rgba(255,255,255,0.45);
 
   --green:  #16a34a;
   --red:    #dc2626;
@@ -42,7 +42,10 @@
 
 /* ── Reset / Base ───────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { height: 100%; }
+html {
+  height: 100%;
+  overscroll-behavior: none;
+}
 body {
   height: 100%;
   background: var(--cream);
@@ -51,6 +54,7 @@ body {
   font-size: 14px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
 }
 
 /* ── App Shell ──────────────────────────────────────── */
@@ -67,6 +71,7 @@ body {
   min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: none;
   background: var(--cream);
 }
 
@@ -151,7 +156,7 @@ body {
 .sidebar-nav-label {
   font-family: system-ui, sans-serif; font-size: 9px; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--on-crimson-faint);
+  color: rgba(201,168,76,0.55);
   padding: 0 10px; margin-bottom: 6px; margin-top: 4px;
 }
 

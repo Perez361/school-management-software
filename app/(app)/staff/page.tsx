@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, UserSquare2 } from 'lucide-react'
 import { api, Staff } from '@/lib/api'
+import Pagination from '@/components/Pagination'
+
+const PAGE_SIZE = 15
 
 const roleMeta: Record<string, { color: string; bg: string; dot: string }> = {
   Teacher:    { color: 'var(--navy)', bg: 'rgba(139,26,26,0.07)',  dot: 'var(--gold)' },
@@ -12,8 +15,9 @@ const roleMeta: Record<string, { color: string; bg: string; dot: string }> = {
 }
 
 export default function StaffPage() {
-  const [staff, setStaff] = useState<Staff[]>([])
+  const [staff, setStaff]   = useState<Staff[]>([])
   const [loading, setLoading] = useState(true)
+  const [page, setPage]       = useState(1)
 
   useEffect(() => {
     api.getStaff().then(setStaff).finally(() => setLoading(false))
@@ -23,6 +27,9 @@ export default function StaffPage() {
     acc[s.role] = (acc[s.role] || 0) + 1
     return acc
   }, {} as Record<string, number>)
+
+  const totalPages = Math.ceil(staff.length / PAGE_SIZE)
+  const paged = staff.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
@@ -75,10 +82,10 @@ export default function StaffPage() {
                       <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text skeleton-btn" style={{ width: 60, height: 28 }} /></td>
                     </tr>
                   ))
-                ) : staff.map((s, i) => {
+                ) : paged.map((s, i) => {
                   const m = roleMeta[s.role] || { color: '#555', bg: '#f5f5f5', dot: '#888' }
                   return (
-                    <tr key={s.id} style={{ borderBottom: i < staff.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
+                    <tr key={s.id} style={{ borderBottom: i < paged.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
                       <td style={{ padding: '13px 18px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                           <div style={{ width: 34, height: 34, borderRadius: '50%', background: m.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: m.color, flexShrink: 0 }}>
@@ -111,6 +118,7 @@ export default function StaffPage() {
               </tbody>
             </table>
           </div>
+          <Pagination page={page} totalPages={totalPages} totalItems={staff.length} pageSize={PAGE_SIZE} onPage={setPage} />
         </div>
       </div>
     </div>

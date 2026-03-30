@@ -4,6 +4,9 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Plus, Receipt, AlertCircle, CheckCircle, TrendingUp, Filter } from 'lucide-react'
 import { api, Payment, Class, PaymentSummary } from '@/lib/api'
+import Pagination from '@/components/Pagination'
+
+const PAGE_SIZE = 20
 
 export default function BillingPage() {
   const searchParams = useSearchParams()
@@ -16,6 +19,7 @@ export default function BillingPage() {
   const [classFilter,  setClassFilter]  = useState(searchParams.get('classId') ?? '')
   const [termFilter,   setTermFilter]   = useState(searchParams.get('term') ?? '')
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? '')
+  const [page, setPage] = useState(1)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -41,7 +45,11 @@ export default function BillingPage() {
     setClassFilter(fd.get('classId') as string ?? '')
     setTermFilter(fd.get('term') as string ?? '')
     setStatusFilter(fd.get('status') as string ?? '')
+    setPage(1)
   }
+
+  const totalPages = Math.ceil(payments.length / PAGE_SIZE)
+  const paged = payments.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const selStyle: React.CSSProperties = { padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', width: '100%' }
 
@@ -129,7 +137,7 @@ export default function BillingPage() {
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button type="submit" style={{ flex: 1, padding: '9px 16px', background: 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>Apply</button>
-                {isFiltered && <button type="button" onClick={() => { setClassFilter(''); setTermFilter(''); setStatusFilter('') }} style={{ flex: 1, padding: '9px 14px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>Clear</button>}
+                {isFiltered && <button type="button" onClick={() => { setClassFilter(''); setTermFilter(''); setStatusFilter(''); setPage(1) }} style={{ flex: 1, padding: '9px 14px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>Clear</button>}
               </div>
             </form>
           </div>
@@ -141,7 +149,7 @@ export default function BillingPage() {
             <Receipt size={14} color="#15803d" />
             <div>
               <div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Payment Records</div>
-              <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>Showing {payments.length} record{payments.length !== 1 ? 's' : ''}</div>
+              <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>{payments.length} record{payments.length !== 1 ? 's' : ''} total</div>
             </div>
           </div>
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
@@ -170,8 +178,8 @@ export default function BillingPage() {
                       {!isFiltered && <Link href="/billing/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Record First Payment</Link>}
                     </td>
                   </tr>
-                ) : payments.map((p, i) => (
-                  <tr key={p.id} style={{ borderBottom: i < payments.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
+                ) : paged.map((p, i) => (
+                  <tr key={p.id} style={{ borderBottom: i < paged.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
                     <td style={{ padding: '11px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                         <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--gold-pale)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--navy)', flexShrink: 0 }}>
@@ -196,6 +204,7 @@ export default function BillingPage() {
               </tbody>
             </table>
           </div>
+          <Pagination page={page} totalPages={totalPages} totalItems={payments.length} pageSize={PAGE_SIZE} onPage={setPage} />
         </div>
       </div>
     </div>

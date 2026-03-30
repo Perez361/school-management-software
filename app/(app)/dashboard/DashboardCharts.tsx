@@ -163,7 +163,7 @@ export default function DashboardCharts() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 16 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
 
       {/* Bar chart */}
       <div style={cardStyle}>

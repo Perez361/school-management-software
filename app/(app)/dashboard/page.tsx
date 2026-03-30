@@ -1,16 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { TrendingUp, Receipt, Award, ArrowUpRight } from 'lucide-react'
+import { TrendingUp, Receipt, Award, ArrowUpRight, Users, UserSquare2, BookOpen, UserCheck } from 'lucide-react'
 import { api, DashboardStats, TopStudent, Payment, SchoolSettings } from '@/lib/api'
 import DashboardCharts from './DashboardCharts'
 import QuickActions from './QuickActions'
 
 const STAT_CONFIG = [
-  { label: 'Total Students', key: 'totalStudents' as const, accent: '#C9A84C', href: '/students', note: 'enrolled' },
-  { label: 'Total Staff',    key: 'totalStaff'    as const, accent: '#8B1A1A', href: '/staff',    note: 'active'    },
-  { label: 'Classes',        key: 'totalClasses'  as const, accent: '#C9A84C', href: '/classes',  note: 'running'   },
-  { label: 'Parents',        key: 'totalParents'  as const, accent: '#16a34a', href: '/parents',  note: 'registered' },
+  { label: 'Total Students', key: 'totalStudents' as const, accent: '#C9A84C', href: '/students', note: 'enrolled',   icon: Users },
+  { label: 'Total Staff',    key: 'totalStaff'    as const, accent: '#8B1A1A', href: '/staff',    note: 'active',     icon: UserSquare2 },
+  { label: 'Classes',        key: 'totalClasses'  as const, accent: '#C9A84C', href: '/classes',  note: 'running',    icon: BookOpen },
+  { label: 'Parents',        key: 'totalParents'  as const, accent: '#16a34a', href: '/parents',  note: 'registered', icon: UserCheck },
 ]
 
 export default function DashboardPage() {
@@ -67,20 +67,20 @@ export default function DashboardPage() {
       <div style={{ padding: 'clamp(12px,3vw,28px) clamp(16px,4vw,32px)', display: 'flex', flexDirection: 'column', gap: 'clamp(12px,2vw,20px)' }}>
 
         {/* ── Stat cards — responsive grid ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 'clamp(8px,2vw,16px)' }}>
-          {STAT_CONFIG.map(({ label, key, accent, href, note }) => (
-            <Link key={label} href={href} style={{ textDecoration: 'none', display: 'block' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 'clamp(8px,2vw,16px)' }}>
+          {STAT_CONFIG.map(({ label, key, accent, href, note, icon: Icon }) => (
+            <Link key={label} href={href} style={{ textDecoration: 'none', display: 'block', minWidth: 0 }}>
               <div className="stat-card" style={{ '--accent-color': accent } as React.CSSProperties}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${accent}15`, border: `1px solid ${accent}30` }}>
-                    <span style={{ fontFamily: 'Georgia, serif', fontSize: 14, color: accent, fontWeight: 700 }}>#</span>
+                  <div style={{ width: 36, height: 36, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${accent}18`, border: `1px solid ${accent}35`, flexShrink: 0 }}>
+                    <Icon size={17} color={accent} strokeWidth={1.8} />
                   </div>
-                  <ArrowUpRight size={14} color="var(--text-muted)" />
+                  <ArrowUpRight size={14} color="var(--text-muted)" style={{ flexShrink: 0 }} />
                 </div>
-                <div style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(22px,4vw,34px)', fontWeight: 700, color: 'var(--navy)', lineHeight: 1, marginBottom: 4 }}>
+                <div style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(20px,3vw,30px)', fontWeight: 700, color: 'var(--navy)', lineHeight: 1, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {stats ? stats[key].toLocaleString() : '—'}
                 </div>
-                <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>{label}</div>
+                <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</div>
                 <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{note}</div>
               </div>
             </Link>
@@ -209,10 +209,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Charts — hidden on very small screens, shown on tablet+ */}
-        <div style={{ overflowX: 'auto' }}>
-          <DashboardCharts />
-        </div>
+        <DashboardCharts />
       </div>
     </div>
   )

@@ -4,14 +4,18 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Plus, Search, UserCircle } from 'lucide-react'
 import { api, Student, Class } from '@/lib/api'
+import Pagination from '@/components/Pagination'
+
+const PAGE_SIZE = 15
 
 export default function StudentsPage() {
   const searchParams = useSearchParams()
-  const [students, setStudents]     = useState<Student[]>([])
-  const [classes, setClasses]       = useState<Class[]>([])
-  const [loading, setLoading]       = useState(true)
-  const [query, setQuery]           = useState(searchParams.get('q') ?? '')
+  const [students, setStudents]       = useState<Student[]>([])
+  const [classes, setClasses]         = useState<Class[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [query, setQuery]             = useState(searchParams.get('q') ?? '')
   const [classFilter, setClassFilter] = useState(searchParams.get('class') ?? '')
+  const [page, setPage]               = useState(1)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -32,7 +36,11 @@ export default function StudentsPage() {
     const fd = new FormData(e.currentTarget)
     setQuery(fd.get('q') as string ?? '')
     setClassFilter(fd.get('class') as string ?? '')
+    setPage(1)
   }
+
+  const totalPages = Math.ceil(students.length / PAGE_SIZE)
+  const paged = students.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
@@ -72,7 +80,7 @@ export default function StudentsPage() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="submit" style={{ flex: 1, padding: '9px 16px', background: 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Search</button>
-              <button type="button" onClick={() => { setQuery(''); setClassFilter('') }} style={{ padding: '9px 14px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer' }}>Clear</button>
+              <button type="button" onClick={() => { setQuery(''); setClassFilter(''); setPage(1) }} style={{ padding: '9px 14px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer' }}>Clear</button>
             </div>
           </form>
         </div>
@@ -96,8 +104,8 @@ export default function StudentsPage() {
                       {[80,70,50,100,80].map((w,j) => <td key={j} style={{ padding: '12px 14px' }}><div className="skeleton skeleton-text" style={{ width: w }} /></td>)}
                     </tr>
                   ))
-                ) : students.map((s, i) => (
-                  <tr key={s.id} style={{ borderBottom: i < students.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
+                ) : paged.map((s, i) => (
+                  <tr key={s.id} style={{ borderBottom: i < paged.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--gold-pale)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--navy)', flexShrink: 0 }}>
@@ -131,6 +139,7 @@ export default function StudentsPage() {
               </tbody>
             </table>
           </div>
+          <Pagination page={page} totalPages={totalPages} totalItems={students.length} pageSize={PAGE_SIZE} onPage={setPage} />
         </div>
       </div>
     </div>
