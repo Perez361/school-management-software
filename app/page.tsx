@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth-context";
 
 const shapes = [
   { size: 80,  x: 12, y: 15, delay: 0,   dur: 6,   opacity: 0.12, type: "hex"    },
@@ -47,8 +48,14 @@ function GridLines() {
 
 export default function WelcomePage() {
   const router = useRouter();
+  const { enterDemo } = useAuth();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
+
+  function handleDemo() {
+    enterDemo();
+    router.push("/dashboard");
+  }
 
   return (
     <>
@@ -267,6 +274,36 @@ export default function WelcomePage() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1A1A" strokeWidth="2" strokeLinecap="round">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
+              </button>
+
+              {/* Demo */}
+              <button
+                onClick={handleDemo}
+                style={{
+                  width: "100%", padding: "12px 20px",
+                  background: "transparent",
+                  color: "#a07840",
+                  border: "1.5px dashed rgba(201,168,76,0.4)",
+                  borderRadius: 12,
+                  fontSize: "clamp(12px,2vw,14px)", fontWeight: 600, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  fontFamily: "system-ui, sans-serif",
+                  transition: "all 0.2s ease",
+                  letterSpacing: "0.01em",
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(201,168,76,0.06)";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(201,168,76,0.7)";
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(201,168,76,0.4)";
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" />
+                </svg>
+                Preview Demo — no login required
               </button>
             </div>
 

@@ -52,6 +52,12 @@ pub fn run() {
             // Results
             get_results,
             upsert_result,
+            // Cumulative Assessments
+            get_ca_scores,
+            get_ca_entries,
+            add_ca_entry,
+            batch_add_ca_entries,
+            delete_ca_entry,
             // Payments
             get_payments,
             create_payment,

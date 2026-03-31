@@ -119,6 +119,31 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
             currentTerm TEXT NOT NULL DEFAULT 'Term 1',
             currentYear TEXT NOT NULL DEFAULT '2024'
         );
+
+        CREATE TABLE IF NOT EXISTS CAScore (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            studentId INTEGER NOT NULL REFERENCES Student(id) ON DELETE CASCADE,
+            subjectId INTEGER NOT NULL REFERENCES Subject(id) ON DELETE CASCADE,
+            term TEXT NOT NULL,
+            year TEXT NOT NULL,
+            classExercise REAL,
+            homeWork REAL,
+            classTest REAL,
+            midTermExam REAL,
+            computedCA REAL,
+            UNIQUE(studentId, subjectId, term, year)
+        );
+
+        CREATE TABLE IF NOT EXISTS CAScoreEntry (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            studentId INTEGER NOT NULL REFERENCES Student(id) ON DELETE CASCADE,
+            subjectId INTEGER NOT NULL REFERENCES Subject(id) ON DELETE CASCADE,
+            term TEXT NOT NULL,
+            year TEXT NOT NULL,
+            assessmentType TEXT NOT NULL,
+            score REAL NOT NULL,
+            maxScore REAL NOT NULL
+        );
     ")?;
 
     // Seed default admin if not exists

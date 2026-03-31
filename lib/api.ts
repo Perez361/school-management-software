@@ -118,6 +118,28 @@ export interface PaymentSummary {
   outstanding: number
 }
 
+export interface CAScore {
+  id: number
+  studentId: number
+  subjectId: number
+  term: string
+  year: string
+  computedCA?: number | null
+  student?: { id: number; name: string; studentId: string; class?: { id: number; name: string } | null } | null
+}
+
+export interface CAScoreEntry {
+  id: number
+  studentId: number
+  subjectId: number
+  term: string
+  year: string
+  assessmentType: string
+  score: number
+  maxScore: number
+  student?: { id: number; name: string; studentId: string; class?: { id: number; name: string } | null } | null
+}
+
 export interface ReportCardData {
   student: { name: string; studentId: string; class: string; gender: string }
   term: string
@@ -306,6 +328,43 @@ export const api = {
     studentId: number; subjectId: number; term: string; year: string; ca: number; exam: number
   }): Promise<ResultRow> =>
     call('upsert_result', { input }),
+
+  // Cumulative Assessments
+  getCAScores: (params?: {
+    classId?: number; subjectId?: number; term?: string; year?: string
+  }): Promise<CAScore[]> =>
+    call('get_ca_scores', {
+      classId:   params?.classId   ?? null,
+      subjectId: params?.subjectId ?? null,
+      term:      params?.term      ?? null,
+      year:      params?.year      ?? null,
+    }),
+
+  getCAEntries: (params?: {
+    classId?: number; subjectId?: number; term?: string; year?: string
+  }): Promise<CAScoreEntry[]> =>
+    call('get_ca_entries', {
+      classId:   params?.classId   ?? null,
+      subjectId: params?.subjectId ?? null,
+      term:      params?.term      ?? null,
+      year:      params?.year      ?? null,
+    }),
+
+  addCAEntry: (input: {
+    studentId: number; subjectId: number; term: string; year: string;
+    assessmentType: string; score: number; maxScore: number;
+  }): Promise<CAScoreEntry> =>
+    call('add_ca_entry', { input }),
+
+  batchAddCAEntries: (input: {
+    subjectId: number; term: string; year: string;
+    assessmentType: string; maxScore: number;
+    entries: { studentId: number; score: number }[];
+  }): Promise<CAScoreEntry[]> =>
+    call('batch_add_ca_entries', { input }),
+
+  deleteCAEntry: (id: number): Promise<void> =>
+    call('delete_ca_entry', { id }),
 
   // Payments
   getPayments: (params?: { classId?: number; term?: string; status?: string }): Promise<Payment[]> =>

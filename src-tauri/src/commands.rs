@@ -469,6 +469,148 @@ pub fn upsert_result(input: CreateResultInput) -> Result<ResultRow, String> {
     })
 }
 
+// ─── CUMULATIVE ASSESSMENTS ───────────────────────────────────────────────────
+// Formula: CA = (Σscore / ΣmaxScore) × 30  — always 0–30 regardless of entry count
+
+/// Returns per-student computed CA (aggregated from CAScoreEntry rows).
+/// Still returns the CAScore type so the Results page works unchanged.
+#[command]
+pub fn get_ca_scores(
+    class_id: Option<i64>,
+    subject_id: Option<i64>,
+    term: Option<String>,
+    year: Option<String>,
+) -> Result<Vec<CAScore>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let mut stmt = conn.prepare(
+        "SELECT e.studentId, e.subjectId, e.term, e.year,
+                s.id, s.name, s.studentId, c.id, c.name,
+                ROUND(SUM(e.score) * 30.0 / SUM(e.maxScore), 2) AS computedCA
+         FROM CAScoreEntry e
+         JOIN Student s ON s.id = e.studentId
+         JOIN Class c ON c.id = s.classId
+         WHERE (?1 IS NULL OR s.classId = ?1)
+           AND (?2 IS NULL OR e.subjectId = ?2)
+           AND (?3 IS NULL OR e.term = ?3)
+           AND (?4 IS NULL OR e.year = ?4)
+         GROUP BY e.studentId, e.subjectId, e.term, e.year
+         ORDER BY s.name"
+    ).map_err(|e| e.to_string())?;
+
+    let rows = stmt.query_map(params![class_id, subject_id, term, year], |row| {
+        Ok(CAScore {
+            id: row.get(0)?,
+            student_id: row.get(0)?,
+            subject_id: row.get(1)?,
+            term: row.get(2)?,
+            year: row.get(3)?,
+            class_exercise: None,
+            home_work: None,
+            class_test: None,
+            mid_term_exam: None,
+            computed_ca: row.get(9)?,
+            student: Some(StudentBasic {
+                id: row.get(4)?, name: row.get(5)?, student_id: row.get(6)?,
+                class: Some(ClassBasic { id: row.get(7)?, name: row.get(8)? }),
+            }),
+        })
+    }).map_err(|e| e.to_string())?;
+
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+/// Returns all individual CA score entries for the given filters.
+#[command]
+pub fn get_ca_entries(
+    class_id: Option<i64>,
+    subject_id: Option<i64>,
+    term: Option<String>,
+    year: Option<String>,
+) -> Result<Vec<CAScoreEntry>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let mut stmt = conn.prepare(
+        "SELECT e.id, e.studentId, e.subjectId, e.term, e.year,
+                e.assessmentType, e.score, e.maxScore,
+                s.id, s.name, s.studentId, c.id, c.name
+         FROM CAScoreEntry e
+         JOIN Student s ON s.id = e.studentId
+         JOIN Class c ON c.id = s.classId
+         WHERE (?1 IS NULL OR s.classId = ?1)
+           AND (?2 IS NULL OR e.subjectId = ?2)
+           AND (?3 IS NULL OR e.term = ?3)
+           AND (?4 IS NULL OR e.year = ?4)
+         ORDER BY s.name, e.assessmentType, e.id"
+    ).map_err(|e| e.to_string())?;
+
+    let rows = stmt.query_map(params![class_id, subject_id, term, year], |row| {
+        Ok(CAScoreEntry {
+            id: row.get(0)?, student_id: row.get(1)?, subject_id: row.get(2)?,
+            term: row.get(3)?, year: row.get(4)?,
+            assessment_type: row.get(5)?, score: row.get(6)?, max_score: row.get(7)?,
+            student: Some(StudentBasic {
+                id: row.get(8)?, name: row.get(9)?, student_id: row.get(10)?,
+                class: Some(ClassBasic { id: row.get(11)?, name: row.get(12)? }),
+            }),
+        })
+    }).map_err(|e| e.to_string())?;
+
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+/// Add a single CA score entry for one student.
+#[command]
+pub fn add_ca_entry(input: AddCAEntryInput) -> Result<CAScoreEntry, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT INTO CAScoreEntry (studentId, subjectId, term, year, assessmentType, score, maxScore)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![input.student_id, input.subject_id, input.term, input.year,
+                input.assessment_type, input.score, input.max_score],
+    ).map_err(|e| e.to_string())?;
+
+    let id = conn.last_insert_rowid();
+    Ok(CAScoreEntry {
+        id, student_id: input.student_id, subject_id: input.subject_id,
+        term: input.term, year: input.year,
+        assessment_type: input.assessment_type, score: input.score, max_score: input.max_score,
+        student: None,
+    })
+}
+
+/// Add CA entries for multiple students in one call (one assessment event).
+#[command]
+pub fn batch_add_ca_entries(input: BatchAddCAInput) -> Result<Vec<CAScoreEntry>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let mut result = Vec::new();
+    for entry in &input.entries {
+        if entry.score < 0.0 { continue }
+        conn.execute(
+            "INSERT INTO CAScoreEntry (studentId, subjectId, term, year, assessmentType, score, maxScore)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![entry.student_id, input.subject_id, input.term, input.year,
+                    input.assessment_type, entry.score, input.max_score],
+        ).map_err(|e| e.to_string())?;
+        result.push(CAScoreEntry {
+            id: conn.last_insert_rowid(),
+            student_id: entry.student_id, subject_id: input.subject_id,
+            term: input.term.clone(), year: input.year.clone(),
+            assessment_type: input.assessment_type.clone(),
+            score: entry.score, max_score: input.max_score,
+            student: None,
+        });
+    }
+    Ok(result)
+}
+
+/// Delete a single CA score entry by id.
+#[command]
+pub fn delete_ca_entry(id: i64) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    conn.execute("DELETE FROM CAScoreEntry WHERE id = ?1", params![id])
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 // ─── PAYMENTS ────────────────────────────────────────────────────────────────
 
 #[command]

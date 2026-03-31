@@ -41,3 +41,14 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+# Tauri / Rust
+src-tauri/target/
+src-tauri/.tauri/
+
+# Tauri outputs
+src-tauri/dist/
+src-tauri/binaries/
+
+# Local database
+*.db

@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm run:*)",
-      "Bash(cargo check:*)"
+      "Bash(cargo check:*)",
+      "Bash(ls -la \"/c/Users/Docile/Desktop/sms/app/\\(app\\)/results/\")",
+      "Bash(find \"/c/Users/Docile/Desktop/sms/app/\\(app\\)/\" -name \"layout.tsx\" -o -name \"page.tsx\")"
     ]
   }
 }

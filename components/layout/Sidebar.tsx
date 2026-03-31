@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 import {
   LayoutDashboard, Users, UserCheck, UserSquare2, BookOpen,
   FileText, Receipt, BarChart3, Settings, GraduationCap, LogOut,
-  ChevronRight, Menu, X,
+  ChevronRight, Menu, X, ClipboardList,
 } from 'lucide-react'
 
 const navGroups = [
@@ -25,8 +25,9 @@ const navGroups = [
   {
     label: 'Academics',
     items: [
-      { label: 'Classes', href: '/classes', icon: BookOpen },
-      { label: 'Results', href: '/results', icon: BarChart3 },
+      { label: 'Classes',                  href: '/classes',    icon: BookOpen },
+      { label: 'Cumulative Assessments',   href: '/ca-scores',  icon: ClipboardList },
+      { label: 'Results',                  href: '/results',    icon: BarChart3 },
     ],
   },
   {

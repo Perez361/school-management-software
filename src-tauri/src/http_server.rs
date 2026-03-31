@@ -147,6 +147,42 @@ async fn h_upsert_result(Json(b): Json<UpsertResultBody>) -> Result<impl IntoRes
     upsert_result(b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
 
+// Cumulative Assessments
+#[derive(Deserialize)] struct GetCAScoresBody {
+    #[serde(rename = "classId")]  class_id:   Option<i64>,
+    #[serde(rename = "subjectId")] subject_id: Option<i64>,
+    term: Option<String>,
+    year: Option<String>,
+}
+async fn h_get_ca_scores(Json(b): Json<GetCAScoresBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_ca_scores(b.class_id, b.subject_id, b.term, b.year).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct GetCAEntriesBody {
+    #[serde(rename = "classId")]   class_id:   Option<i64>,
+    #[serde(rename = "subjectId")] subject_id: Option<i64>,
+    term: Option<String>,
+    year: Option<String>,
+}
+async fn h_get_ca_entries(Json(b): Json<GetCAEntriesBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_ca_entries(b.class_id, b.subject_id, b.term, b.year).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct AddCAEntryBody { input: AddCAEntryInput }
+async fn h_add_ca_entry(Json(b): Json<AddCAEntryBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    add_ca_entry(b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct BatchAddCABody { input: BatchAddCAInput }
+async fn h_batch_add_ca_entries(Json(b): Json<BatchAddCABody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    batch_add_ca_entries(b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct DeleteCAEntryBody { id: i64 }
+async fn h_delete_ca_entry(Json(b): Json<DeleteCAEntryBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    delete_ca_entry(b.id).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
 // Payments
 #[derive(Deserialize)] struct GetPaymentsBody {
     #[serde(rename = "classId")] class_id: Option<i64>,
@@ -226,6 +262,11 @@ pub fn build_router() -> Router {
         .route("/api/create_subject",     post(h_create_subject))
         .route("/api/get_results",        post(h_get_results))
         .route("/api/upsert_result",      post(h_upsert_result))
+        .route("/api/get_ca_scores",          post(h_get_ca_scores))
+        .route("/api/get_ca_entries",         post(h_get_ca_entries))
+        .route("/api/add_ca_entry",           post(h_add_ca_entry))
+        .route("/api/batch_add_ca_entries",   post(h_batch_add_ca_entries))
+        .route("/api/delete_ca_entry",        post(h_delete_ca_entry))
         .route("/api/get_payments",       post(h_get_payments))
         .route("/api/create_payment",     post(h_create_payment))
         .route("/api/get_payment_summary",post(h_get_payment_summary))

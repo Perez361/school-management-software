@@ -161,6 +161,45 @@ pub struct User {
     pub name: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CAScore {
+    pub id: i64,
+    #[serde(rename = "studentId")]
+    pub student_id: i64,
+    #[serde(rename = "subjectId")]
+    pub subject_id: i64,
+    pub term: String,
+    pub year: String,
+    #[serde(rename = "classExercise")]
+    pub class_exercise: Option<f64>,
+    #[serde(rename = "homeWork")]
+    pub home_work: Option<f64>,
+    #[serde(rename = "classTest")]
+    pub class_test: Option<f64>,
+    #[serde(rename = "midTermExam")]
+    pub mid_term_exam: Option<f64>,
+    #[serde(rename = "computedCA")]
+    pub computed_ca: Option<f64>,
+    pub student: Option<StudentBasic>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CAScoreEntry {
+    pub id: i64,
+    #[serde(rename = "studentId")]
+    pub student_id: i64,
+    #[serde(rename = "subjectId")]
+    pub subject_id: i64,
+    pub term: String,
+    pub year: String,
+    #[serde(rename = "assessmentType")]
+    pub assessment_type: String,
+    pub score: f64,
+    #[serde(rename = "maxScore")]
+    pub max_score: f64,
+    pub student: Option<StudentBasic>,
+}
+
 // ─── Input types ─────────────────────────────────────────────────────────────
 
 #[derive(Debug, Deserialize)]
@@ -238,6 +277,41 @@ pub struct UpdateStudentInput {
 pub struct CreateSubjectInput {
     pub name: String,
     pub code: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AddCAEntryInput {
+    #[serde(rename = "studentId")]
+    pub student_id: i64,
+    #[serde(rename = "subjectId")]
+    pub subject_id: i64,
+    pub term: String,
+    pub year: String,
+    #[serde(rename = "assessmentType")]
+    pub assessment_type: String,
+    pub score: f64,
+    #[serde(rename = "maxScore")]
+    pub max_score: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BatchAddCAEntry {
+    #[serde(rename = "studentId")]
+    pub student_id: i64,
+    pub score: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BatchAddCAInput {
+    #[serde(rename = "subjectId")]
+    pub subject_id: i64,
+    pub term: String,
+    pub year: String,
+    #[serde(rename = "assessmentType")]
+    pub assessment_type: String,
+    #[serde(rename = "maxScore")]
+    pub max_score: f64,
+    pub entries: Vec<BatchAddCAEntry>,
 }
 
 #[derive(Debug, Deserialize)]
