@@ -86,8 +86,8 @@ export default function EditStaff() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
-      <div style={{ padding: '28px 32px 24px', background: 'var(--surface)', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 14 }}>
-        <Link href="/staff" style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+      <div style={{ padding: 'clamp(16px,4vw,28px) clamp(16px,4vw,32px) clamp(14px,3vw,24px)', background: 'var(--surface)', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <Link href="/staff" style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', textDecoration: 'none', flexShrink: 0 }}>
           <ArrowLeft size={16} />
         </Link>
         <div>
@@ -95,10 +95,10 @@ export default function EditStaff() {
             <div style={{ width: 24, height: 3, background: 'var(--gold)', borderRadius: 2 }} />
             <span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Staff</span>
           </div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 24, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Edit Staff Member</h1>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(18px,4vw,24px)', fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Edit Staff Member</h1>
         </div>
       </div>
-      <div style={{ padding: '28px 32px', maxWidth: 600 }}>
+      <div style={{ padding: 'clamp(12px,3vw,28px) clamp(16px,4vw,32px)', maxWidth: 600 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           {error && <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>{error}</div>}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
@@ -119,7 +119,7 @@ export default function EditStaff() {
                 </select>
               </div>
               {role === 'Teacher' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 14 }}>
                   <div>{lbl('Subject Taught')}<input {...register('subject')} style={inp} placeholder="e.g. Mathematics" /></div>
                   <div>
                     {lbl('Class Teacher Of')}
@@ -130,7 +130,7 @@ export default function EditStaff() {
                   </div>
                 </div>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 14 }}>
                 <div>{lbl('Phone')}<input {...register('phone')} style={inp} placeholder="+233 XX XXX XXXX" /></div>
                 <div>{lbl('Email')}<input {...register('email')} type="email" style={inp} placeholder="staff@school.edu.gh" /></div>
               </div>

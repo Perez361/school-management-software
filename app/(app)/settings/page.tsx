@@ -53,7 +53,7 @@ function SettingsForm({ settings }: { settings: SchoolSettings | null }) {
           <div><label style={labelStyle}>School Name *</label><input {...register('schoolName', { required: true })} style={inputStyle} placeholder="e.g. Accra Academy School" /></div>
           <div><label style={labelStyle}>School Motto</label><input {...register('motto')} style={inputStyle} placeholder="e.g. Knowledge is Power" /></div>
           <div><label style={labelStyle}>Address</label><input {...register('address')} style={inputStyle} placeholder="P.O. Box 1234, Accra, Ghana" /></div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 14 }}>
             <div><label style={labelStyle}>Phone</label><input {...register('phone')} style={inputStyle} placeholder="+233 XX XXX XXXX" /></div>
             <div><label style={labelStyle}>Email</label><input {...register('email')} type="email" style={inputStyle} placeholder="info@school.edu.gh" /></div>
           </div>
@@ -65,14 +65,14 @@ function SettingsForm({ settings }: { settings: SchoolSettings | null }) {
           <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Calendar size={15} color="var(--gold)" /></div>
           <div><div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Academic Period</div><div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>Controls the current term shown on the dashboard</div></div>
         </div>
-        <div style={{ ...sectionBodyStyle, flexDirection: 'row' } as React.CSSProperties}>
-          <div style={{ flex: 1 }}>
+        <div style={{ ...sectionBodyStyle, flexDirection: 'row', flexWrap: 'wrap' } as React.CSSProperties}>
+          <div style={{ flex: 1, minWidth: 140 }}>
             <label style={labelStyle}>Current Term</label>
             <select {...register('currentTerm')} style={{ ...inputStyle, cursor: 'pointer' } as React.CSSProperties}>
               <option value="Term 1">Term 1</option><option value="Term 2">Term 2</option><option value="Term 3">Term 3</option>
             </select>
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 140 }}>
             <label style={labelStyle}>Academic Year</label>
             <select {...register('currentYear')} style={{ ...inputStyle, cursor: 'pointer' } as React.CSSProperties}>
               <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option>
@@ -100,20 +100,20 @@ export default function SettingsPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
-      <div style={{ padding: '28px 32px 24px', background: 'var(--surface)', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: 'clamp(16px,4vw,28px) clamp(16px,4vw,32px) clamp(14px,3vw,24px)', background: 'var(--surface)', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}><div style={{ width: 24, height: 3, background: 'var(--gold)', borderRadius: 2 }} /><span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Administration</span></div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Settings</h1>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(20px,4vw,26px)', fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Settings</h1>
           <p style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', marginTop: 5 }}>Configure school information and academic period</p>
         </div>
         {settings && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--navy)', borderRadius: 10, padding: '10px 16px', border: '1px solid rgba(201,168,76,0.2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--navy)', borderRadius: 10, padding: '10px 16px', border: '1px solid rgba(201,168,76,0.2)', flexShrink: 0 }}>
             <School size={14} color="#c9a84c" />
             <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--gold-light)', fontWeight: 600 }}>{settings.currentTerm} · {settings.currentYear}</span>
           </div>
         )}
       </div>
-      <div style={{ padding: '24px 32px', maxWidth: 680 }}>
+      <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)', maxWidth: 680 }}>
         <SettingsForm settings={settings} />
       </div>
     </div>
