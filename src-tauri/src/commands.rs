@@ -1,5 +1,6 @@
 use crate::db::get_conn;
 use crate::models::*;
+use crate::sync;
 use rusqlite::params;
 use tauri::command;
 
@@ -71,12 +72,16 @@ pub fn get_classes() -> Result<Vec<Class>, String> {
 #[command]
 pub fn create_class(input: CreateClassInput) -> Result<Class, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
+    let sync_id = uuid::Uuid::new_v4().to_string();
+    let updated_at = chrono::Utc::now().to_rfc3339();
     conn.execute(
-        "INSERT INTO Class (name, level, section) VALUES (?1, ?2, ?3)",
-        params![input.name, input.level, input.section],
+        "INSERT INTO Class (name, level, section, sync_id, updated_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![input.name, input.level, input.section, sync_id, updated_at],
     ).map_err(|e| e.to_string())?;
 
     let id = conn.last_insert_rowid();
+    let payload = sync::build_payload(&conn, "Class", &sync_id).unwrap_or_default();
+    sync::queue_change(&conn, "Class", &sync_id, payload);
     Ok(Class { id, name: input.name, level: input.level, section: input.section, student_count: Some(0) })
 }
 
@@ -103,21 +108,32 @@ pub fn get_parents() -> Result<Vec<Parent>, String> {
 #[command]
 pub fn create_parent(input: CreateParentInput) -> Result<Parent, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
+    let sync_id = uuid::Uuid::new_v4().to_string();
+    let updated_at = chrono::Utc::now().to_rfc3339();
     conn.execute(
-        "INSERT INTO Parent (name, phone, email, address) VALUES (?1, ?2, ?3, ?4)",
-        params![input.name, input.phone, input.email, input.address],
+        "INSERT INTO Parent (name, phone, email, address, sync_id, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![input.name, input.phone, input.email, input.address, sync_id, updated_at],
     ).map_err(|e| e.to_string())?;
     let id = conn.last_insert_rowid();
+    let payload = sync::build_payload(&conn, "Parent", &sync_id).unwrap_or_default();
+    sync::queue_change(&conn, "Parent", &sync_id, payload);
     Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address })
 }
 
 #[command]
 pub fn update_parent(id: i64, input: UpdateParentInput) -> Result<Parent, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
+    let updated_at = chrono::Utc::now().to_rfc3339();
     conn.execute(
-        "UPDATE Parent SET name=?1, phone=?2, email=?3, address=?4 WHERE id=?5",
-        params![input.name, input.phone, input.email, input.address, id],
+        "UPDATE Parent SET name=?1, phone=?2, email=?3, address=?4, updated_at=?5 WHERE id=?6",
+        params![input.name, input.phone, input.email, input.address, updated_at, id],
     ).map_err(|e| e.to_string())?;
+    let sync_id: String = conn.query_row("SELECT sync_id FROM Parent WHERE id=?1", params![id], |r| r.get(0))
+        .unwrap_or_default();
+    if !sync_id.is_empty() {
+        let payload = sync::build_payload(&conn, "Parent", &sync_id).unwrap_or_default();
+        sync::queue_change(&conn, "Parent", &sync_id, payload);
+    }
     Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address })
 }
 
@@ -160,13 +176,17 @@ pub fn create_staff(input: CreateStaffInput) -> Result<Staff, String> {
     let count: i64 = conn.query_row("SELECT COUNT(*) FROM Staff", [], |r| r.get(0))
         .map_err(|e| e.to_string())?;
     let staff_id = format!("STF-{:03}", count + 1);
+    let sync_id = uuid::Uuid::new_v4().to_string();
+    let updated_at = chrono::Utc::now().to_rfc3339();
 
     conn.execute(
-        "INSERT INTO Staff (staffId, name, role, phone, email, subject, classId) VALUES (?1,?2,?3,?4,?5,?6,?7)",
-        params![staff_id, input.name, input.role, input.phone, input.email, input.subject, input.class_id],
+        "INSERT INTO Staff (staffId, name, role, phone, email, subject, classId, sync_id, updated_at) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)",
+        params![staff_id, input.name, input.role, input.phone, input.email, input.subject, input.class_id, sync_id, updated_at],
     ).map_err(|e| e.to_string())?;
 
     let id = conn.last_insert_rowid();
+    let payload = sync::build_payload(&conn, "Staff", &sync_id).unwrap_or_default();
+    sync::queue_change(&conn, "Staff", &sync_id, payload);
     Ok(Staff {
         id, staff_id,
         name: input.name, role: input.role, phone: input.phone,
@@ -204,11 +224,18 @@ pub fn update_staff(id: i64, input: UpdateStaffInput) -> Result<Staff, String> {
     let subject = input.subject.or(current.subject.clone());
     let class_id = input.class_id.or(current.class_id);
 
+    let updated_at = chrono::Utc::now().to_rfc3339();
     conn.execute(
-        "UPDATE Staff SET name=?1, role=?2, phone=?3, email=?4, subject=?5, classId=?6 WHERE id=?7",
-        params![name, role, phone, email, subject, class_id, id],
+        "UPDATE Staff SET name=?1, role=?2, phone=?3, email=?4, subject=?5, classId=?6, updated_at=?7 WHERE id=?8",
+        params![name, role, phone, email, subject, class_id, updated_at, id],
     ).map_err(|e| e.to_string())?;
 
+    let sync_id: String = conn.query_row("SELECT sync_id FROM Staff WHERE id=?1", params![id], |r| r.get(0))
+        .unwrap_or_default();
+    if !sync_id.is_empty() {
+        let payload = sync::build_payload(&conn, "Staff", &sync_id).unwrap_or_default();
+        sync::queue_change(&conn, "Staff", &sync_id, payload);
+    }
     Ok(Staff {
         id,
         staff_id: current.staff_id,
@@ -236,7 +263,7 @@ pub fn get_students(class_id: Option<i64>, q: Option<String>) -> Result<Vec<Stud
          FROM Student s
          JOIN Class c ON c.id = s.classId
          LEFT JOIN Parent p ON p.id = s.parentId
-         WHERE 1=1"
+         WHERE s.deleted_at IS NULL"
     );
 
     if class_id.is_some() { sql.push_str(" AND s.classId = ?"); }
@@ -324,15 +351,19 @@ pub fn create_student(input: CreateStudentInput) -> Result<Student, String> {
 
     let year = chrono::Local::now().format("%Y").to_string();
     let student_id = format!("ACC-{}-{:03}", year, count + 1);
+    let sync_id = uuid::Uuid::new_v4().to_string();
+    let updated_at = chrono::Utc::now().to_rfc3339();
 
     conn.execute(
-        "INSERT INTO Student (studentId, name, gender, dob, classId, parentId, phone, address)
-         VALUES (?1,?2,?3,?4,?5,?6,?7,?8)",
+        "INSERT INTO Student (studentId, name, gender, dob, classId, parentId, phone, address, sync_id, updated_at)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",
         params![student_id, input.name, input.gender, input.dob,
-                input.class_id, input.parent_id, input.phone, input.address],
+                input.class_id, input.parent_id, input.phone, input.address, sync_id, updated_at],
     ).map_err(|e| e.to_string())?;
 
     let id = conn.last_insert_rowid();
+    let payload = sync::build_payload(&conn, "Student", &sync_id).unwrap_or_default();
+    sync::queue_change(&conn, "Student", &sync_id, payload);
     get_student(id)
 }
 
@@ -347,22 +378,37 @@ pub fn update_student(id: i64, input: UpdateStudentInput) -> Result<Student, Str
     let class_id = input.class_id.unwrap_or(current.class_id);
     let parent_id = input.parent_id.or(current.parent_id);
 
+    let updated_at = chrono::Utc::now().to_rfc3339();
     conn.execute(
-        "UPDATE Student SET name=?1, gender=?2, dob=?3, classId=?4, parentId=?5, phone=?6, address=?7
-         WHERE id=?8",
+        "UPDATE Student SET name=?1, gender=?2, dob=?3, classId=?4, parentId=?5, phone=?6, address=?7, updated_at=?8
+         WHERE id=?9",
         params![name, gender, dob, class_id, parent_id,
-                input.phone, input.address, id],
+                input.phone, input.address, updated_at, id],
     ).map_err(|e| e.to_string())?;
 
+    let sync_id: String = conn.query_row("SELECT sync_id FROM Student WHERE id=?1", params![id], |r| r.get(0))
+        .unwrap_or_default();
+    if !sync_id.is_empty() {
+        let payload = sync::build_payload(&conn, "Student", &sync_id).unwrap_or_default();
+        sync::queue_change(&conn, "Student", &sync_id, payload);
+    }
     get_student(id)
 }
 
 #[command]
 pub fn delete_student(id: i64) -> Result<(), String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
-    conn.execute("DELETE FROM Result WHERE studentId = ?1", params![id]).map_err(|e| e.to_string())?;
-    conn.execute("DELETE FROM Payment WHERE studentId = ?1", params![id]).map_err(|e| e.to_string())?;
-    conn.execute("DELETE FROM Student WHERE id = ?1", params![id]).map_err(|e| e.to_string())?;
+    let now = chrono::Utc::now().to_rfc3339();
+    // Soft delete: mark deleted_at, keep record for sync
+    conn.execute(
+        "UPDATE Student SET deleted_at=?1, updated_at=?1 WHERE id=?2",
+        params![now, id],
+    ).map_err(|e| e.to_string())?;
+    let sync_id: String = conn.query_row("SELECT sync_id FROM Student WHERE id=?1", params![id], |r| r.get(0))
+        .unwrap_or_default();
+    if !sync_id.is_empty() {
+        sync::queue_delete(&conn, "Student", &sync_id);
+    }
     Ok(())
 }
 
@@ -385,9 +431,15 @@ pub fn get_subjects() -> Result<Vec<Subject>, String> {
 pub fn create_subject(input: CreateSubjectInput) -> Result<Subject, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
     let code = input.code.to_uppercase();
-    conn.execute("INSERT INTO Subject (name, code) VALUES (?1, ?2)", params![input.name, code])
-        .map_err(|e| e.to_string())?;
+    let sync_id = uuid::Uuid::new_v4().to_string();
+    let updated_at = chrono::Utc::now().to_rfc3339();
+    conn.execute(
+        "INSERT INTO Subject (name, code, sync_id, updated_at) VALUES (?1, ?2, ?3, ?4)",
+        params![input.name, code, sync_id, updated_at],
+    ).map_err(|e| e.to_string())?;
     let id = conn.last_insert_rowid();
+    let payload = sync::build_payload(&conn, "Subject", &sync_id).unwrap_or_default();
+    sync::queue_change(&conn, "Subject", &sync_id, payload);
     Ok(Subject { id, name: input.name, code })
 }
 
@@ -449,18 +501,31 @@ pub fn upsert_result(input: CreateResultInput) -> Result<ResultRow, String> {
     let total = input.ca + input.exam;
     let grade = get_grade(total).to_string();
     let remark = get_remark(total).to_string();
+    let sync_id = uuid::Uuid::new_v4().to_string();
+    let updated_at = chrono::Utc::now().to_rfc3339();
 
     conn.execute(
-        "INSERT INTO Result (studentId, subjectId, term, year, ca, exam, total, grade, remark)
-         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)
+        "INSERT INTO Result (studentId, subjectId, term, year, ca, exam, total, grade, remark, sync_id, updated_at)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)
          ON CONFLICT(studentId, subjectId, term, year)
          DO UPDATE SET ca=excluded.ca, exam=excluded.exam, total=excluded.total,
-                       grade=excluded.grade, remark=excluded.remark",
+                       grade=excluded.grade, remark=excluded.remark,
+                       sync_id=COALESCE(Result.sync_id, excluded.sync_id),
+                       updated_at=excluded.updated_at",
         params![input.student_id, input.subject_id, input.term, input.year,
-                input.ca, input.exam, total, grade, remark],
+                input.ca, input.exam, total, grade, remark, sync_id, updated_at],
     ).map_err(|e| e.to_string())?;
 
+    // Fetch the actual sync_id (may differ if row already existed)
+    let actual_sync_id: String = conn.query_row(
+        "SELECT sync_id FROM Result WHERE studentId=?1 AND subjectId=?2 AND term=?3 AND year=?4",
+        params![input.student_id, input.subject_id, input.term, input.year],
+        |r| r.get(0),
+    ).unwrap_or(sync_id);
+
     let id = conn.last_insert_rowid();
+    let payload = sync::build_payload(&conn, "Result", &actual_sync_id).unwrap_or_default();
+    sync::queue_change(&conn, "Result", &actual_sync_id, payload);
     Ok(ResultRow {
         id, student_id: input.student_id, subject_id: input.subject_id,
         term: input.term, year: input.year,
@@ -561,14 +626,18 @@ pub fn get_ca_entries(
 #[command]
 pub fn add_ca_entry(input: AddCAEntryInput) -> Result<CAScoreEntry, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
+    let sync_id = uuid::Uuid::new_v4().to_string();
+    let updated_at = chrono::Utc::now().to_rfc3339();
     conn.execute(
-        "INSERT INTO CAScoreEntry (studentId, subjectId, term, year, assessmentType, score, maxScore)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        "INSERT INTO CAScoreEntry (studentId, subjectId, term, year, assessmentType, score, maxScore, sync_id, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
         params![input.student_id, input.subject_id, input.term, input.year,
-                input.assessment_type, input.score, input.max_score],
+                input.assessment_type, input.score, input.max_score, sync_id, updated_at],
     ).map_err(|e| e.to_string())?;
 
     let id = conn.last_insert_rowid();
+    let payload = sync::build_payload(&conn, "CAScoreEntry", &sync_id).unwrap_or_default();
+    sync::queue_change(&conn, "CAScoreEntry", &sync_id, payload);
     Ok(CAScoreEntry {
         id, student_id: input.student_id, subject_id: input.subject_id,
         term: input.term, year: input.year,
@@ -584,14 +653,19 @@ pub fn batch_add_ca_entries(input: BatchAddCAInput) -> Result<Vec<CAScoreEntry>,
     let mut result = Vec::new();
     for entry in &input.entries {
         if entry.score < 0.0 { continue }
+        let sync_id = uuid::Uuid::new_v4().to_string();
+        let updated_at = chrono::Utc::now().to_rfc3339();
         conn.execute(
-            "INSERT INTO CAScoreEntry (studentId, subjectId, term, year, assessmentType, score, maxScore)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            "INSERT INTO CAScoreEntry (studentId, subjectId, term, year, assessmentType, score, maxScore, sync_id, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             params![entry.student_id, input.subject_id, input.term, input.year,
-                    input.assessment_type, entry.score, input.max_score],
+                    input.assessment_type, entry.score, input.max_score, sync_id, updated_at],
         ).map_err(|e| e.to_string())?;
+        let id = conn.last_insert_rowid();
+        let payload = sync::build_payload(&conn, "CAScoreEntry", &sync_id).unwrap_or_default();
+        sync::queue_change(&conn, "CAScoreEntry", &sync_id, payload);
         result.push(CAScoreEntry {
-            id: conn.last_insert_rowid(),
+            id,
             student_id: entry.student_id, subject_id: input.subject_id,
             term: input.term.clone(), year: input.year.clone(),
             assessment_type: input.assessment_type.clone(),
@@ -602,12 +676,20 @@ pub fn batch_add_ca_entries(input: BatchAddCAInput) -> Result<Vec<CAScoreEntry>,
     Ok(result)
 }
 
-/// Delete a single CA score entry by id.
+/// Soft-delete a single CA score entry by id.
 #[command]
 pub fn delete_ca_entry(id: i64) -> Result<(), String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
-    conn.execute("DELETE FROM CAScoreEntry WHERE id = ?1", params![id])
-        .map_err(|e| e.to_string())?;
+    let now = chrono::Utc::now().to_rfc3339();
+    conn.execute(
+        "UPDATE CAScoreEntry SET deleted_at=?1, updated_at=?1 WHERE id=?2",
+        params![now, id],
+    ).map_err(|e| e.to_string())?;
+    let sync_id: String = conn.query_row("SELECT sync_id FROM CAScoreEntry WHERE id=?1", params![id], |r| r.get(0))
+        .unwrap_or_default();
+    if !sync_id.is_empty() {
+        sync::queue_delete(&conn, "CAScoreEntry", &sync_id);
+    }
     Ok(())
 }
 
@@ -669,15 +751,19 @@ pub fn create_payment(input: CreatePaymentInput) -> Result<Payment, String> {
     } else { None };
 
     let year = chrono::Local::now().format("%Y").to_string();
+    let sync_id = uuid::Uuid::new_v4().to_string();
+    let updated_at = chrono::Utc::now().to_rfc3339();
 
     conn.execute(
-        "INSERT INTO Payment (studentId, term, year, feeType, amount, paid, balance, datePaid)
-         VALUES (?1,?2,?3,?4,?5,?6,?7,?8)",
+        "INSERT INTO Payment (studentId, term, year, feeType, amount, paid, balance, datePaid, sync_id, updated_at)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",
         params![input.student_id, input.term, year, input.fee_type,
-                input.amount, input.paid, balance, date_paid],
+                input.amount, input.paid, balance, date_paid, sync_id, updated_at],
     ).map_err(|e| e.to_string())?;
 
     let id = conn.last_insert_rowid();
+    let payload = sync::build_payload(&conn, "Payment", &sync_id).unwrap_or_default();
+    sync::queue_change(&conn, "Payment", &sync_id, payload);
     Ok(Payment {
         id, student_id: input.student_id, term: input.term, year,
         fee_type: input.fee_type, amount: input.amount, paid: input.paid,
@@ -842,4 +928,35 @@ pub fn get_top_students() -> Result<Vec<TopStudent>, String> {
     })).map_err(|e| e.to_string())?;
 
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+// ─── SYNC ─────────────────────────────────────────────────────────────────────
+
+#[command]
+pub fn get_sync_status() -> Result<sync::SyncStatus, String> {
+    sync::get_sync_status()
+}
+
+#[command]
+pub fn trigger_sync() -> Result<(), String> {
+    // Fire-and-forget: spawn a thread with its own runtime for the sync cycle
+    std::thread::spawn(|| {
+        let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+        rt.block_on(async { let _ = sync::run_sync_cycle().await; });
+    });
+    Ok(())
+}
+
+#[command]
+pub fn save_sync_config(url: String, anon_key: String, enabled: bool) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    conn.execute("INSERT OR REPLACE INTO sync_meta (key,value) VALUES ('supabase_url',?1)", params![url])
+        .map_err(|e| e.to_string())?;
+    conn.execute("INSERT OR REPLACE INTO sync_meta (key,value) VALUES ('supabase_anon_key',?1)", params![anon_key])
+        .map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT OR REPLACE INTO sync_meta (key,value) VALUES ('sync_enabled',?1)",
+        params![if enabled { "1" } else { "0" }],
+    ).map_err(|e| e.to_string())?;
+    Ok(())
 }

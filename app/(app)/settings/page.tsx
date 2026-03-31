@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Save, CheckCircle, Building2, Calendar, School } from 'lucide-react'
-import { api, SchoolSettings } from '@/lib/api'
+import { Save, CheckCircle, Building2, Calendar, School, Cloud, RefreshCw } from 'lucide-react'
+import { api, SchoolSettings, SyncStatus } from '@/lib/api'
 
 interface SettingsFormData {
   schoolName: string; motto?: string; address?: string
@@ -91,6 +91,88 @@ function SettingsForm({ settings }: { settings: SchoolSettings | null }) {
   )
 }
 
+function SyncConfigSection() {
+  const [url, setUrl] = useState('')
+  const [anonKey, setAnonKey] = useState('')
+  const [enabled, setEnabled] = useState(false)
+  const [status, setStatus] = useState<SyncStatus | null>(null)
+  const [saved, setSaved] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+
+  useEffect(() => {
+    api.getSyncStatus().then(s => {
+      setStatus(s)
+      setEnabled(s.enabled)
+    }).catch(() => {})
+  }, [])
+
+  async function handleSave() {
+    await api.saveSyncConfig(url, anonKey, enabled)
+    const s = await api.getSyncStatus()
+    setStatus(s)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 3000)
+  }
+
+  async function handleSync() {
+    setSyncing(true)
+    try {
+      await api.triggerSync()
+      setTimeout(async () => {
+        const s = await api.getSyncStatus().catch(() => null)
+        if (s) setStatus(s)
+      }, 3000)
+    } finally { setSyncing(false) }
+  }
+
+  const sectionStyle: React.CSSProperties = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }
+  const sectionHeaderStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 12, padding: '16px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)' }
+  const sectionBodyStyle: React.CSSProperties = { padding: '22px', display: 'flex', flexDirection: 'column', gap: 16 }
+
+  return (
+    <div style={sectionStyle}>
+      <div style={sectionHeaderStyle}>
+        <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Cloud size={15} color="var(--gold)" /></div>
+        <div>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Cloud Sync (Supabase)</div>
+          <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>Sync data across multiple devices via Supabase</div>
+        </div>
+      </div>
+      <div style={sectionBodyStyle}>
+        <div><label style={labelStyle}>Supabase Project URL</label>
+          <input value={url} onChange={e => setUrl(e.target.value)} style={inputStyle} placeholder="https://xxxx.supabase.co" />
+        </div>
+        <div><label style={labelStyle}>Supabase Anon Key</label>
+          <input value={anonKey} onChange={e => setAnonKey(e.target.value)} style={inputStyle} placeholder="eyJ..." type="password" />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)' }}>
+            <input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} />
+            Enable sync
+          </label>
+        </div>
+        {status && (
+          <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)', background: 'var(--surface-2)', borderRadius: 8, padding: '8px 12px' }}>
+            Status: {status.enabled ? 'Enabled' : 'Disabled'} · {status.pending} pending ·
+            Last pull: {status.last_pulled_at === '1970-01-01T00:00:00Z' ? 'Never' : new Date(status.last_pulled_at).toLocaleString()}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button type="button" onClick={handleSave} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            <Save size={14} /> Save Sync Config
+          </button>
+          {status?.enabled && (
+            <button type="button" onClick={handleSync} disabled={syncing} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 18px', background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: syncing ? 'not-allowed' : 'pointer' }}>
+              <RefreshCw size={14} style={{ animation: syncing ? 'spin 1s linear infinite' : undefined }} /> {syncing ? 'Syncing…' : 'Sync Now'}
+            </button>
+          )}
+          {saved && <span style={{ alignSelf: 'center', fontFamily: 'system-ui', fontSize: 13, color: '#15803d', fontWeight: 600 }}>Saved!</span>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<SchoolSettings | null | undefined>(undefined)
 
@@ -115,6 +197,7 @@ export default function SettingsPage() {
       </div>
       <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)', maxWidth: 680 }}>
         <SettingsForm settings={settings} />
+        <SyncConfigSection />
       </div>
     </div>
   )

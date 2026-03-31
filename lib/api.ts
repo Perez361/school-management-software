@@ -165,6 +165,13 @@ export interface TopStudent {
   avg: number
 }
 
+export interface SyncStatus {
+  enabled: boolean
+  pending: number
+  last_pulled_at: string
+  device_id: string
+}
+
 // ─── Token management (browser mode only) ────────────────────────────────────
 
 const TOKEN_KEY = 'sms_token'
@@ -405,4 +412,14 @@ export const api = {
 
   getTopStudents: (): Promise<TopStudent[]> =>
     call('get_top_students'),
+
+  // Sync
+  getSyncStatus: (): Promise<SyncStatus> =>
+    call('get_sync_status'),
+
+  triggerSync: (): Promise<void> =>
+    call('trigger_sync'),
+
+  saveSyncConfig: (url: string, anonKey: string, enabled: boolean): Promise<void> =>
+    call('save_sync_config', { url, anonKey, enabled }),
 }

@@ -235,6 +235,20 @@ async fn h_get_top_students() -> Result<impl IntoResponse, (StatusCode, String)>
     get_top_students().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
 
+// Sync
+async fn h_get_sync_status() -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_sync_status().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+async fn h_trigger_sync() -> Result<impl IntoResponse, (StatusCode, String)> {
+    trigger_sync().map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct SaveSyncConfigBody { url: String, #[serde(rename = "anonKey")] anon_key: String, enabled: bool }
+async fn h_save_sync_config(Json(b): Json<SaveSyncConfigBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    save_sync_config(b.url, b.anon_key, b.enabled).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 pub fn build_router() -> Router {
@@ -275,6 +289,9 @@ pub fn build_router() -> Router {
         .route("/api/get_report_card",    post(h_get_report_card))
         .route("/api/get_dashboard_stats",post(h_get_dashboard_stats))
         .route("/api/get_top_students",   post(h_get_top_students))
+        .route("/api/get_sync_status",    post(h_get_sync_status))
+        .route("/api/trigger_sync",       post(h_trigger_sync))
+        .route("/api/save_sync_config",   post(h_save_sync_config))
         .layer(middleware::from_fn(require_auth));
 
     // Public routes (login)

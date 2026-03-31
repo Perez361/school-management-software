@@ -146,6 +146,65 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
         );
     ")?;
 
+    // ─── Sync schema additions ────────────────────────────────────────────────
+    // ADD COLUMN is idempotent: rusqlite returns an error if the column already
+    // exists, which we silently ignore.
+    let sync_tables = [
+        "Student", "Staff", "Parent", "Class", "Subject",
+        "Result", "Payment", "CAScoreEntry",
+    ];
+    for table in &sync_tables {
+        let _ = conn.execute(&format!("ALTER TABLE {} ADD COLUMN sync_id TEXT", table), []);
+        let _ = conn.execute(&format!("ALTER TABLE {} ADD COLUMN updated_at TEXT", table), []);
+        let _ = conn.execute(&format!("ALTER TABLE {} ADD COLUMN deleted_at TEXT", table), []);
+        // Back-fill sync_id for existing rows that don't have one yet
+        let _ = conn.execute(
+            &format!("UPDATE {} SET sync_id = lower(hex(randomblob(16))) WHERE sync_id IS NULL", table),
+            [],
+        );
+        // Back-fill updated_at
+        let _ = conn.execute(
+            &format!("UPDATE {} SET updated_at = datetime('now') WHERE updated_at IS NULL", table),
+            [],
+        );
+    }
+
+    // Unique index on sync_id for each table (idempotent)
+    for table in &sync_tables {
+        let _ = conn.execute_batch(&format!(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_{}_sync_id ON {} (sync_id);",
+            table.to_lowercase(), table
+        ));
+    }
+
+    // Sync support tables
+    conn.execute_batch("
+        CREATE TABLE IF NOT EXISTS sync_queue (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            table_name  TEXT NOT NULL,
+            sync_id     TEXT NOT NULL,
+            operation   TEXT NOT NULL DEFAULT 'upsert',
+            payload     TEXT NOT NULL DEFAULT '{}',
+            queued_at   TEXT NOT NULL DEFAULT (datetime('now')),
+            pushed_at   TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS sync_meta (
+            key   TEXT PRIMARY KEY,
+            value TEXT NOT NULL DEFAULT ''
+        );
+    ")?;
+
+    // Seed sync_meta defaults (INSERT OR IGNORE keeps existing values)
+    conn.execute_batch("
+        INSERT OR IGNORE INTO sync_meta (key, value) VALUES ('device_id', lower(hex(randomblob(16))));
+        INSERT OR IGNORE INTO sync_meta (key, value) VALUES ('last_pulled_at', '1970-01-01T00:00:00Z');
+        INSERT OR IGNORE INTO sync_meta (key, value) VALUES ('supabase_url', '');
+        INSERT OR IGNORE INTO sync_meta (key, value) VALUES ('supabase_anon_key', '');
+        INSERT OR IGNORE INTO sync_meta (key, value) VALUES ('sync_enabled', '0');
+    ")?;
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Seed default admin if not exists
     let count: i64 = conn.query_row(
         "SELECT COUNT(*) FROM User WHERE email = 'admin@school.com'",

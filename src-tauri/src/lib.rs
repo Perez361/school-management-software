@@ -3,6 +3,7 @@ mod models;
 mod commands;
 mod auth;
 mod http_server;
+pub(crate) mod sync;
 
 use commands::*;
 
@@ -14,6 +15,9 @@ pub fn run() {
 
     // Start HTTP server for browser clients (school WiFi)
     http_server::start(http_server::HTTP_PORT);
+
+    // Start background sync engine
+    sync::start_sync_engine();
 
     tauri::Builder::default()
         .setup(|app| {
@@ -70,6 +74,10 @@ pub fn run() {
             // Dashboard
             get_dashboard_stats,
             get_top_students,
+            // Sync
+            get_sync_status,
+            trigger_sync,
+            save_sync_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

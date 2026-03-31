@@ -8,6 +8,7 @@ import {
   FileText, Receipt, BarChart3, Settings, GraduationCap, LogOut,
   ChevronRight, Menu, X, ClipboardList,
 } from 'lucide-react'
+import SyncStatusBar from './SyncStatusBar'
 
 const navGroups = [
   {
@@ -129,6 +130,9 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
+
+      {/* Sync status */}
+      <SyncStatusBar />
 
       {/* Footer */}
       <div className="sidebar-footer">
