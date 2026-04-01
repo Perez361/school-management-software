@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Save, CheckCircle, Building2, Calendar, School, Cloud, RefreshCw } from 'lucide-react'
 import { api, SchoolSettings, SyncStatus } from '@/lib/api'
+import RoleGuard from '@/components/RoleGuard'
 
 interface SettingsFormData {
   schoolName: string; motto?: string; address?: string
@@ -181,6 +182,7 @@ export default function SettingsPage() {
   if (settings === undefined) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'system-ui', color: 'var(--text-muted)' }}>Loading…</div>
 
   return (
+    <RoleGuard feature="settings">
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
       <div style={{ padding: 'clamp(16px,4vw,28px) clamp(16px,4vw,32px) clamp(14px,3vw,24px)', background: 'var(--surface)', borderBottom: '1px solid var(--border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
@@ -200,5 +202,6 @@ export default function SettingsPage() {
         <SyncConfigSection />
       </div>
     </div>
+    </RoleGuard>
   )
 }

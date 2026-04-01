@@ -165,6 +165,14 @@ export interface TopStudent {
   avg: number
 }
 
+export interface AppUser {
+  id: number
+  username: string
+  email: string
+  role: string
+  name: string
+}
+
 export interface SyncStatus {
   enabled: boolean
   pending: number
@@ -219,6 +227,17 @@ async function call<T>(
     headers,
     body: JSON.stringify(params),
   })
+
+  if (res.status === 401) {
+    // Token expired or invalid — clear session and redirect to login
+    clearAuthToken()
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('sms_user')
+      localStorage.removeItem('sms_demo')
+      window.location.href = '/'
+    }
+    throw new Error('Session expired. Please log in again.')
+  }
 
   if (!res.ok) {
     const msg = await res.text().catch(() => `HTTP ${res.status}`)
@@ -412,6 +431,22 @@ export const api = {
 
   getTopStudents: (): Promise<TopStudent[]> =>
     call('get_top_students'),
+
+  // User management
+  getUsers: (): Promise<AppUser[]> =>
+    call('get_users'),
+
+  createUser: (input: { username: string; email: string; password: string; role: string; name: string }): Promise<AppUser> =>
+    call('create_user', { input }),
+
+  updateUser: (id: number, input: { username?: string; email?: string; role?: string; name?: string }): Promise<AppUser> =>
+    call('update_user', { id, input }),
+
+  deleteUser: (id: number): Promise<void> =>
+    call('delete_user', { id }),
+
+  changeUserPassword: (userId: number, newPassword: string): Promise<void> =>
+    call('change_user_password', { input: { user_id: userId, new_password: newPassword } }),
 
   // Sync
   getSyncStatus: (): Promise<SyncStatus> =>

@@ -1,8 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Plus, UserSquare2 } from 'lucide-react'
 import { api, Staff } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
+import { useLiveData } from '@/lib/live-data'
 import Pagination from '@/components/Pagination'
 
 const PAGE_SIZE = 15
@@ -15,13 +18,18 @@ const roleMeta: Record<string, { color: string; bg: string; dot: string }> = {
 }
 
 export default function StaffPage() {
+  const { can } = useAuth()
+  const { version } = useLiveData()
+  const router = useRouter()
+  useEffect(() => { if (!can('staff')) router.replace('/dashboard') }, [can, router])
+
   const [staff, setStaff]   = useState<Staff[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage]       = useState(1)
 
   useEffect(() => {
     api.getStaff().then(setStaff).finally(() => setLoading(false))
-  }, [])
+  }, [version])
 
   const roleCounts = staff.reduce((acc, s) => {
     acc[s.role] = (acc[s.role] || 0) + 1

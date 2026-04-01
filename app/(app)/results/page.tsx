@@ -1,9 +1,9 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { Plus, Trophy, BarChart2 } from 'lucide-react'
+import { Trophy, BarChart2 } from 'lucide-react'
 import { api, Class, ResultRow } from '@/lib/api'
+import { useLiveData } from '@/lib/live-data'
 
 function rankStudents(results: ResultRow[]) {
   const map: Record<number, { studentId: number; name: string; total: number; count: number }> = {}
@@ -20,6 +20,7 @@ function getPositionSuffix(n: number) { const s = ['th','st','nd','rd']; const v
 const selStyle: React.CSSProperties = { padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', width: '100%' }
 
 export default function ResultsPage() {
+  const { version } = useLiveData()
   const searchParams = useSearchParams()
   const [classes, setClasses] = useState<Class[]>([])
   const [results, setResults] = useState<ResultRow[]>([])
@@ -36,7 +37,7 @@ export default function ResultsPage() {
     try { const r = await api.getResults({ classId: parseInt(classId), term, year }); setResults(r) }
     catch (e) { console.error(e) }
     finally { setLoading(false) }
-  }, [classId, term, year])
+  }, [classId, term, year, version])
 
   useEffect(() => { loadResults() }, [loadResults])
 
@@ -58,11 +59,8 @@ export default function ResultsPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}><div style={{ width: 24, height: 3, background: 'var(--gold)', borderRadius: 2 }} /><span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Academics</span></div>
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(20px,4vw,26px)', fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Results & Rankings</h1>
-          <p style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>View and manage student examination results</p>
+          <p style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>CA (/50) + Exam (/100 → /50) = Total (/100)</p>
         </div>
-        <Link href="/results/enter" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-          <Plus size={15} /> Enter Results
-        </Link>
       </div>
 
       <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)', display: 'flex', flexDirection: 'column', gap: 'clamp(10px,2vw,16px)' }}>
@@ -102,8 +100,7 @@ export default function ResultsPage() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '60px 20px', textAlign: 'center', fontFamily: 'system-ui', color: 'var(--text-muted)' }}>Loading…</div>
         ) : rankings.length === 0 ? (
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '60px 20px', textAlign: 'center' }}>
-            <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, color: 'var(--navy)', marginBottom: 16 }}>No results found for this class, term and year</div>
-            <Link href="/results/enter" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Enter Results Now</Link>
+            <div style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 500, color: 'var(--navy)' }}>No results found for this class, term and year</div>
           </div>
         ) : (
           <>
@@ -166,7 +163,7 @@ export default function ResultsPage() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui', minWidth: 400 }}>
                     <thead>
                       <tr style={{ background: 'var(--gold-pale)', borderBottom: '1px solid var(--border)' }}>
-                        {['Student','Subject','CA','Exam','Total','Grade'].map(h => (
+                        {['Student','Subject','CA /50','Exam /100','Total /100','Grade'].map(h => (
                           <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                         ))}
                       </tr>

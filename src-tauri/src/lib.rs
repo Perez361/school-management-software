@@ -74,6 +74,12 @@ pub fn run() {
             // Dashboard
             get_dashboard_stats,
             get_top_students,
+            // User management
+            get_users,
+            create_user,
+            update_user,
+            delete_user,
+            change_user_password,
             // Sync
             get_sync_status,
             trigger_sync,

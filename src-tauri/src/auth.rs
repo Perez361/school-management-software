@@ -13,7 +13,7 @@ pub struct Claims {
 
 pub fn create_token(user_id: i64, email: &str, role: &str) -> Result<String, String> {
     let exp = chrono::Utc::now()
-        .checked_add_signed(chrono::Duration::hours(10))
+        .checked_add_signed(chrono::Duration::days(30))
         .expect("valid timestamp")
         .timestamp() as usize;
 

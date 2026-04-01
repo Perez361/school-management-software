@@ -498,7 +498,8 @@ pub fn get_results(class_id: Option<i64>, term: Option<String>, year: Option<Str
 #[command]
 pub fn upsert_result(input: CreateResultInput) -> Result<ResultRow, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
-    let total = input.ca + input.exam;
+    // Exam stored at 100-point scale; contributes 50% (exam/2) to the total
+    let total = input.ca + input.exam / 2.0;
     let grade = get_grade(total).to_string();
     let remark = get_remark(total).to_string();
     let sync_id = uuid::Uuid::new_v4().to_string();
@@ -957,6 +958,97 @@ pub fn save_sync_config(url: String, anon_key: String, enabled: bool) -> Result<
     conn.execute(
         "INSERT OR REPLACE INTO sync_meta (key,value) VALUES ('sync_enabled',?1)",
         params![if enabled { "1" } else { "0" }],
+    ).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+// ─── USER MANAGEMENT ─────────────────────────────────────────────────────────
+
+#[command]
+pub fn get_users() -> Result<Vec<User>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let mut stmt = conn.prepare(
+        "SELECT id, username, email, role, name FROM User ORDER BY name"
+    ).map_err(|e| e.to_string())?;
+    let rows = stmt.query_map([], |row| Ok(User {
+        id: row.get(0)?, username: row.get(1)?, email: row.get(2)?,
+        role: row.get(3)?, name: row.get(4)?,
+    })).map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[command]
+pub fn create_user(input: CreateUserInput) -> Result<User, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    // Validate role
+    if !["admin","teacher","accountant"].contains(&input.role.as_str()) {
+        return Err("Invalid role. Must be admin, teacher, or accountant.".to_string());
+    }
+    let hashed = bcrypt::hash(&input.password, bcrypt::DEFAULT_COST)
+        .map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT INTO User (username, email, password, role, name) VALUES (?1,?2,?3,?4,?5)",
+        params![input.username, input.email, hashed, input.role, input.name],
+    ).map_err(|e| {
+        if e.to_string().contains("UNIQUE") {
+            "Email or username already exists.".to_string()
+        } else { e.to_string() }
+    })?;
+    let id = conn.last_insert_rowid();
+    Ok(User { id, username: input.username, email: input.email, role: input.role, name: input.name })
+}
+
+#[command]
+pub fn update_user(id: i64, input: UpdateUserInput) -> Result<User, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let current = conn.query_row(
+        "SELECT id, username, email, role, name FROM User WHERE id=?1",
+        params![id],
+        |row| Ok(User { id: row.get(0)?, username: row.get(1)?, email: row.get(2)?, role: row.get(3)?, name: row.get(4)? }),
+    ).map_err(|e| e.to_string())?;
+    let username = input.username.unwrap_or(current.username);
+    let email    = input.email.unwrap_or(current.email);
+    let role     = input.role.unwrap_or(current.role);
+    let name     = input.name.unwrap_or(current.name);
+    if !["admin","teacher","accountant"].contains(&role.as_str()) {
+        return Err("Invalid role.".to_string());
+    }
+    conn.execute(
+        "UPDATE User SET username=?1, email=?2, role=?3, name=?4 WHERE id=?5",
+        params![username, email, role, name, id],
+    ).map_err(|e| e.to_string())?;
+    Ok(User { id, username, email, role, name })
+}
+
+#[command]
+pub fn delete_user(id: i64) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    // Prevent deleting the last admin
+    let admin_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM User WHERE role='admin'", [], |r| r.get(0)
+    ).unwrap_or(0);
+    let user_role: String = conn.query_row(
+        "SELECT role FROM User WHERE id=?1", params![id], |r| r.get(0)
+    ).unwrap_or_default();
+    if user_role == "admin" && admin_count <= 1 {
+        return Err("Cannot delete the only admin account.".to_string());
+    }
+    conn.execute("DELETE FROM User WHERE id=?1", params![id])
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[command]
+pub fn change_user_password(input: ChangePasswordInput) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    if input.new_password.len() < 6 {
+        return Err("Password must be at least 6 characters.".to_string());
+    }
+    let hashed = bcrypt::hash(&input.new_password, bcrypt::DEFAULT_COST)
+        .map_err(|e| e.to_string())?;
+    conn.execute(
+        "UPDATE User SET password=?1 WHERE id=?2",
+        params![hashed, input.user_id],
     ).map_err(|e| e.to_string())?;
     Ok(())
 }

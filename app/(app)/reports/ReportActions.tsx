@@ -122,11 +122,13 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
       if (data.results.length > 0) {
         autoTable(doc, {
           startY: y,
-          head: [['Subject', 'CA (30)', 'Exam (70)', 'Total (100)', 'Grade', 'Remark']],
+          head: [['Subject', 'CA (50)', 'Exam (50)', 'Total (100)', 'Grade', 'Remark']],
           body: data.results.map(r => {
             const grade  = r.total >= 80 ? 'A' : r.total >= 70 ? 'B' : r.total >= 60 ? 'C' : r.total >= 50 ? 'D' : 'F'
             const remark = r.total >= 80 ? 'Excellent' : r.total >= 70 ? 'Very Good' : r.total >= 60 ? 'Good' : r.total >= 50 ? 'Average' : 'Unsatisfactory'
-            return [r.subject, r.ca, r.exam, r.total, grade, remark]
+            // Exam stored at 100-pt scale; display as /50 contribution
+            const examContrib = Math.round(r.exam / 2 * 100) / 100
+            return [r.subject, r.ca, examContrib, r.total, grade, remark]
           }),
           theme: 'grid',
           headStyles: { fillColor: CRIMSON, textColor: GOLD, fontSize: 9, fontStyle: 'bold' },

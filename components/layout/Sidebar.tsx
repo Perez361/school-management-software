@@ -6,11 +6,12 @@ import { useAuth } from '@/lib/auth-context'
 import {
   LayoutDashboard, Users, UserCheck, UserSquare2, BookOpen,
   FileText, Receipt, BarChart3, Settings, GraduationCap, LogOut,
-  ChevronRight, Menu, X, ClipboardList,
+  ChevronRight, Menu, X, ClipboardList, ShieldCheck, PenLine,
 } from 'lucide-react'
 import SyncStatusBar from './SyncStatusBar'
+import { allowedRoutes } from '@/lib/permissions'
 
-const navGroups = [
+const ALL_NAV_GROUPS = [
   {
     label: 'Main',
     items: [{ label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }],
@@ -26,9 +27,10 @@ const navGroups = [
   {
     label: 'Academics',
     items: [
-      { label: 'Classes',                  href: '/classes',    icon: BookOpen },
-      { label: 'Cumulative Assessments',   href: '/ca-scores',  icon: ClipboardList },
-      { label: 'Results',                  href: '/results',    icon: BarChart3 },
+      { label: 'Classes',                href: '/classes',    icon: BookOpen },
+      { label: 'Cumulative Assessments', href: '/ca-scores',     icon: ClipboardList },
+      { label: 'Exam Records',           href: '/exam-records',  icon: PenLine },
+      { label: 'Results',                href: '/results',        icon: BarChart3 },
     ],
   },
   {
@@ -36,27 +38,35 @@ const navGroups = [
     items: [
       { label: 'Billing',  href: '/billing',  icon: Receipt },
       { label: 'Reports',  href: '/reports',  icon: FileText },
+      { label: 'Users',    href: '/users',    icon: ShieldCheck },
       { label: 'Settings', href: '/settings', icon: Settings },
     ],
   },
 ]
 
 // Derive active page title for the mobile topbar
-function getPageTitle(pathname: string) {
-  for (const g of navGroups) {
+function getPageTitle(pathname: string, groups: typeof ALL_NAV_GROUPS) {
+  for (const g of groups) {
     for (const item of g.items) {
       if (pathname === item.href || pathname.startsWith(item.href + '/')) {
         return item.label
       }
     }
   }
-  return 'Abassadors Christian School'
+  return 'Ambassadors Christian School'
 }
 
 export default function Sidebar() {
   const pathname = usePathname()
   const router   = useRouter()
   const { user, logout } = useAuth()
+
+  // Filter nav to only routes the current user's role can access
+  const allowed = allowedRoutes(user?.role)
+  const navGroups = ALL_NAV_GROUPS.map(g => ({
+    ...g,
+    items: g.items.filter(item => allowed.has(item.href)),
+  })).filter(g => g.items.length > 0)
 
   const [open, setOpen] = useState(false)
 
@@ -78,7 +88,7 @@ export default function Sidebar() {
     router.push('/')
   }
 
-  const pageTitle = getPageTitle(pathname)
+  const pageTitle = getPageTitle(pathname, navGroups)
 
   const sidebarContent = (
     <>

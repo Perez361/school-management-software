@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Save, CheckCircle, ClipboardList, Users, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import { api, Student, Subject, Class, CAScoreEntry } from '@/lib/api'
+import { useLiveData } from '@/lib/live-data'
 
 const labelStyle: React.CSSProperties = {
   display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600,
@@ -25,13 +26,13 @@ const ASSESSMENT_TYPES = [
   { value: 'midTermExam',   label: 'Mid-Term Exam'  },
 ]
 
-/** CA = (Σscore / ΣmaxScore) × 30, max 30 */
+/** CA = (Σscore / ΣmaxScore) × 50, max 50 */
 function computeCAFromEntries(entries: CAScoreEntry[]): number | null {
   if (entries.length === 0) return null
   const totalScore = entries.reduce((s, e) => s + e.score, 0)
   const totalMax   = entries.reduce((s, e) => s + e.maxScore, 0)
   if (totalMax === 0) return null
-  return Math.min(30, Math.round((totalScore / totalMax) * 30 * 100) / 100)
+  return Math.min(50, Math.round((totalScore / totalMax) * 50 * 100) / 100)
 }
 
 function caColor(ca: number | null) {
@@ -50,6 +51,7 @@ function caBg(ca: number | null) {
 }
 
 export default function CAScoresPage() {
+  const { version, bump } = useLiveData()
   const [classes,      setClasses]     = useState<Class[]>([])
   const [subjects,     setSubjects]    = useState<Subject[]>([])
   const [students,     setStudents]    = useState<Student[]>([])
@@ -99,7 +101,7 @@ export default function CAScoresPage() {
     }).then(data => {
       setEntries(data)
     }).finally(() => setLoadingSum(false))
-  }, [classId, subjectId, term, year])
+  }, [classId, subjectId, term, year, version])
 
   useEffect(() => {
     if (tab === 'summary') loadEntries()
@@ -122,6 +124,7 @@ export default function CAScoresPage() {
       })
       setSaved(true)
       setBatchScores(prev => { const r = { ...prev }; Object.keys(r).forEach(k => { r[+k] = '' }); return r })
+      bump()
       setTimeout(() => setSaved(false), 3000)
     } catch (e: any) {
       setBatchError(e.message || String(e))

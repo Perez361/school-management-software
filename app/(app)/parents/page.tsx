@@ -1,20 +1,28 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Plus, UserCheck, Phone, Mail, MapPin } from 'lucide-react'
 import { api, Parent } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
+import { useLiveData } from '@/lib/live-data'
 import Pagination from '@/components/Pagination'
 
 const PAGE_SIZE = 15
 
 export default function ParentsPage() {
+  const { can } = useAuth()
+  const { version } = useLiveData()
+  const router = useRouter()
+  useEffect(() => { if (!can('parents')) router.replace('/dashboard') }, [can, router])
+
   const [parents, setParents]   = useState<Parent[]>([])
   const [loading, setLoading]   = useState(true)
   const [page, setPage]         = useState(1)
 
   useEffect(() => {
     api.getParents().then(setParents).finally(() => setLoading(false))
-  }, [])
+  }, [version])
 
   const totalPages = Math.ceil(parents.length / PAGE_SIZE)
   const paged = parents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)

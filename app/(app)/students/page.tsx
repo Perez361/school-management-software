@@ -4,11 +4,15 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Plus, Search, UserCircle } from 'lucide-react'
 import { api, Student, Class } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
+import { useLiveData } from '@/lib/live-data'
 import Pagination from '@/components/Pagination'
 
 const PAGE_SIZE = 15
 
 export default function StudentsPage() {
+  const { can } = useAuth()
+  const { version } = useLiveData()
   const searchParams = useSearchParams()
   const [students, setStudents]       = useState<Student[]>([])
   const [classes, setClasses]         = useState<Class[]>([])
@@ -27,7 +31,7 @@ export default function StudentsPage() {
       setStudents(s); setClasses(c)
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
-  }, [query, classFilter])
+  }, [query, classFilter, version])
 
   useEffect(() => { load() }, [load])
 
@@ -54,9 +58,11 @@ export default function StudentsPage() {
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(20px,4vw,26px)', fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Students</h1>
           <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>{students.length} student{students.length !== 1 ? 's' : ''} enrolled</span>
         </div>
-        <Link href="/students/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-          <Plus size={15} /> Add Student
-        </Link>
+        {can('students:write') && (
+          <Link href="/students/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            <Plus size={15} /> Add Student
+          </Link>
+        )}
       </div>
 
       <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)', display: 'flex', flexDirection: 'column', gap: 'clamp(10px,2vw,16px)' }}>
@@ -132,7 +138,7 @@ export default function StudentsPage() {
                       <div className="empty-icon-wrap"><UserCircle size={24} color="var(--gold)" /></div>
                       <div className="empty-title">No students found</div>
                       <div className="empty-desc">Try adjusting your search or add a new student</div>
-                      <Link href="/students/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Add Student</Link>
+                      {can('students:write') && <Link href="/students/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Add Student</Link>}
                     </div>
                   </td></tr>
                 )}

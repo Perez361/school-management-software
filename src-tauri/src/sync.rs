@@ -93,6 +93,7 @@ pub fn get_sync_status() -> Result<SyncStatus, String> {
 struct SyncConfig {
     url: String,
     anon_key: String,
+    #[allow(dead_code)]
     device_id: String,
 }
 
@@ -123,6 +124,7 @@ struct QueueEntry {
     table_name: String,
     sync_id: String,
     operation: String,
+    #[allow(dead_code)]
     payload: String,
 }
 
@@ -340,9 +342,11 @@ fn get_opt_str(row: &Value, key: &str) -> Option<String> {
 fn get_f64(row: &Value, key: &str) -> f64 {
     row.get(key).and_then(|v| v.as_f64()).unwrap_or(0.0)
 }
+#[allow(dead_code)]
 fn get_opt_f64(row: &Value, key: &str) -> Option<f64> {
     row.get(key).and_then(|v| v.as_f64())
 }
+#[allow(dead_code)]
 fn get_i64(row: &Value, key: &str) -> i64 {
     row.get(key).and_then(|v| v.as_i64()).unwrap_or(0)
 }
@@ -741,7 +745,7 @@ fn build_ca_entry_payload(conn: &Connection, sync_id: &str) -> Result<Value, Str
 
 // ─── HTTP client factory ──────────────────────────────────────────────────────
 
-fn build_client(config: &SyncConfig) -> Result<reqwest::Client, String> {
+fn build_client(_config: &SyncConfig) -> Result<reqwest::Client, String> {
     reqwest::Client::builder()
         .timeout(Duration::from_secs(30))
         .build()

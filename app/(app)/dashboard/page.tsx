@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { TrendingUp, Receipt, Award, ArrowUpRight, Users, UserSquare2, BookOpen, UserCheck } from 'lucide-react'
 import { api, DashboardStats, TopStudent, Payment, SchoolSettings } from '@/lib/api'
+import { useLiveData } from '@/lib/live-data'
 import DashboardCharts from './DashboardCharts'
 import QuickActions from './QuickActions'
 
@@ -14,6 +15,7 @@ const STAT_CONFIG = [
 ]
 
 export default function DashboardPage() {
+  const { version } = useLiveData()
   const [stats, setStats]               = useState<DashboardStats | null>(null)
   const [topStudents, setTopStudents]   = useState<TopStudent[]>([])
   const [recentPayments, setRecentPayments] = useState<Payment[]>([])
@@ -31,7 +33,7 @@ export default function DashboardPage() {
       setRecentPayments(pays.slice(0, 6))
       setSettings(cfg)
     })
-  }, [])
+  }, [version])
 
   const collected      = stats?.totalCollected ?? 0
   const outstanding    = stats?.totalOutstanding ?? 0

@@ -249,6 +249,31 @@ async fn h_save_sync_config(Json(b): Json<SaveSyncConfigBody>) -> Result<impl In
     save_sync_config(b.url, b.anon_key, b.enabled).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
 
+// User management
+async fn h_get_users() -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_users().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct CreateUserBody { input: CreateUserInput }
+async fn h_create_user(Json(b): Json<CreateUserBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    create_user(b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct UpdateUserBody { id: i64, input: UpdateUserInput }
+async fn h_update_user(Json(b): Json<UpdateUserBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    update_user(b.id, b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct DeleteUserBody { id: i64 }
+async fn h_delete_user(Json(b): Json<DeleteUserBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    delete_user(b.id).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct ChangePasswordBody { input: ChangePasswordInput }
+async fn h_change_user_password(Json(b): Json<ChangePasswordBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    change_user_password(b.input).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 pub fn build_router() -> Router {
@@ -292,6 +317,11 @@ pub fn build_router() -> Router {
         .route("/api/get_sync_status",    post(h_get_sync_status))
         .route("/api/trigger_sync",       post(h_trigger_sync))
         .route("/api/save_sync_config",   post(h_save_sync_config))
+        .route("/api/get_users",             post(h_get_users))
+        .route("/api/create_user",           post(h_create_user))
+        .route("/api/update_user",           post(h_update_user))
+        .route("/api/delete_user",           post(h_delete_user))
+        .route("/api/change_user_password",  post(h_change_user_password))
         .layer(middleware::from_fn(require_auth));
 
     // Public routes (login)
@@ -326,9 +356,11 @@ async fn serve_embedded(req: Request, dir: &'static include_dir::Dir<'static>) -
     let path = req.uri().path().trim_start_matches('/');
     let path = if path.is_empty() { "index.html" } else { path };
 
-    // Try exact path, then with .html, then index.html fallback
+    // Try exact path, then path/index.html (trailingSlash:true output), then path.html, then root fallback
+    let path_clean = path.trim_end_matches('/');
     let file = dir.get_file(path)
-        .or_else(|| dir.get_file(&format!("{}.html", path)))
+        .or_else(|| dir.get_file(&format!("{}/index.html", path_clean)))
+        .or_else(|| dir.get_file(&format!("{}.html", path_clean)))
         .or_else(|| dir.get_file("index.html"));
 
     match file {

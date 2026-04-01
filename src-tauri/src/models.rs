@@ -392,3 +392,26 @@ pub struct SubjectResult {
     pub exam: f64,
     pub total: f64,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct CreateUserInput {
+    pub username: String,
+    pub email: String,
+    pub password: String,
+    pub role: String,
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateUserInput {
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub role: Option<String>,
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ChangePasswordInput {
+    pub user_id: i64,
+    pub new_password: String,
+}

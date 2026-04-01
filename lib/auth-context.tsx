@@ -9,6 +9,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { api, User, clearAuthToken } from '@/lib/api'
+import { can as canFeature, Feature } from '@/lib/permissions'
 
 interface AuthContextValue {
   user: User | null
@@ -17,6 +18,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<User>
   logout: () => void
   enterDemo: () => void
+  can: (feature: Feature) => boolean
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -75,8 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(STORAGE_KEY)
   }
 
+  const can = (feature: Feature) => canFeature(user?.role, feature)
+
   return (
-    <AuthContext.Provider value={{ user, loading, isDemo, login, logout, enterDemo }}>
+    <AuthContext.Provider value={{ user, loading, isDemo, login, logout, enterDemo, can }}>
       {children}
     </AuthContext.Provider>
   )

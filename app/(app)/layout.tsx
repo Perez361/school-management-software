@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import Sidebar from '@/components/layout/Sidebar'
+import { LiveDataProvider } from '@/lib/live-data'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, isDemo, logout } = useAuth()
@@ -71,7 +72,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
         <Sidebar />
         <main className="main-content">
-          {children}
+          <LiveDataProvider>
+            {children}
+          </LiveDataProvider>
         </main>
       </div>
     </div>

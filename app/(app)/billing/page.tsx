@@ -2,13 +2,21 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Plus, Receipt, AlertCircle, CheckCircle, TrendingUp, Filter } from 'lucide-react'
 import { api, Payment, Class, PaymentSummary } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
+import { useLiveData } from '@/lib/live-data'
 import Pagination from '@/components/Pagination'
 
 const PAGE_SIZE = 20
 
 export default function BillingPage() {
+  const { can } = useAuth()
+  const { version } = useLiveData()
+  const router = useRouter()
+  useEffect(() => { if (!can('billing')) router.replace('/dashboard') }, [can, router])
+
   const searchParams = useSearchParams()
 
   const [classes, setClasses]   = useState<Class[]>([])
@@ -32,7 +40,7 @@ export default function BillingPage() {
       setClasses(cls); setPayments(pays); setSummary(sum)
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
-  }, [classFilter, termFilter, statusFilter])
+  }, [classFilter, termFilter, statusFilter, version])
 
   useEffect(() => { load() }, [load])
 

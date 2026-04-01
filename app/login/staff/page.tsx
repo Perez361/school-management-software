@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 const roles = [
   { id: "teacher",   label: "Teacher",       icon: "📚" },
@@ -13,6 +14,7 @@ const roles = [
 
 export default function StaffLoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [staffId, setStaffId] = useState("");
   const [password, setPassword] = useState("");
@@ -30,15 +32,10 @@ export default function StaffLoginPage() {
     if (!staffId || !password) { setError("Please fill in all fields."); return; }
     setLoading(true); setError("");
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: staffId, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Login failed");
+      const user = await login(staffId, password);
+      if (user.role === "admin") throw new Error("Please use the Admin Login portal.");
       router.push("/dashboard");
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) { setError(e.message || "Invalid credentials"); }
     finally { setLoading(false); }
   }
 

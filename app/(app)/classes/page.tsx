@@ -1,8 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Plus, BookOpen } from 'lucide-react'
 import { api, Class } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
+import { useLiveData } from '@/lib/live-data'
 import ClassCard from './ClassCard'
 
 interface LevelColor { accent: string; bg: string; border: string; dot: string }
@@ -27,10 +30,15 @@ function getLevelColor(level: string): LevelColor {
 }
 
 export default function ClassesPage() {
+  const { can } = useAuth()
+  const { version } = useLiveData()
+  const router = useRouter()
+  useEffect(() => { if (!can('classes')) router.replace('/dashboard') }, [can, router])
+
   const [classes, setClasses] = useState<Class[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { api.getClasses().then(setClasses).finally(() => setLoading(false)) }, [])
+  useEffect(() => { api.getClasses().then(setClasses).finally(() => setLoading(false)) }, [version])
 
   const totalStudents = classes.reduce((s, c) => s + (c.student_count ?? 0), 0)
   const levelGroups   = classes.reduce((acc, cls) => { if (!acc[cls.level]) acc[cls.level] = []; acc[cls.level].push(cls); return acc }, {} as Record<string, Class[]>)
