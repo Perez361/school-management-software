@@ -28,6 +28,7 @@ export interface Parent {
   phone: string
   email?: string | null
   address?: string | null
+  photo?: string | null
   students?: Student[]
 }
 
@@ -51,6 +52,7 @@ export interface Student {
   dob: string
   phone?: string | null
   address?: string | null
+  photo?: string | null
   classId: number
   parentId?: number | null
   createdAt: string
@@ -140,13 +142,30 @@ export interface CAScoreEntry {
   student?: { id: number; name: string; studentId: string; class?: { id: number; name: string } | null } | null
 }
 
+export interface AttendanceSummary {
+  totalDays: number
+  present: number
+  absent: number
+  late: number
+}
+
+export interface AttendanceEntry {
+  id: number
+  studentId: number
+  name: string
+  status: string
+  date: string
+}
+
 export interface ReportCardData {
-  student: { name: string; studentId: string; class: string; gender: string }
+  student: { name: string; studentId: string; class: string; gender: string; photo?: string | null }
   term: string
   year: string
   position: number
   totalStudents: number
   results: { subject: string; ca: number; exam: number; total: number }[]
+  billing?: { feeType: string; amount: number; paid: number; balance: number } | null
+  attendance: AttendanceSummary
 }
 
 export interface DashboardStats {
@@ -288,11 +307,14 @@ export const api = {
   getParents: (): Promise<Parent[]> =>
     call('get_parents'),
 
-  createParent: (input: { name: string; phone: string; email?: string; address?: string }): Promise<Parent> =>
+  createParent: (input: { name: string; phone: string; email?: string; address?: string; photo?: string }): Promise<Parent> =>
     call('create_parent', { input }),
 
-  updateParent: (id: number, input: { name: string; phone: string; email?: string; address?: string }): Promise<Parent> =>
+  updateParent: (id: number, input: { name: string; phone: string; email?: string; address?: string; photo?: string }): Promise<Parent> =>
     call('update_parent', { id, input }),
+
+  deleteParent: (id: number): Promise<void> =>
+    call('delete_parent', { id }),
 
   // Staff
   getStaff: (): Promise<Staff[]> =>
@@ -310,6 +332,9 @@ export const api = {
   }): Promise<Staff> =>
     call('update_staff', { id, input }),
 
+  deleteStaff: (id: number): Promise<void> =>
+    call('delete_staff', { id }),
+
   // Students
   getStudents: (params?: { classId?: number; q?: string }): Promise<Student[]> =>
     call('get_students', { classId: params?.classId ?? null, q: params?.q ?? null }),
@@ -319,13 +344,13 @@ export const api = {
 
   createStudent: (input: {
     name: string; gender: string; dob: string; classId: number;
-    parentId?: number; phone?: string; address?: string
+    parentId?: number; phone?: string; address?: string; photo?: string
   }): Promise<Student> =>
     call('create_student', { input }),
 
   updateStudent: (id: number, input: {
     name?: string; gender?: string; dob?: string; classId?: number;
-    parentId?: number | null; phone?: string; address?: string
+    parentId?: number | null; phone?: string; address?: string; photo?: string
   }): Promise<Student> =>
     call('update_student', { id, input }),
 
@@ -447,6 +472,21 @@ export const api = {
 
   changeUserPassword: (userId: number, newPassword: string): Promise<void> =>
     call('change_user_password', { input: { user_id: userId, new_password: newPassword } }),
+
+  // Attendance
+  recordAttendance: (input: {
+    classId: number; date: string; term: string; year: string;
+    records: { studentId: number; status: string }[]
+  }): Promise<void> =>
+    call('record_attendance', { input }),
+
+  getAttendance: (params: { classId: number; date: string }): Promise<AttendanceEntry[]> =>
+    call('get_attendance', { classId: params.classId, date: params.date }),
+
+  getAttendanceSummary: (params: {
+    studentId: number; term: string; year: string
+  }): Promise<AttendanceSummary> =>
+    call('get_attendance_summary', { studentId: params.studentId, term: params.term, year: params.year }),
 
   // Sync
   getSyncStatus: (): Promise<SyncStatus> =>

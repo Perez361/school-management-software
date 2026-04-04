@@ -146,12 +146,28 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
         );
     ")?;
 
+        CREATE TABLE IF NOT EXISTS Attendance (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            studentId INTEGER NOT NULL REFERENCES Student(id) ON DELETE CASCADE,
+            classId   INTEGER NOT NULL REFERENCES Class(id),
+            date      TEXT NOT NULL,
+            status    TEXT NOT NULL DEFAULT 'present',
+            term      TEXT NOT NULL,
+            year      TEXT NOT NULL,
+            UNIQUE(studentId, date)
+        );
+    ")?;
+
+    // ─── Additive ALTER TABLE migrations (idempotent) ────────────────────────
+    let _ = conn.execute("ALTER TABLE Parent ADD COLUMN photo TEXT", []);
+    let _ = conn.execute("ALTER TABLE Student ADD COLUMN photo TEXT", []);
+
     // ─── Sync schema additions ────────────────────────────────────────────────
     // ADD COLUMN is idempotent: rusqlite returns an error if the column already
     // exists, which we silently ignore.
     let sync_tables = [
         "Student", "Staff", "Parent", "Class", "Subject",
-        "Result", "Payment", "CAScoreEntry",
+        "Result", "Payment", "CAScoreEntry", "Attendance",
     ];
     for table in &sync_tables {
         let _ = conn.execute(&format!("ALTER TABLE {} ADD COLUMN sync_id TEXT", table), []);

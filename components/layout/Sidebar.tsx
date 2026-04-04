@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 import {
   LayoutDashboard, Users, UserCheck, UserSquare2, BookOpen,
   FileText, Receipt, BarChart3, Settings, GraduationCap, LogOut,
-  ChevronRight, Menu, X, ClipboardList, ShieldCheck, PenLine,
+  ChevronRight, Menu, X, ClipboardList, ShieldCheck, PenLine, CalendarCheck,
 } from 'lucide-react'
 import SyncStatusBar from './SyncStatusBar'
 import { allowedRoutes } from '@/lib/permissions'
@@ -31,6 +31,7 @@ const ALL_NAV_GROUPS = [
       { label: 'Cumulative Assessments', href: '/ca-scores',     icon: ClipboardList },
       { label: 'Exam Records',           href: '/exam-records',  icon: PenLine },
       { label: 'Results',                href: '/results',        icon: BarChart3 },
+      { label: 'Attendance',             href: '/attendance',     icon: CalendarCheck },
     ],
   },
   {

@@ -12,7 +12,7 @@ interface Props {
 export default function ReportActions({ type, classes, schoolName }: Props) {
   const [selectedClass, setSelectedClass] = useState('')
   const [term, setTerm] = useState('Term 1')
-  const [year, setYear] = useState('2024')
+  const [year, setYear] = useState('2024/2025')
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
 
@@ -68,118 +68,185 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
     const { jsPDF } = await import('jspdf')
     const autoTable = (await import('jspdf-autotable')).default
     const doc = new jsPDF()
-    const pw = doc.internal.pageSize.getWidth()
-    const ph = doc.internal.pageSize.getHeight()
+    const pw  = doc.internal.pageSize.getWidth()   // 210mm
+    const ph  = doc.internal.pageSize.getHeight()  // 297mm
+    const cardH = ph / 2                           // 148.5mm — half page per card
 
-    // Theme colours
-    const CRIMSON: [number, number, number] = [92, 15, 15]
-    const CRIMSON_MID: [number, number, number] = [139, 26, 26]
-    const GOLD: [number, number, number] = [201, 168, 76]
-    const GOLD_PALE: [number, number, number] = [253, 245, 240]
-    const TEXT: [number, number, number] = [44, 10, 10]
+    const CRIMSON:     [number, number, number] = [92,  15,  15]
+    const CRIMSON_MID: [number, number, number] = [139, 26,  26]
+    const GOLD:        [number, number, number] = [201, 168, 76]
+    const GOLD_PALE:   [number, number, number] = [253, 245, 240]
+    const TEXT:        [number, number, number] = [44,  10,  10]
+    const GREEN:       [number, number, number] = [22,  163, 74]
+
+    function teacherRemark(avg: number) {
+      if (avg >= 80) return 'Excellent performance this term. Keep it up!'
+      if (avg >= 70) return 'Very good performance. Continue to put in your best.'
+      if (avg >= 60) return 'Good performance. There is room for improvement.'
+      if (avg >= 50) return 'Average performance. More effort is needed.'
+      return 'Poor performance. Student needs more attention and support.'
+    }
+    function headRemark(avg: number) {
+      if (avg >= 80) return 'Outstanding student. Promoted with distinction.'
+      if (avg >= 70) return 'Good student. Continue to work hard next term.'
+      if (avg >= 60) return 'Satisfactory. Keep improving each term.'
+      if (avg >= 50) return 'Fair performance. Extra effort is required.'
+      return 'Needs significant improvement. Please see the class teacher.'
+    }
 
     for (let idx = 0; idx < students.length; idx++) {
       const s = students[idx]
-      if (idx > 0) doc.addPage()
+      const isSecond = idx % 2 === 1
+      const yOff = isSecond ? cardH : 0
+
+      if (idx > 0 && !isSecond) doc.addPage()
+
+      // Dashed cut line between the two cards
+      if (isSecond) {
+        doc.setDrawColor(180, 150, 150); doc.setLineWidth(0.3)
+        doc.setLineDashPattern([3, 2], 0)
+        doc.line(4, cardH, pw - 4, cardH)
+        doc.setLineDashPattern([], 0)
+      }
+
       const data = await api.getReportCard(s.id, term, year)
 
-      // ── Header band ──
-      doc.setFillColor(...CRIMSON); doc.rect(0, 0, pw, 32, 'F')
-      doc.setFillColor(...GOLD); doc.rect(0, 32, pw, 2, 'F')
-      doc.setTextColor(...GOLD); doc.setFontSize(17); doc.setFont('helvetica', 'bold')
-      doc.text(schoolName.toUpperCase(), pw / 2, 13, { align: 'center' })
-      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(255, 255, 255)
-      doc.text('TERMINAL REPORT CARD', pw / 2, 21, { align: 'center' })
-      doc.text(`${term}  ·  ${year}`, pw / 2, 28, { align: 'center' })
+      // ── Header band ──────────────────────────────────────
+      doc.setFillColor(...CRIMSON); doc.rect(0, yOff, pw, 18, 'F')
+      doc.setFillColor(...GOLD);    doc.rect(0, yOff + 18, pw, 1, 'F')
+      doc.setTextColor(...GOLD);    doc.setFontSize(13); doc.setFont('helvetica', 'bold')
+      doc.text(schoolName.toUpperCase(), pw / 2, yOff + 8, { align: 'center' })
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(255, 255, 255)
+      doc.text(`TERMINAL REPORT CARD  —  ${term.toUpperCase()}  ·  ${year}`, pw / 2, yOff + 15, { align: 'center' })
 
-      // ── Student info box ──
-      let y = 42
-      doc.setFillColor(...GOLD_PALE); doc.roundedRect(14, y - 4, pw - 28, 30, 2, 2, 'F')
-      doc.setDrawColor(...GOLD); doc.setLineWidth(0.4); doc.roundedRect(14, y - 4, pw - 28, 30, 2, 2, 'S')
+      // ── Student info ──────────────────────────────────────
+      let y = yOff + 23
+      doc.setFillColor(...GOLD_PALE); doc.rect(8, y, pw - 16, 22, 'F')
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.3); doc.rect(8, y, pw - 16, 22, 'S')
 
-      doc.setTextColor(...TEXT); doc.setFontSize(10)
-      const left: [string, string][] = [
+      const infoLeft: [string, string][] = [
         ['Name:', data.student.name],
-        ['Student ID:', data.student.studentId],
+        ['ID:', data.student.studentId],
         ['Class:', data.student.class],
       ]
-      const right: [string, string][] = [
+      const infoRight: [string, string][] = [
         ['Gender:', data.student.gender],
-        ['Position:', data.position ? `${data.position} of ${data.totalStudents}` : 'N/A'],
-        ['Term:', term],
+        ['Position:', data.position ? `${data.position} / ${data.totalStudents}` : 'N/A'],
+        ['Year:', year],
       ]
-      left.forEach(([k, v], i) => {
-        doc.setFont('helvetica', 'bold'); doc.setTextColor(...CRIMSON_MID); doc.text(k, 18, y + i * 8)
-        doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXT); doc.text(String(v), 50, y + i * 8)
+      doc.setFontSize(8)
+      infoLeft.forEach(([k, v], i) => {
+        doc.setFont('helvetica', 'bold'); doc.setTextColor(...CRIMSON_MID); doc.text(k, 11, y + 5 + i * 6)
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXT); doc.text(String(v), 30, y + 5 + i * 6)
       })
-      right.forEach(([k, v], i) => {
-        doc.setFont('helvetica', 'bold'); doc.setTextColor(...CRIMSON_MID); doc.text(k, 112, y + i * 8)
-        doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXT); doc.text(String(v), 138, y + i * 8)
+      infoRight.forEach(([k, v], i) => {
+        doc.setFont('helvetica', 'bold'); doc.setTextColor(...CRIMSON_MID); doc.text(k, 110, y + 5 + i * 6)
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXT); doc.text(String(v), 128, y + 5 + i * 6)
       })
-      y += 32
+      y += 25
 
-      // ── Results table ──
+      // ── Results table ─────────────────────────────────────
       if (data.results.length > 0) {
         autoTable(doc, {
           startY: y,
-          head: [['Subject', 'CA (50)', 'Exam (50)', 'Total (100)', 'Grade', 'Remark']],
+          head: [['Subject', 'CA /50', 'Exam /50', 'Total /100', 'Grade', 'Remark']],
           body: data.results.map(r => {
             const grade  = r.total >= 80 ? 'A' : r.total >= 70 ? 'B' : r.total >= 60 ? 'C' : r.total >= 50 ? 'D' : 'F'
-            const remark = r.total >= 80 ? 'Excellent' : r.total >= 70 ? 'Very Good' : r.total >= 60 ? 'Good' : r.total >= 50 ? 'Average' : 'Unsatisfactory'
-            // Exam stored at 100-pt scale; display as /50 contribution
-            const examContrib = Math.round(r.exam / 2 * 100) / 100
-            return [r.subject, r.ca, examContrib, r.total, grade, remark]
+            const remark = r.total >= 80 ? 'Excellent' : r.total >= 70 ? 'Very Good' : r.total >= 60 ? 'Good' : r.total >= 50 ? 'Average' : 'Weak'
+            const examHalf = Math.round(r.exam / 2 * 10) / 10
+            return [r.subject, r.ca.toFixed(1), examHalf.toFixed(1), r.total.toFixed(1), grade, remark]
           }),
           theme: 'grid',
-          headStyles: { fillColor: CRIMSON, textColor: GOLD, fontSize: 9, fontStyle: 'bold' },
-          bodyStyles: { fontSize: 9, textColor: TEXT },
+          headStyles: { fillColor: CRIMSON, textColor: GOLD, fontSize: 7.5, fontStyle: 'bold', cellPadding: 2 },
+          bodyStyles: { fontSize: 7.5, textColor: TEXT, cellPadding: 2 },
           alternateRowStyles: { fillColor: GOLD_PALE },
-          margin: { left: 14, right: 14 },
+          columnStyles: { 0: { cellWidth: 55 }, 1: { cellWidth: 20, halign: 'center' }, 2: { cellWidth: 20, halign: 'center' }, 3: { cellWidth: 22, halign: 'center' }, 4: { cellWidth: 14, halign: 'center' }, 5: { cellWidth: 'auto' } },
+          margin: { left: 8, right: 8 },
+          tableWidth: pw - 16,
         })
-
-        const finalY = (doc as any).lastAutoTable?.finalY ?? y + 40
-
-        // ── Summary strip ──
-        const avg = data.results.reduce((sum, r) => sum + r.total, 0) / data.results.length
-        const overallGrade = avg >= 80 ? 'A' : avg >= 70 ? 'B' : avg >= 60 ? 'C' : avg >= 50 ? 'D' : 'F'
-        doc.setFillColor(...CRIMSON); doc.rect(14, finalY + 4, pw - 28, 12, 'F')
-        doc.setTextColor(...GOLD); doc.setFontSize(10); doc.setFont('helvetica', 'bold')
-        doc.text(`Overall Average: ${avg.toFixed(1)}%`, 18, finalY + 12)
-        doc.text(`Grade: ${overallGrade}`, 100, finalY + 12)
-        doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
-        doc.text(`Subjects: ${data.results.length}`, 148, finalY + 12)
-
-        // ── Remarks section ──
-        const boxW = pw - 28
-        const boxH = 26
-
-        // Box 1 — Class Teacher's Remark
-        const remarkY = finalY + 24
-        doc.setDrawColor(...GOLD); doc.setLineWidth(0.4)
-        doc.roundedRect(14, remarkY, boxW, boxH, 2, 2, 'S')
-        doc.setTextColor(...CRIMSON_MID); doc.setFontSize(8); doc.setFont('helvetica', 'bold')
-        doc.text("Class Teacher's Remark:", 17, remarkY + 6)
-        doc.setFont('helvetica', 'normal')
-        doc.text('Signature:', 17, remarkY + 19)
-        doc.setDrawColor(...CRIMSON_MID); doc.setLineWidth(0.3)
-        doc.line(35, remarkY + 19, 90, remarkY + 19)
-
-        // Box 2 — Headteacher's Remark
-        const remark2Y = remarkY + boxH + 6
-        doc.setDrawColor(...GOLD); doc.setLineWidth(0.4)
-        doc.roundedRect(14, remark2Y, boxW, boxH, 2, 2, 'S')
-        doc.setTextColor(...CRIMSON_MID); doc.setFontSize(8); doc.setFont('helvetica', 'bold')
-        doc.text("Headteacher's Remark:", 17, remark2Y + 6)
-        doc.setFont('helvetica', 'normal')
-        doc.text('Signature:', 17, remark2Y + 19)
-        doc.setDrawColor(...CRIMSON_MID); doc.setLineWidth(0.3)
-        doc.line(35, remark2Y + 19, 90, remark2Y + 19)
       }
 
-      // ── Footer ──
-      doc.setFillColor(...GOLD); doc.rect(0, ph - 10, pw, 0.8, 'F')
-      doc.setFontSize(7); doc.setTextColor(160, 100, 100); doc.setFont('helvetica', 'normal')
-      doc.text(`Generated ${new Date().toLocaleDateString('en-GH')} — ${schoolName}`, pw / 2, ph - 4, { align: 'center' })
+      const tableEndY = (doc as any).lastAutoTable?.finalY ?? y + 30
+      const avg = data.results.length > 0
+        ? data.results.reduce((sum, r) => sum + r.total, 0) / data.results.length
+        : 0
+      const overallGrade = avg >= 80 ? 'A' : avg >= 70 ? 'B' : avg >= 60 ? 'C' : avg >= 50 ? 'D' : 'F'
+
+      // ── Summary strip ─────────────────────────────────────
+      let cy = tableEndY + 2
+      doc.setFillColor(...CRIMSON); doc.rect(8, cy, pw - 16, 8, 'F')
+      doc.setTextColor(...GOLD); doc.setFontSize(8); doc.setFont('helvetica', 'bold')
+      doc.text(`Average: ${avg.toFixed(1)}%`, 11, cy + 5.5)
+      doc.text(`Grade: ${overallGrade}`, 70, cy + 5.5)
+      doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'normal')
+      doc.text(`Subjects: ${data.results.length}`, 130, cy + 5.5)
+      cy += 10
+
+      // ── Attendance ────────────────────────────────────────
+      const att = data.attendance
+      if (att && att.totalDays > 0) {
+        doc.setFillColor(240, 255, 244); doc.rect(8, cy, pw - 16, 8, 'F')
+        doc.setDrawColor(...GREEN); doc.setLineWidth(0.3); doc.rect(8, cy, pw - 16, 8, 'S')
+        doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GREEN)
+        doc.text('Attendance:', 11, cy + 5.5)
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXT)
+        doc.text(`Days: ${att.totalDays}`, 38, cy + 5.5)
+        doc.text(`Present: ${att.present}`, 65, cy + 5.5)
+        doc.text(`Absent: ${att.absent}`, 95, cy + 5.5)
+        doc.text(`Late: ${att.late}`, 122, cy + 5.5)
+        const pct = att.totalDays > 0 ? Math.round(att.present / att.totalDays * 100) : 0
+        doc.text(`Attendance: ${pct}%`, 145, cy + 5.5)
+        cy += 10
+      }
+
+      // ── Billing section ───────────────────────────────────
+      if (data.billing) {
+        const b = data.billing
+        doc.setFillColor(255, 248, 230); doc.rect(8, cy, pw - 16, 8, 'F')
+        doc.setDrawColor(...GOLD); doc.setLineWidth(0.3); doc.rect(8, cy, pw - 16, 8, 'S')
+        doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CRIMSON_MID)
+        doc.text('Term Bill:', 11, cy + 5.5)
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXT)
+        doc.text(`${b.feeType}`, 35, cy + 5.5)
+        doc.text(`Billed: GHS ${b.amount.toFixed(2)}`, 75, cy + 5.5)
+        doc.text(`Paid: GHS ${b.paid.toFixed(2)}`, 118, cy + 5.5)
+        const balColor: [number, number, number] = b.balance > 0 ? [185, 28, 28] : [22, 163, 74]
+        doc.setTextColor(...balColor); doc.setFont('helvetica', 'bold')
+        doc.text(`Bal: GHS ${b.balance.toFixed(2)}`, 158, cy + 5.5)
+        cy += 10
+      }
+
+      // ── Remarks boxes ─────────────────────────────────────
+      const remarkBoxH = 14
+      const remarkBoxW = (pw - 20) / 2
+
+      // Box 1 — Class Teacher
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.3)
+      doc.rect(8, cy, remarkBoxW, remarkBoxH, 'S')
+      doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CRIMSON_MID)
+      doc.text("Class Teacher's Remark:", 11, cy + 4)
+      doc.setFont('helvetica', 'italic'); doc.setTextColor(...TEXT)
+      doc.text(teacherRemark(avg), 11, cy + 9, { maxWidth: remarkBoxW - 4 })
+
+      // Box 2 — Headteacher
+      const box2X = 12 + remarkBoxW
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.3)
+      doc.rect(box2X, cy, remarkBoxW, remarkBoxH, 'S')
+      doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...CRIMSON_MID)
+      doc.text("Headteacher's Remark:", box2X + 3, cy + 4)
+      doc.setFont('helvetica', 'italic'); doc.setTextColor(...TEXT)
+      doc.text(headRemark(avg), box2X + 3, cy + 9, { maxWidth: remarkBoxW - 4 })
+      cy += remarkBoxH + 2
+
+      // Signature lines
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXT)
+      doc.text('Signature: ___________________', 11, cy + 4)
+      doc.text('Signature: ___________________', box2X + 3, cy + 4)
+
+      // ── Footer ────────────────────────────────────────────
+      const footerY = yOff + cardH - 4
+      doc.setFontSize(6.5); doc.setTextColor(160, 100, 100); doc.setFont('helvetica', 'normal')
+      doc.text(`Generated ${new Date().toLocaleDateString('en-GH')} — ${schoolName}`, pw / 2, footerY, { align: 'center' })
     }
     doc.save(`report-cards-${students[0]?.class?.name || classId}-${term}-${year}.pdf`)
   }
@@ -262,9 +329,7 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
             </div>
             <div>
               <label style={labelStyle}>Year</label>
-              <select style={{ ...selectStyle, width: 100 }} value={year} onChange={e => setYear(e.target.value)}>
-                <option>2023</option><option>2024</option><option>2025</option>
-              </select>
+              <input style={{ ...selectStyle, width: 120 }} value={year} onChange={e => setYear(e.target.value)} placeholder="e.g. 2024/2025" />
             </div>
           </>
         )}

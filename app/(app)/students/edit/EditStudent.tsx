@@ -1,9 +1,9 @@
 'use client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Save, Trash2 } from 'lucide-react'
+import { ArrowLeft, Save, Trash2, Camera, X } from 'lucide-react'
 import { api, Class, Parent } from '@/lib/api'
 
 interface StudentForm {
@@ -41,6 +41,8 @@ export default function EditStudent() {
   const [deleting, setDeleting] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState('')
+  const [photo, setPhoto] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     Promise.all([
@@ -50,6 +52,7 @@ export default function EditStudent() {
     ]).then(([c, p, student]) => {
       setClasses(c)
       setParents(p)
+      setPhoto(student.photo ?? null)
       reset({
         name: student.name,
         gender: student.gender,
@@ -62,6 +65,14 @@ export default function EditStudent() {
     }).finally(() => setFetchLoading(false))
   }, [studentId, reset])
 
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => setPhoto(reader.result as string)
+    reader.readAsDataURL(file)
+  }
+
   async function onSubmit(data: StudentForm) {
     setLoading(true); setError('')
     try {
@@ -73,6 +84,7 @@ export default function EditStudent() {
         parentId: data.parentId ? parseInt(data.parentId) : null,
         phone: data.phone || undefined,
         address: data.address || undefined,
+        photo: photo ?? undefined,
       })
       router.push(`/students/detail?id=${studentId}`)
     } catch (e: any) {
@@ -126,12 +138,26 @@ export default function EditStudent() {
           {error && <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>{error}</div>}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
             <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Personal Details</div>
-            <div style={{ padding: '22px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 16 }}>
+            <div style={{ padding: '22px' }}>
+              {/* Photo Upload */}
+              <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div onClick={() => fileRef.current?.click()} style={{ width: 80, height: 80, borderRadius: '50%', border: '2px dashed var(--border)', background: 'var(--surface-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', flexShrink: 0 }}>
+                  {photo ? <img src={photo} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <><Camera size={20} color="var(--text-muted)" /><span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'system-ui' }}>Photo</span></>}
+                </div>
+                <div>
+                  <button type="button" onClick={() => fileRef.current?.click()} style={{ fontSize: 12, padding: '6px 14px', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 7, cursor: 'pointer', fontFamily: 'system-ui', color: 'var(--text-secondary)' }}>Change Photo</button>
+                  {photo && <button type="button" onClick={() => { setPhoto(null); if (fileRef.current) fileRef.current.value = '' }} style={{ marginLeft: 8, fontSize: 12, padding: '6px 10px', background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><X size={13} /></button>}
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'system-ui' }}>Optional · JPG, PNG</p>
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
+              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 16 }}>
               <div style={{ gridColumn: '1 / -1' }}>{lbl('Full Name', true)}<input {...register('name', { required: true })} style={inp} /></div>
               <div>{lbl('Gender', true)}<select {...register('gender', { required: true })} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}><option value="Male">Male</option><option value="Female">Female</option></select></div>
               <div>{lbl('Date of Birth')}<input type="date" {...register('dob')} style={inp} /></div>
               <div>{lbl('Phone')}<input {...register('phone')} style={inp} placeholder="+233 XX XXX XXXX" /></div>
               <div>{lbl('Address')}<input {...register('address')} style={inp} placeholder="Town / Area, Region" /></div>
+            </div>
             </div>
           </div>
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>

@@ -16,6 +16,7 @@ pub struct Parent {
     pub phone: String,
     pub email: Option<String>,
     pub address: Option<String>,
+    pub photo: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -49,6 +50,7 @@ pub struct Student {
     pub dob: String,
     pub phone: Option<String>,
     pub address: Option<String>,
+    pub photo: Option<String>,
     #[serde(rename = "classId")]
     pub class_id: i64,
     #[serde(rename = "parentId")]
@@ -215,6 +217,7 @@ pub struct CreateParentInput {
     pub phone: String,
     pub email: Option<String>,
     pub address: Option<String>,
+    pub photo: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -223,6 +226,7 @@ pub struct UpdateParentInput {
     pub phone: String,
     pub email: Option<String>,
     pub address: Option<String>,
+    pub photo: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -258,6 +262,7 @@ pub struct CreateStudentInput {
     pub parent_id: Option<i64>,
     pub phone: Option<String>,
     pub address: Option<String>,
+    pub photo: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -271,6 +276,7 @@ pub struct UpdateStudentInput {
     pub parent_id: Option<i64>,
     pub phone: Option<String>,
     pub address: Option<String>,
+    pub photo: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -374,6 +380,8 @@ pub struct ReportCardData {
     #[serde(rename = "totalStudents")]
     pub total_students: i64,
     pub results: Vec<SubjectResult>,
+    pub billing: Option<TermBilling>,
+    pub attendance: AttendanceSummary,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -383,6 +391,7 @@ pub struct StudentReportInfo {
     pub student_id: String,
     pub class: String,
     pub gender: String,
+    pub photo: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -391,6 +400,51 @@ pub struct SubjectResult {
     pub ca: f64,
     pub exam: f64,
     pub total: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TermBilling {
+    #[serde(rename = "feeType")]
+    pub fee_type: String,
+    pub amount: f64,
+    pub paid: f64,
+    pub balance: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AttendanceSummary {
+    #[serde(rename = "totalDays")]
+    pub total_days: i64,
+    pub present: i64,
+    pub absent: i64,
+    pub late: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AttendanceRow {
+    #[serde(rename = "studentId")]
+    pub student_id: i64,
+    pub status: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RecordAttendanceInput {
+    #[serde(rename = "classId")]
+    pub class_id: i64,
+    pub date: String,
+    pub term: String,
+    pub year: String,
+    pub records: Vec<AttendanceRow>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AttendanceEntry {
+    pub id: i64,
+    #[serde(rename = "studentId")]
+    pub student_id: i64,
+    pub name: String,
+    pub status: String,
+    pub date: String,
 }
 
 #[derive(Debug, Deserialize)]

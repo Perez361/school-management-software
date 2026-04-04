@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, UserCheck, Phone, Mail, MapPin } from 'lucide-react'
+import { Plus, UserCheck, Phone, Mail, MapPin, Trash2 } from 'lucide-react'
 import { api, Parent } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
@@ -12,17 +12,31 @@ const PAGE_SIZE = 15
 
 export default function ParentsPage() {
   const { can } = useAuth()
-  const { version } = useLiveData()
+  const { version, bump } = useLiveData()
   const router = useRouter()
   useEffect(() => { if (!can('parents')) router.replace('/dashboard') }, [can, router])
 
-  const [parents, setParents]   = useState<Parent[]>([])
-  const [loading, setLoading]   = useState(true)
-  const [page, setPage]         = useState(1)
+  const [parents, setParents]     = useState<Parent[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [page, setPage]           = useState(1)
+  const [deleting, setDeleting]   = useState<number | null>(null)
+  const [confirmId, setConfirmId] = useState<number | null>(null)
 
   useEffect(() => {
     api.getParents().then(setParents).finally(() => setLoading(false))
   }, [version])
+
+  async function handleDelete(id: number) {
+    setDeleting(id)
+    try {
+      await api.deleteParent(id)
+      setParents(prev => prev.filter(p => p.id !== id))
+      bump()
+    } finally {
+      setDeleting(null)
+      setConfirmId(null)
+    }
+  }
 
   const totalPages = Math.ceil(parents.length / PAGE_SIZE)
   const paged = parents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -86,7 +100,17 @@ export default function ParentsPage() {
                         : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>}
                     </td>
                     <td style={{ padding: '13px 18px' }}>
-                      <Link href={`/parents/edit?id=${p.id}`} className="action-link">Edit</Link>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Link href={`/parents/edit?id=${p.id}`} className="action-link">Edit</Link>
+                        {confirmId === p.id ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <button onClick={() => handleDelete(p.id)} disabled={deleting === p.id} style={{ fontSize: 11, padding: '3px 9px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>{deleting === p.id ? '…' : 'Confirm'}</button>
+                            <button onClick={() => setConfirmId(null)} style={{ fontSize: 11, padding: '3px 9px', background: 'var(--border)', color: 'var(--text-secondary)', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
+                          </span>
+                        ) : (
+                          <button onClick={() => setConfirmId(p.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: 4, display: 'flex', alignItems: 'center' }} title="Delete"><Trash2 size={14} /></button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

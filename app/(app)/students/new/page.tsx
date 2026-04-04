@@ -1,9 +1,9 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Save, UserPlus } from 'lucide-react'
+import { ArrowLeft, Save, UserPlus, Camera, X } from 'lucide-react'
 import { api, Class, Parent } from '@/lib/api'
 
 interface StudentForm {
@@ -21,15 +21,25 @@ export default function NewStudentPage() {
   const [parents, setParents] = useState<Parent[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
+  const [photo, setPhoto]     = useState<string | null>(null)
+  const fileRef               = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     Promise.all([api.getClasses(), api.getParents()]).then(([c, p]) => { setClasses(c); setParents(p) })
   }, [])
 
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => setPhoto(reader.result as string)
+    reader.readAsDataURL(file)
+  }
+
   async function onSubmit(data: StudentForm) {
     setLoading(true); setError('')
     try {
-      await api.createStudent({ name: data.name, gender: data.gender, dob: data.dob, classId: parseInt(data.classId), parentId: data.parentId ? parseInt(data.parentId) : undefined, phone: data.phone || undefined, address: data.address || undefined })
+      await api.createStudent({ name: data.name, gender: data.gender, dob: data.dob, classId: parseInt(data.classId), parentId: data.parentId ? parseInt(data.parentId) : undefined, phone: data.phone || undefined, address: data.address || undefined, photo: photo || undefined })
       router.push('/students')
     } catch (e: any) { setError(e.message || String(e)) }
     finally { setLoading(false) }
@@ -64,6 +74,24 @@ export default function NewStudentPage() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
             <div style={{ padding: '13px 20px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Personal Details</div>
             <div style={{ padding: 'clamp(16px,3vw,22px)' }}>
+              {/* Photo Upload */}
+              <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div
+                  onClick={() => fileRef.current?.click()}
+                  style={{ width: 80, height: 80, borderRadius: '50%', border: '2px dashed var(--border)', background: 'var(--surface-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', flexShrink: 0 }}
+                >
+                  {photo
+                    ? <img src={photo} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <><Camera size={20} color="var(--text-muted)" /><span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'system-ui' }}>Photo</span></>
+                  }
+                </div>
+                <div>
+                  <button type="button" onClick={() => fileRef.current?.click()} style={{ fontSize: 12, padding: '6px 14px', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 7, cursor: 'pointer', fontFamily: 'system-ui', color: 'var(--text-secondary)' }}>Upload Photo</button>
+                  {photo && <button type="button" onClick={() => { setPhoto(null); if (fileRef.current) fileRef.current.value = '' }} style={{ marginLeft: 8, fontSize: 12, padding: '6px 10px', background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><X size={13} /></button>}
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'system-ui' }}>Optional · JPG, PNG</p>
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
+              </div>
               <div style={{ marginBottom: 14 }}>
                 {lbl('Full Name', true)}
                 <input {...register('name', { required: true })} style={inp} placeholder="e.g. Kofi Mensah" />

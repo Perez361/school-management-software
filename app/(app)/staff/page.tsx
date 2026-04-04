@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, UserSquare2 } from 'lucide-react'
+import { Plus, UserSquare2, Trash2 } from 'lucide-react'
 import { api, Staff } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
@@ -19,17 +19,31 @@ const roleMeta: Record<string, { color: string; bg: string; dot: string }> = {
 
 export default function StaffPage() {
   const { can } = useAuth()
-  const { version } = useLiveData()
+  const { version, bump } = useLiveData()
   const router = useRouter()
   useEffect(() => { if (!can('staff')) router.replace('/dashboard') }, [can, router])
 
-  const [staff, setStaff]   = useState<Staff[]>([])
-  const [loading, setLoading] = useState(true)
-  const [page, setPage]       = useState(1)
+  const [staff, setStaff]       = useState<Staff[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [page, setPage]         = useState(1)
+  const [deleting, setDeleting] = useState<number | null>(null)
+  const [confirmId, setConfirmId] = useState<number | null>(null)
 
   useEffect(() => {
     api.getStaff().then(setStaff).finally(() => setLoading(false))
   }, [version])
+
+  async function handleDelete(id: number) {
+    setDeleting(id)
+    try {
+      await api.deleteStaff(id)
+      setStaff(prev => prev.filter(s => s.id !== id))
+      bump()
+    } finally {
+      setDeleting(null)
+      setConfirmId(null)
+    }
+  }
 
   const roleCounts = staff.reduce((acc, s) => {
     acc[s.role] = (acc[s.role] || 0) + 1
@@ -110,7 +124,19 @@ export default function StaffPage() {
                           : <span style={{ color: 'var(--text-muted)', fontSize: 12, fontStyle: 'italic' }}>Not assigned</span>}
                       </td>
                       <td style={{ padding: '13px 18px', fontSize: 13, color: 'var(--text-secondary)' }}>{s.phone || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
-                      <td style={{ padding: '13px 18px' }}><Link href={`/staff/edit?id=${s.id}`} className="action-link">Edit</Link></td>
+                      <td style={{ padding: '13px 18px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Link href={`/staff/edit?id=${s.id}`} className="action-link">Edit</Link>
+                          {confirmId === s.id ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                              <button onClick={() => handleDelete(s.id)} disabled={deleting === s.id} style={{ fontSize: 11, padding: '3px 9px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>{deleting === s.id ? '…' : 'Confirm'}</button>
+                              <button onClick={() => setConfirmId(null)} style={{ fontSize: 11, padding: '3px 9px', background: 'var(--border)', color: 'var(--text-secondary)', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
+                            </span>
+                          ) : (
+                            <button onClick={() => setConfirmId(s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: 4, display: 'flex', alignItems: 'center' }} title="Delete"><Trash2 size={14} /></button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   )
                 })}

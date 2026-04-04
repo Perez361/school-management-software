@@ -80,6 +80,11 @@ async fn h_update_parent(Json(b): Json<UpdateParentBody>) -> Result<impl IntoRes
     update_parent(b.id, b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
 
+#[derive(Deserialize)] struct DeleteParentBody { id: i64 }
+async fn h_delete_parent(Json(b): Json<DeleteParentBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    delete_parent(b.id).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
 // Staff
 async fn h_get_staff() -> Result<impl IntoResponse, (StatusCode, String)> {
     get_staff().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
@@ -93,6 +98,11 @@ async fn h_create_staff(Json(b): Json<CreateStaffBody>) -> Result<impl IntoRespo
 #[derive(Deserialize)] struct UpdateStaffBody { id: i64, input: UpdateStaffInput }
 async fn h_update_staff(Json(b): Json<UpdateStaffBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
     update_staff(b.id, b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct DeleteStaffBody { id: i64 }
+async fn h_delete_staff(Json(b): Json<DeleteStaffBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    delete_staff(b.id).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
 
 // Students
@@ -274,6 +284,21 @@ async fn h_change_user_password(Json(b): Json<ChangePasswordBody>) -> Result<imp
     change_user_password(b.input).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
 
+// Attendance
+async fn h_record_attendance(Json(b): Json<RecordAttendanceInput>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    record_attendance(b).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct GetAttendanceBody { #[serde(rename = "classId")] class_id: i64, date: String }
+async fn h_get_attendance(Json(b): Json<GetAttendanceBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_attendance(b.class_id, b.date).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct GetAttendanceSummaryBody { #[serde(rename = "studentId")] student_id: i64, term: String, year: String }
+async fn h_get_attendance_summary(Json(b): Json<GetAttendanceSummaryBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_attendance_summary(b.student_id, b.term, b.year).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 pub fn build_router() -> Router {
@@ -289,9 +314,11 @@ pub fn build_router() -> Router {
         .route("/api/get_parents",        post(h_get_parents))
         .route("/api/create_parent",      post(h_create_parent))
         .route("/api/update_parent",      post(h_update_parent))
+        .route("/api/delete_parent",      post(h_delete_parent))
         .route("/api/get_staff",          post(h_get_staff))
         .route("/api/create_staff",       post(h_create_staff))
         .route("/api/update_staff",       post(h_update_staff))
+        .route("/api/delete_staff",       post(h_delete_staff))
         .route("/api/get_students",       post(h_get_students))
         .route("/api/get_student",        post(h_get_student))
         .route("/api/create_student",     post(h_create_student))
@@ -322,6 +349,9 @@ pub fn build_router() -> Router {
         .route("/api/update_user",           post(h_update_user))
         .route("/api/delete_user",           post(h_delete_user))
         .route("/api/change_user_password",  post(h_change_user_password))
+        .route("/api/record_attendance",     post(h_record_attendance))
+        .route("/api/get_attendance",        post(h_get_attendance))
+        .route("/api/get_attendance_summary",post(h_get_attendance_summary))
         .layer(middleware::from_fn(require_auth));
 
     // Public routes (login)

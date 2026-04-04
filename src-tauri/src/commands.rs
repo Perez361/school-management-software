@@ -91,7 +91,7 @@ pub fn create_class(input: CreateClassInput) -> Result<Class, String> {
 pub fn get_parents() -> Result<Vec<Parent>, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
     let mut stmt = conn.prepare(
-        "SELECT id, name, phone, email, address FROM Parent ORDER BY name"
+        "SELECT id, name, phone, email, address, photo FROM Parent WHERE deleted_at IS NULL ORDER BY name"
     ).map_err(|e| e.to_string())?;
 
     let rows = stmt.query_map([], |row| Ok(Parent {
@@ -100,6 +100,7 @@ pub fn get_parents() -> Result<Vec<Parent>, String> {
         phone: row.get(2)?,
         email: row.get(3)?,
         address: row.get(4)?,
+        photo: row.get(5)?,
     })).map_err(|e| e.to_string())?;
 
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
@@ -111,13 +112,13 @@ pub fn create_parent(input: CreateParentInput) -> Result<Parent, String> {
     let sync_id = uuid::Uuid::new_v4().to_string();
     let updated_at = chrono::Utc::now().to_rfc3339();
     conn.execute(
-        "INSERT INTO Parent (name, phone, email, address, sync_id, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-        params![input.name, input.phone, input.email, input.address, sync_id, updated_at],
+        "INSERT INTO Parent (name, phone, email, address, photo, sync_id, updated_at) VALUES (?1,?2,?3,?4,?5,?6,?7)",
+        params![input.name, input.phone, input.email, input.address, input.photo, sync_id, updated_at],
     ).map_err(|e| e.to_string())?;
     let id = conn.last_insert_rowid();
     let payload = sync::build_payload(&conn, "Parent", &sync_id).unwrap_or_default();
     sync::queue_change(&conn, "Parent", &sync_id, payload);
-    Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address })
+    Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address, photo: input.photo })
 }
 
 #[command]
@@ -125,8 +126,8 @@ pub fn update_parent(id: i64, input: UpdateParentInput) -> Result<Parent, String
     let conn = get_conn().map_err(|e| e.to_string())?;
     let updated_at = chrono::Utc::now().to_rfc3339();
     conn.execute(
-        "UPDATE Parent SET name=?1, phone=?2, email=?3, address=?4, updated_at=?5 WHERE id=?6",
-        params![input.name, input.phone, input.email, input.address, updated_at, id],
+        "UPDATE Parent SET name=?1, phone=?2, email=?3, address=?4, photo=?5, updated_at=?6 WHERE id=?7",
+        params![input.name, input.phone, input.email, input.address, input.photo, updated_at, id],
     ).map_err(|e| e.to_string())?;
     let sync_id: String = conn.query_row("SELECT sync_id FROM Parent WHERE id=?1", params![id], |r| r.get(0))
         .unwrap_or_default();
@@ -134,7 +135,7 @@ pub fn update_parent(id: i64, input: UpdateParentInput) -> Result<Parent, String
         let payload = sync::build_payload(&conn, "Parent", &sync_id).unwrap_or_default();
         sync::queue_change(&conn, "Parent", &sync_id, payload);
     }
-    Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address })
+    Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address, photo: input.photo })
 }
 
 // ─── STAFF ───────────────────────────────────────────────────────────────────
@@ -146,6 +147,7 @@ pub fn get_staff() -> Result<Vec<Staff>, String> {
         "SELECT s.id, s.staffId, s.name, s.role, s.phone, s.email, s.subject, s.classId,
                 c.id, c.name
          FROM Staff s LEFT JOIN Class c ON c.id = s.classId
+         WHERE s.deleted_at IS NULL
          ORDER BY s.name"
     ).map_err(|e| e.to_string())?;
 
@@ -249,6 +251,40 @@ pub fn update_staff(id: i64, input: UpdateStaffInput) -> Result<Staff, String> {
     })
 }
 
+// ─── SOFT DELETES ────────────────────────────────────────────────────────────
+
+#[command]
+pub fn delete_staff(id: i64) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let deleted_at = chrono::Utc::now().to_rfc3339();
+    conn.execute(
+        "UPDATE Staff SET deleted_at=?1, updated_at=?1 WHERE id=?2",
+        params![deleted_at, id],
+    ).map_err(|e| e.to_string())?;
+    let sync_id: String = conn.query_row("SELECT sync_id FROM Staff WHERE id=?1", params![id], |r| r.get(0))
+        .unwrap_or_default();
+    if !sync_id.is_empty() {
+        sync::queue_delete(&conn, "Staff", &sync_id);
+    }
+    Ok(())
+}
+
+#[command]
+pub fn delete_parent(id: i64) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let deleted_at = chrono::Utc::now().to_rfc3339();
+    conn.execute(
+        "UPDATE Parent SET deleted_at=?1, updated_at=?1 WHERE id=?2",
+        params![deleted_at, id],
+    ).map_err(|e| e.to_string())?;
+    let sync_id: String = conn.query_row("SELECT sync_id FROM Parent WHERE id=?1", params![id], |r| r.get(0))
+        .unwrap_or_default();
+    if !sync_id.is_empty() {
+        sync::queue_delete(&conn, "Parent", &sync_id);
+    }
+    Ok(())
+}
+
 // ─── STUDENTS ────────────────────────────────────────────────────────────────
 
 #[command]
@@ -257,7 +293,7 @@ pub fn get_students(class_id: Option<i64>, q: Option<String>) -> Result<Vec<Stud
 
     let mut sql = String::from(
         "SELECT s.id, s.studentId, s.name, s.gender, s.dob, s.phone, s.address,
-                s.classId, s.parentId, s.createdAt,
+                s.classId, s.parentId, s.createdAt, s.photo,
                 c.id, c.name,
                 p.id, p.name, p.phone, p.email
          FROM Student s
@@ -274,10 +310,11 @@ pub fn get_students(class_id: Option<i64>, q: Option<String>) -> Result<Vec<Stud
 
     let map_row = |row: &rusqlite::Row| {
         let parent_id_val: Option<i64> = row.get(8)?;
-        let parent_db_id: Option<i64> = row.get(12)?;
-        let parent_name: Option<String> = row.get(13)?;
-        let parent_phone: Option<String> = row.get(14)?;
-        let parent_email: Option<String> = row.get(15)?;
+        let photo: Option<String> = row.get(10)?;
+        let parent_db_id: Option<i64> = row.get(13)?;
+        let parent_name: Option<String> = row.get(14)?;
+        let parent_phone: Option<String> = row.get(15)?;
+        let parent_email: Option<String> = row.get(16)?;
         let parent = parent_db_id.map(|pid| ParentBasic {
             id: pid, name: parent_name.unwrap_or_default(),
             phone: parent_phone.unwrap_or_default(), email: parent_email,
@@ -286,8 +323,8 @@ pub fn get_students(class_id: Option<i64>, q: Option<String>) -> Result<Vec<Stud
             id: row.get(0)?, student_id: row.get(1)?, name: row.get(2)?,
             gender: row.get(3)?, dob: row.get(4)?, phone: row.get(5)?,
             address: row.get(6)?, class_id: row.get(7)?,
-            parent_id: parent_id_val, created_at: row.get(9)?,
-            class: Some(ClassBasic { id: row.get(10)?, name: row.get(11)? }),
+            parent_id: parent_id_val, created_at: row.get(9)?, photo,
+            class: Some(ClassBasic { id: row.get(11)?, name: row.get(12)? }),
             parent,
         })
     };
@@ -313,7 +350,7 @@ pub fn get_student(id: i64) -> Result<Student, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
     conn.query_row(
         "SELECT s.id, s.studentId, s.name, s.gender, s.dob, s.phone, s.address,
-                s.classId, s.parentId, s.createdAt,
+                s.classId, s.parentId, s.createdAt, s.photo,
                 c.id, c.name,
                 p.id, p.name, p.phone, p.email
          FROM Student s
@@ -323,10 +360,11 @@ pub fn get_student(id: i64) -> Result<Student, String> {
         params![id],
         |row| {
             let parent_id_val: Option<i64> = row.get(8)?;
-            let parent_db_id: Option<i64> = row.get(12)?;
-            let parent_name: Option<String> = row.get(13)?;
-            let parent_phone: Option<String> = row.get(14)?;
-            let parent_email: Option<String> = row.get(15)?;
+            let photo: Option<String> = row.get(10)?;
+            let parent_db_id: Option<i64> = row.get(13)?;
+            let parent_name: Option<String> = row.get(14)?;
+            let parent_phone: Option<String> = row.get(15)?;
+            let parent_email: Option<String> = row.get(16)?;
             let parent = parent_db_id.map(|pid| ParentBasic {
                 id: pid, name: parent_name.unwrap_or_default(),
                 phone: parent_phone.unwrap_or_default(), email: parent_email,
@@ -335,8 +373,8 @@ pub fn get_student(id: i64) -> Result<Student, String> {
                 id: row.get(0)?, student_id: row.get(1)?, name: row.get(2)?,
                 gender: row.get(3)?, dob: row.get(4)?, phone: row.get(5)?,
                 address: row.get(6)?, class_id: row.get(7)?,
-                parent_id: parent_id_val, created_at: row.get(9)?,
-                class: Some(ClassBasic { id: row.get(10)?, name: row.get(11)? }),
+                parent_id: parent_id_val, created_at: row.get(9)?, photo,
+                class: Some(ClassBasic { id: row.get(11)?, name: row.get(12)? }),
                 parent,
             })
         }
@@ -355,10 +393,10 @@ pub fn create_student(input: CreateStudentInput) -> Result<Student, String> {
     let updated_at = chrono::Utc::now().to_rfc3339();
 
     conn.execute(
-        "INSERT INTO Student (studentId, name, gender, dob, classId, parentId, phone, address, sync_id, updated_at)
-         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",
+        "INSERT INTO Student (studentId, name, gender, dob, classId, parentId, phone, address, photo, sync_id, updated_at)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
         params![student_id, input.name, input.gender, input.dob,
-                input.class_id, input.parent_id, input.phone, input.address, sync_id, updated_at],
+                input.class_id, input.parent_id, input.phone, input.address, input.photo, sync_id, updated_at],
     ).map_err(|e| e.to_string())?;
 
     let id = conn.last_insert_rowid();
@@ -380,10 +418,10 @@ pub fn update_student(id: i64, input: UpdateStudentInput) -> Result<Student, Str
 
     let updated_at = chrono::Utc::now().to_rfc3339();
     conn.execute(
-        "UPDATE Student SET name=?1, gender=?2, dob=?3, classId=?4, parentId=?5, phone=?6, address=?7, updated_at=?8
-         WHERE id=?9",
+        "UPDATE Student SET name=?1, gender=?2, dob=?3, classId=?4, parentId=?5, phone=?6, address=?7, photo=?8, updated_at=?9
+         WHERE id=?10",
         params![name, gender, dob, class_id, parent_id,
-                input.phone, input.address, updated_at, id],
+                input.phone, input.address, input.photo, updated_at, id],
     ).map_err(|e| e.to_string())?;
 
     let sync_id: String = conn.query_row("SELECT sync_id FROM Student WHERE id=?1", params![id], |r| r.get(0))
@@ -843,9 +881,9 @@ pub fn get_report_card(student_id: i64, term: String, year: String) -> Result<Re
     let conn = get_conn().map_err(|e| e.to_string())?;
 
     let student = conn.query_row(
-        "SELECT s.name, s.studentId, s.gender, c.name FROM Student s JOIN Class c ON c.id=s.classId WHERE s.id=?1",
+        "SELECT s.name, s.studentId, s.gender, c.name, s.photo FROM Student s JOIN Class c ON c.id=s.classId WHERE s.id=?1",
         params![student_id],
-        |row| Ok(StudentReportInfo { name: row.get(0)?, student_id: row.get(1)?, gender: row.get(2)?, class: row.get(3)? }),
+        |row| Ok(StudentReportInfo { name: row.get(0)?, student_id: row.get(1)?, gender: row.get(2)?, class: row.get(3)?, photo: row.get(4)? }),
     ).map_err(|e| e.to_string())?;
 
     let class_id: i64 = conn.query_row("SELECT classId FROM Student WHERE id=?1", params![student_id], |r| r.get(0))
@@ -873,7 +911,35 @@ pub fn get_report_card(student_id: i64, term: String, year: String) -> Result<Re
     let position = rankings.iter().position(|(sid, _)| *sid == student_id)
         .map(|p| p as i64 + 1).unwrap_or(0);
 
-    Ok(ReportCardData { student, term, year, position, total_students, results })
+    // Billing for this term
+    let billing = conn.query_row(
+        "SELECT feeType, amount, paid, balance FROM Payment WHERE studentId=?1 AND term=?2 AND year=?3 LIMIT 1",
+        params![student_id, term, year],
+        |row| Ok(TermBilling { fee_type: row.get(0)?, amount: row.get(1)?, paid: row.get(2)?, balance: row.get(3)? }),
+    ).ok();
+
+    // Attendance summary for this term
+    let attendance = {
+        let total_days: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM Attendance WHERE studentId=?1 AND term=?2 AND year=?3",
+            params![student_id, term, year], |r| r.get(0),
+        ).unwrap_or(0);
+        let present: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM Attendance WHERE studentId=?1 AND term=?2 AND year=?3 AND status='present'",
+            params![student_id, term, year], |r| r.get(0),
+        ).unwrap_or(0);
+        let absent: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM Attendance WHERE studentId=?1 AND term=?2 AND year=?3 AND status='absent'",
+            params![student_id, term, year], |r| r.get(0),
+        ).unwrap_or(0);
+        let late: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM Attendance WHERE studentId=?1 AND term=?2 AND year=?3 AND status='late'",
+            params![student_id, term, year], |r| r.get(0),
+        ).unwrap_or(0);
+        AttendanceSummary { total_days, present, absent, late }
+    };
+
+    Ok(ReportCardData { student, term, year, position, total_students, results, billing, attendance })
 }
 
 // ─── DASHBOARD STATS ─────────────────────────────────────────────────────────
@@ -1051,4 +1117,60 @@ pub fn change_user_password(input: ChangePasswordInput) -> Result<(), String> {
         params![hashed, input.user_id],
     ).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+// ─── ATTENDANCE ───────────────────────────────────────────────────────────────
+
+#[command]
+pub fn record_attendance(input: RecordAttendanceInput) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    for rec in &input.records {
+        let sync_id = uuid::Uuid::new_v4().to_string();
+        let updated_at = chrono::Utc::now().to_rfc3339();
+        conn.execute(
+            "INSERT INTO Attendance (studentId, classId, date, status, term, year, sync_id, updated_at)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8)
+             ON CONFLICT(studentId, date) DO UPDATE SET status=excluded.status, updated_at=excluded.updated_at",
+            params![rec.student_id, input.class_id, input.date, rec.status,
+                    input.term, input.year, sync_id, updated_at],
+        ).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[command]
+pub fn get_attendance(class_id: i64, date: String) -> Result<Vec<AttendanceEntry>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let mut stmt = conn.prepare(
+        "SELECT a.id, a.studentId, s.name, a.status, a.date
+         FROM Attendance a JOIN Student s ON s.id=a.studentId
+         WHERE a.classId=?1 AND a.date=?2 ORDER BY s.name"
+    ).map_err(|e| e.to_string())?;
+    let rows = stmt.query_map(params![class_id, date], |row| Ok(AttendanceEntry {
+        id: row.get(0)?, student_id: row.get(1)?, name: row.get(2)?,
+        status: row.get(3)?, date: row.get(4)?,
+    })).map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[command]
+pub fn get_attendance_summary(student_id: i64, term: String, year: String) -> Result<AttendanceSummary, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let total_days: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Attendance WHERE studentId=?1 AND term=?2 AND year=?3",
+        params![student_id, term, year], |r| r.get(0),
+    ).unwrap_or(0);
+    let present: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Attendance WHERE studentId=?1 AND term=?2 AND year=?3 AND status='present'",
+        params![student_id, term, year], |r| r.get(0),
+    ).unwrap_or(0);
+    let absent: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Attendance WHERE studentId=?1 AND term=?2 AND year=?3 AND status='absent'",
+        params![student_id, term, year], |r| r.get(0),
+    ).unwrap_or(0);
+    let late: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Attendance WHERE studentId=?1 AND term=?2 AND year=?3 AND status='late'",
+        params![student_id, term, year], |r| r.get(0),
+    ).unwrap_or(0);
+    Ok(AttendanceSummary { total_days, present, absent, late })
 }

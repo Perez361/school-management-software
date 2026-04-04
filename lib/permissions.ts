@@ -21,6 +21,7 @@ export type Feature =
   | 'ca-scores'
   | 'exam-records'
   | 'results'
+  | 'attendance'
   | 'billing'
   | 'reports'
   | 'settings'
@@ -30,12 +31,12 @@ const PERMISSIONS: Record<AppRole, Feature[]> = {
   admin: [
     'dashboard', 'students', 'students:write',
     'parents', 'staff', 'classes',
-    'ca-scores', 'exam-records', 'results', 'billing', 'reports',
+    'ca-scores', 'exam-records', 'results', 'attendance', 'billing', 'reports',
     'settings', 'users',
   ],
   teacher: [
     'dashboard', 'students',
-    'ca-scores', 'exam-records', 'results', 'reports',
+    'ca-scores', 'exam-records', 'results', 'attendance', 'reports',
   ],
   accountant: [
     'dashboard', 'students',
@@ -64,6 +65,7 @@ export function allowedRoutes(role: string | undefined | null): Set<string> {
     'ca-scores':     '/ca-scores',
     'exam-records':  '/exam-records',
     results:         '/results',
+    attendance:      '/attendance',
     billing:     '/billing',
     reports:     '/reports',
     settings:    '/settings',

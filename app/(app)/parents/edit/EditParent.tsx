@@ -1,9 +1,9 @@
 'use client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, Camera, X } from 'lucide-react'
 import { api } from '@/lib/api'
 
 interface ParentForm {
@@ -32,14 +32,17 @@ export default function EditParent() {
   const parentId = parseInt(id)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ParentForm>()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading]     = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error, setError]         = useState('')
+  const [photo, setPhoto]         = useState<string | null>(null)
+  const fileRef                   = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     api.getParents().then(parents => {
       const found = parents.find(p => p.id === parentId)
       if (found) {
+        setPhoto(found.photo ?? null)
         reset({
           name: found.name,
           phone: found.phone,
@@ -50,6 +53,14 @@ export default function EditParent() {
     }).finally(() => setFetchLoading(false))
   }, [parentId, reset])
 
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => setPhoto(reader.result as string)
+    reader.readAsDataURL(file)
+  }
+
   async function onSubmit(data: ParentForm) {
     setLoading(true); setError('')
     try {
@@ -58,6 +69,7 @@ export default function EditParent() {
         phone: data.phone,
         email: data.email || undefined,
         address: data.address || undefined,
+        photo: photo ?? undefined,
       })
       router.push('/parents')
     } catch (e: any) {
@@ -95,6 +107,18 @@ export default function EditParent() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
             <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Contact Details</div>
             <div style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Photo Upload */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div onClick={() => fileRef.current?.click()} style={{ width: 80, height: 80, borderRadius: '50%', border: '2px dashed var(--border)', background: 'var(--surface-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', flexShrink: 0 }}>
+                  {photo ? <img src={photo} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <><Camera size={20} color="var(--text-muted)" /><span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'system-ui' }}>Photo</span></>}
+                </div>
+                <div>
+                  <button type="button" onClick={() => fileRef.current?.click()} style={{ fontSize: 12, padding: '6px 14px', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 7, cursor: 'pointer', fontFamily: 'system-ui', color: 'var(--text-secondary)' }}>Change Photo</button>
+                  {photo && <button type="button" onClick={() => { setPhoto(null); if (fileRef.current) fileRef.current.value = '' }} style={{ marginLeft: 8, fontSize: 12, padding: '6px 10px', background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><X size={13} /></button>}
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'system-ui' }}>Optional · JPG, PNG</p>
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
+              </div>
               <div>{lbl('Full Name', true)}<input {...register('name', { required: true })} style={inp} placeholder="e.g. Kwame Mensah" />{errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}</div>
               <div>{lbl('Phone Number', true)}<input {...register('phone', { required: true })} style={inp} placeholder="+233 XX XXX XXXX" />{errors.phone && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Phone is required</p>}</div>
               <div>{lbl('Email Address')}<input {...register('email')} type="email" style={inp} placeholder="parent@email.com" /></div>

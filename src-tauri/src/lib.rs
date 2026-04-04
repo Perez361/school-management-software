@@ -40,10 +40,12 @@ pub fn run() {
             get_parents,
             create_parent,
             update_parent,
+            delete_parent,
             // Staff
             get_staff,
             create_staff,
             update_staff,
+            delete_staff,
             // Students
             get_students,
             get_student,
@@ -80,6 +82,10 @@ pub fn run() {
             update_user,
             delete_user,
             change_user_password,
+            // Attendance
+            record_attendance,
+            get_attendance,
+            get_attendance_summary,
             // Sync
             get_sync_status,
             trigger_sync,

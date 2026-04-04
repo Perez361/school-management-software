@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Plus, Search, UserCircle } from 'lucide-react'
+import { Plus, Search, UserCircle, Trash2 } from 'lucide-react'
 import { api, Student, Class } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
@@ -12,7 +12,7 @@ const PAGE_SIZE = 15
 
 export default function StudentsPage() {
   const { can } = useAuth()
-  const { version } = useLiveData()
+  const { version, bump } = useLiveData()
   const searchParams = useSearchParams()
   const [students, setStudents]       = useState<Student[]>([])
   const [classes, setClasses]         = useState<Class[]>([])
@@ -20,6 +20,8 @@ export default function StudentsPage() {
   const [query, setQuery]             = useState(searchParams.get('q') ?? '')
   const [classFilter, setClassFilter] = useState(searchParams.get('class') ?? '')
   const [page, setPage]               = useState(1)
+  const [deleting, setDeleting]       = useState<number | null>(null)
+  const [confirmId, setConfirmId]     = useState<number | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -34,6 +36,18 @@ export default function StudentsPage() {
   }, [query, classFilter, version])
 
   useEffect(() => { load() }, [load])
+
+  async function handleDelete(id: number) {
+    setDeleting(id)
+    try {
+      await api.deleteStudent(id)
+      setStudents(prev => prev.filter(s => s.id !== id))
+      bump()
+    } finally {
+      setDeleting(null)
+      setConfirmId(null)
+    }
+  }
 
   function handleFilter(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -125,9 +139,17 @@ export default function StudentsPage() {
                     <td style={{ padding: '12px 14px', fontSize: 13, color: 'var(--text-secondary)' }}>{s.gender}</td>
                     <td style={{ padding: '12px 14px', fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{s.parent?.name || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
                     <td style={{ padding: '12px 14px' }}>
-                      <div style={{ display: 'flex', gap: 6 }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         <Link href={`/students/detail?id=${s.id}`} className="action-link">View</Link>
                         <Link href={`/students/edit?id=${s.id}`} className="action-link-ghost">Edit</Link>
+                        {confirmId === s.id ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                            <button onClick={() => handleDelete(s.id)} disabled={deleting === s.id} style={{ fontSize: 11, padding: '3px 9px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>{deleting === s.id ? '…' : 'Confirm'}</button>
+                            <button onClick={() => setConfirmId(null)} style={{ fontSize: 11, padding: '3px 9px', background: 'var(--border)', color: 'var(--text-secondary)', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
+                          </span>
+                        ) : (
+                          <button onClick={() => setConfirmId(s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: 4, display: 'flex', alignItems: 'center' }} title="Delete"><Trash2 size={14} /></button>
+                        )}
                       </div>
                     </td>
                   </tr>
