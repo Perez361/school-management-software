@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Result, params};
+use rusqlite::{Connection, Result};
 use std::path::PathBuf;
 
 pub fn get_db_path() -> PathBuf {
@@ -144,7 +144,6 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
             score REAL NOT NULL,
             maxScore REAL NOT NULL
         );
-    ")?;
 
         CREATE TABLE IF NOT EXISTS Attendance (
             id        INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -159,28 +158,28 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
     ")?;
 
     // ─── Additive ALTER TABLE migrations (idempotent) ────────────────────────
-    let _ = conn.execute("ALTER TABLE Parent ADD COLUMN photo TEXT", []);
-    let _ = conn.execute("ALTER TABLE Student ADD COLUMN photo TEXT", []);
+    let _ = conn.execute("ALTER TABLE Parent ADD COLUMN photo TEXT ", []);
+    let _ = conn.execute("ALTER TABLE Student ADD COLUMN photo TEXT ", []);
 
     // ─── Sync schema additions ────────────────────────────────────────────────
     // ADD COLUMN is idempotent: rusqlite returns an error if the column already
     // exists, which we silently ignore.
     let sync_tables = [
         "Student", "Staff", "Parent", "Class", "Subject",
-        "Result", "Payment", "CAScoreEntry", "Attendance",
+        "Result", "Payment", "CAScoreEntry", "Attendance", "User",
     ];
     for table in &sync_tables {
-        let _ = conn.execute(&format!("ALTER TABLE {} ADD COLUMN sync_id TEXT", table), []);
-        let _ = conn.execute(&format!("ALTER TABLE {} ADD COLUMN updated_at TEXT", table), []);
-        let _ = conn.execute(&format!("ALTER TABLE {} ADD COLUMN deleted_at TEXT", table), []);
+        let _ = conn.execute(&format!("ALTER TABLE {} ADD COLUMN sync_id TEXT ", table), []);
+        let _ = conn.execute(&format!("ALTER TABLE {} ADD COLUMN updated_at TEXT ", table), []);
+        let _ = conn.execute(&format!("ALTER TABLE {} ADD COLUMN deleted_at TEXT ", table), []);
         // Back-fill sync_id for existing rows that don't have one yet
         let _ = conn.execute(
-            &format!("UPDATE {} SET sync_id = lower(hex(randomblob(16))) WHERE sync_id IS NULL", table),
+            &format!("UPDATE {} SET sync_id = lower(hex(randomblob(16))) WHERE sync_id IS NULL ", table),
             [],
         );
         // Back-fill updated_at
         let _ = conn.execute(
-            &format!("UPDATE {} SET updated_at = datetime('now') WHERE updated_at IS NULL", table),
+            &format!("UPDATE {} SET updated_at = datetime('now') WHERE updated_at IS NULL ", table),
             [],
         );
     }
@@ -221,44 +220,5 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
     ")?;
     // ─────────────────────────────────────────────────────────────────────────
 
-    // Seed default admin if not exists
-    let count: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM User WHERE email = 'admin@school.com'",
-        [],
-        |r| r.get(0),
-    ).unwrap_or(0);
-
-    if count == 0 {
-        let hashed = bcrypt::hash("admin123", bcrypt::DEFAULT_COST)
-            .expect("bcrypt hash failed");
-        conn.execute(
-            "INSERT INTO User (username, email, password, role, name) VALUES (?1, ?2, ?3, ?4, ?5)",
-            params!["admin", "admin@school.com", hashed, "admin", "Administrator"],
-        )?;
-    }
-
-    // Migrate any remaining plaintext passwords (password < 60 chars = not a bcrypt hash)
-    migrate_passwords(conn);
-
     Ok(())
-}
-
-/// Hash any passwords that are still stored as plaintext (bcrypt hashes are always 60 chars).
-pub fn migrate_passwords(conn: &Connection) {
-    let users: Vec<(i64, String)> = {
-        let mut stmt = match conn.prepare("SELECT id, password FROM User WHERE LENGTH(password) < 60") {
-            Ok(s) => s,
-            Err(_) => return,
-        };
-        stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
-            .unwrap_or_else(|_| unreachable!())
-            .filter_map(|r| r.ok())
-            .collect()
-    };
-
-    for (id, plaintext) in users {
-        if let Ok(hashed) = bcrypt::hash(&plaintext, bcrypt::DEFAULT_COST) {
-            let _ = conn.execute("UPDATE User SET password=?1 WHERE id=?2", params![hashed, id]);
-        }
-    }
 }

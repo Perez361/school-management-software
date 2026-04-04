@@ -53,6 +53,19 @@ async fn handle_login(Json(body): Json<LoginBody>) -> Result<Json<LoginResponse>
     Ok(Json(LoginResponse { user, token }))
 }
 
+// ─── Setup endpoints (public — no auth required) ─────────────────────────────
+
+async fn h_check_setup() -> Result<impl IntoResponse, (StatusCode, String)> {
+    check_setup().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)]
+struct SetupAdminBody { input: CreateUserInput }
+
+async fn h_setup_admin(Json(body): Json<SetupAdminBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    setup_admin(body.input).map(|v| Json(v)).map_err(|e| (StatusCode::BAD_REQUEST, e))
+}
+
 // ─── Per-route handler functions ─────────────────────────────────────────────
 
 // Classes
@@ -356,7 +369,9 @@ pub fn build_router() -> Router {
 
     // Public routes (login)
     let public = Router::new()
-        .route("/api/login", post(handle_login));
+        .route("/api/login",        post(handle_login))
+        .route("/api/check_setup",  post(h_check_setup))
+        .route("/api/setup_admin",  post(h_setup_admin));
 
     // Static file serving: in release embed the Next.js out/ dir; in debug serve from disk
     #[cfg(not(debug_assertions))]

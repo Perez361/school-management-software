@@ -32,6 +32,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             // Auth
+            check_setup,
+            setup_admin,
             login,
             // Classes
             get_classes,

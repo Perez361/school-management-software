@@ -296,6 +296,12 @@ export const api = {
   // Auth
   login: loginCall,
 
+  checkSetup: (): Promise<boolean> =>
+    call('check_setup'),
+
+  setupAdmin: (input: { username: string; email: string; password: string; name: string }): Promise<User> =>
+    call('setup_admin', { input: { ...input, role: 'admin' } }),
+
   // Classes
   getClasses: (): Promise<Class[]> =>
     call('get_classes'),

@@ -24,6 +24,41 @@ fn get_remark(total: f64) -> &'static str {
 
 // ─── AUTH ────────────────────────────────────────────────────────────────────
 
+/// Returns true when no user accounts exist yet (first-time setup).
+#[command]
+pub fn check_setup() -> Result<bool, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let count: i64 = conn.query_row("SELECT COUNT(*) FROM User", [], |r| r.get(0))
+        .unwrap_or(0);
+    Ok(count == 0)
+}
+
+/// Creates the first admin account. Fails if any user already exists.
+#[command]
+pub fn setup_admin(input: CreateUserInput) -> Result<User, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let count: i64 = conn.query_row("SELECT COUNT(*) FROM User", [], |r| r.get(0))
+        .unwrap_or(0);
+    if count > 0 {
+        return Err("Setup already completed. Use the Users page to add accounts.".to_string());
+    }
+    let hashed = bcrypt::hash(&input.password, bcrypt::DEFAULT_COST)
+        .map_err(|e| e.to_string())?;
+    let sync_id = format!("{}", uuid_simple());
+    conn.execute(
+        "INSERT INTO User (username, email, password, role, name, sync_id, updated_at) VALUES (?1,?2,?3,'admin',?4,?5,datetime('now'))",
+        params![input.username, input.email, hashed, input.name, sync_id],
+    ).map_err(|e| e.to_string())?;
+    let id = conn.last_insert_rowid();
+    Ok(User { id, username: input.username, email: input.email, role: "admin".to_string(), name: input.name })
+}
+
+fn uuid_simple() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let t = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_nanos();
+    format!("{:032x}", t)
+}
+
 #[command]
 pub fn login(input: LoginInput) -> Result<User, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;

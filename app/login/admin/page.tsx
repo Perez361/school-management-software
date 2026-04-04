@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { api } from "@/lib/api";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
-  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -16,8 +17,14 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [emailFocused, setEmailFocused] = useState(false);
   const [passFocused, setPassFocused] = useState(false);
+  const justSetUp = searchParams.get("setup") === "1";
 
-  useEffect(() => setMounted(true), []);
+  // Redirect to setup wizard if no users exist yet
+  useEffect(() => {
+    api.checkSetup().then(needed => {
+      if (needed) router.replace("/setup");
+    }).catch(() => {});
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -139,6 +146,11 @@ export default function AdminLoginPage() {
             </div>
 
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {justSetUp && (
+                <div style={{ padding: "12px 16px", borderRadius: 8, background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#15803d", fontSize: 13, fontWeight: 600 }}>
+                  ✓ Admin account created. Sign in to get started.
+                </div>
+              )}
               {error && (
                 <div style={{ padding: "12px 16px", borderRadius: 8, background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", fontSize: 13 }}>
                   {error}
@@ -183,9 +195,6 @@ export default function AdminLoginPage() {
               </button>
             </form>
 
-            <p style={{ textAlign: "center", color: "#B08080", fontSize: 12, marginTop: 18 }}>
-              Default: <strong style={{ color: "#B08080" }}>admin@school.com</strong> / <strong style={{ color: "#B08080" }}>admin123</strong>
-            </p>
           </div>
         </div>
       </div>
