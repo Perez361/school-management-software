@@ -5,6 +5,8 @@ import { useAuth } from '@/lib/auth-context'
 import Sidebar from '@/components/layout/Sidebar'
 import { LiveDataProvider } from '@/lib/live-data'
 
+const DEMO_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, isDemo, logout } = useAuth()
   const router = useRouter()
@@ -23,7 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-shell" style={{ flexDirection: 'column' }}>
-      {isDemo && (
+      {DEMO_ENABLED && isDemo && (
         <div style={{
           background: 'linear-gradient(90deg, #7a5200, #a07020, #7a5200)',
           color: '#fef3c7',

@@ -46,6 +46,8 @@ function GridLines() {
   );
 }
 
+const DEMO_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+
 export default function WelcomePage() {
   const router = useRouter();
   const { enterDemo } = useAuth();
@@ -276,35 +278,37 @@ export default function WelcomePage() {
                 </svg>
               </button>
 
-              {/* Demo */}
-              <button
-                onClick={handleDemo}
-                style={{
-                  width: "100%", padding: "12px 20px",
-                  background: "transparent",
-                  color: "#a07840",
-                  border: "1.5px dashed rgba(201,168,76,0.4)",
-                  borderRadius: 12,
-                  fontSize: "clamp(12px,2vw,14px)", fontWeight: 600, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  fontFamily: "system-ui, sans-serif",
-                  transition: "all 0.2s ease",
-                  letterSpacing: "0.01em",
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(201,168,76,0.06)";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(201,168,76,0.7)";
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(201,168,76,0.4)";
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                  <circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" />
-                </svg>
-                Preview Demo — no login required
-              </button>
+              {/* Demo — only visible when NEXT_PUBLIC_DEMO_MODE=true */}
+              {DEMO_ENABLED && (
+                <button
+                  onClick={handleDemo}
+                  style={{
+                    width: "100%", padding: "12px 20px",
+                    background: "transparent",
+                    color: "#a07840",
+                    border: "1.5px dashed rgba(201,168,76,0.4)",
+                    borderRadius: 12,
+                    fontSize: "clamp(12px,2vw,14px)", fontWeight: 600, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    fontFamily: "system-ui, sans-serif",
+                    transition: "all 0.2s ease",
+                    letterSpacing: "0.01em",
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = "rgba(201,168,76,0.06)";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(201,168,76,0.7)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(201,168,76,0.4)";
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" />
+                  </svg>
+                  Preview Demo — no login required
+                </button>
+              )}
             </div>
 
             {/* Motto */}

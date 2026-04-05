@@ -11,6 +11,8 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { api, User, clearAuthToken } from '@/lib/api'
 import { can as canFeature, Feature } from '@/lib/permissions'
 
+const DEMO_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+
 interface AuthContextValue {
   user: User | null
   loading: boolean
@@ -41,14 +43,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const demo = localStorage.getItem(DEMO_KEY)
-      if (demo === '1') {
-        setUser(DEMO_USER)
-        setIsDemo(true)
-      } else {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) setUser(JSON.parse(stored))
+      if (DEMO_ENABLED) {
+        const demo = localStorage.getItem(DEMO_KEY)
+        if (demo === '1') {
+          setUser(DEMO_USER)
+          setIsDemo(true)
+          setLoading(false)
+          return
+        }
       }
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) setUser(JSON.parse(stored))
     } catch {}
     setLoading(false)
   }, [])
@@ -71,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const enterDemo = () => {
+    if (!DEMO_ENABLED) return
     setUser(DEMO_USER)
     setIsDemo(true)
     localStorage.setItem(DEMO_KEY, '1')
