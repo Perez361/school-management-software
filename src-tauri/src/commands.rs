@@ -120,6 +120,31 @@ pub fn create_class(input: CreateClassInput) -> Result<Class, String> {
     Ok(Class { id, name: input.name, level: input.level, section: input.section, student_count: Some(0) })
 }
 
+#[command]
+pub fn delete_class(id: i64) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    // Guard: refuse if any students are enrolled
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Student WHERE classId = ?1 AND deleted_at IS NULL",
+        params![id],
+        |r| r.get(0),
+    ).unwrap_or(0);
+    if count > 0 {
+        return Err(format!("Cannot remove class — {} student(s) still enrolled.", count));
+    }
+    let sync_id: String = conn.query_row(
+        "SELECT sync_id FROM Class WHERE id = ?1",
+        params![id],
+        |r| r.get(0),
+    ).unwrap_or_default();
+    conn.execute("DELETE FROM Class WHERE id = ?1", params![id])
+        .map_err(|e| e.to_string())?;
+    if !sync_id.is_empty() {
+        sync::queue_delete(&conn, "Class", &sync_id);
+    }
+    Ok(())
+}
+
 // ─── PARENTS ─────────────────────────────────────────────────────────────────
 
 #[command]

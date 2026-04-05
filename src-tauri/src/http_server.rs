@@ -78,6 +78,13 @@ async fn h_create_class(Json(b): Json<CreateClassBody>) -> Result<impl IntoRespo
     create_class(b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
 
+#[derive(Deserialize)]
+struct DeleteClassBody { id: i64 }
+
+async fn h_delete_class(Json(b): Json<DeleteClassBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    delete_class(b.id).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::BAD_REQUEST, e))
+}
+
 // Parents
 async fn h_get_parents() -> Result<impl IntoResponse, (StatusCode, String)> {
     get_parents().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
@@ -324,6 +331,7 @@ pub fn build_router() -> Router {
     let protected = Router::new()
         .route("/api/get_classes",        post(h_get_classes))
         .route("/api/create_class",       post(h_create_class))
+        .route("/api/delete_class",       post(h_delete_class))
         .route("/api/get_parents",        post(h_get_parents))
         .route("/api/create_parent",      post(h_create_parent))
         .route("/api/update_parent",      post(h_update_parent))

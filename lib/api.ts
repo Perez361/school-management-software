@@ -309,6 +309,9 @@ export const api = {
   createClass: (input: { name: string; level: string; section?: string }): Promise<Class> =>
     call('create_class', { input }),
 
+  deleteClass: (id: number): Promise<void> =>
+    call('delete_class', { id }),
+
   // Parents
   getParents: (): Promise<Parent[]> =>
     call('get_parents'),

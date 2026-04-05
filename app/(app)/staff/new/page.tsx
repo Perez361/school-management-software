@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { api, Class } from '@/lib/api'
+import { GHANA_SUBJECTS } from '@/lib/school-data'
 
 interface StaffForm { name: string; role: string; phone?: string; email?: string; subject?: string; classId?: string }
 
@@ -65,7 +66,12 @@ export default function NewStaffPage() {
               </div>
               {role === 'Teacher' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 14 }}>
-                  <div>{lbl('Subject Taught')}<input {...register('subject')} style={inp} placeholder="e.g. Mathematics" /></div>
+                  <div>{lbl('Subject Taught')}
+                    <select {...register('subject')} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}>
+                      <option value="">Select subject</option>
+                      {GHANA_SUBJECTS.map(s => <option key={s.code} value={s.name}>{s.name}</option>)}
+                    </select>
+                  </div>
                   <div>
                     {lbl('Class Teacher Of')}
                     <select {...register('classId')} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}>

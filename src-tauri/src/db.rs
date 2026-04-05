@@ -218,6 +218,23 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
         INSERT OR IGNORE INTO sync_meta (key, value) VALUES ('supabase_anon_key', '');
         INSERT OR IGNORE INTO sync_meta (key, value) VALUES ('sync_enabled', '0');
     ")?;
+    // ─── Seed GES subjects (idempotent) ──────────────────────────────────────
+    conn.execute_batch("
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('English Language',            'ENG');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Mathematics',                 'MATH');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Integrated Science',          'SCI');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Social Studies',              'SOC');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Religious & Moral Education', 'RME');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Creative Arts & Design',      'CAD');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Computing',                   'ICT');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('French',                      'FRE');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Ghanaian Language',           'GHL');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Physical Education',          'PE');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('History',                     'HIST');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Career Technology',           'CT');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Agricultural Science',        'AGRI');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Pre-Technical Skills',        'PTS');
+    ")?;
     // ─────────────────────────────────────────────────────────────────────────
 
     Ok(())

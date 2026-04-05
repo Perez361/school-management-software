@@ -38,6 +38,7 @@ pub fn run() {
             // Classes
             get_classes,
             create_class,
+            delete_class,
             // Parents
             get_parents,
             create_parent,

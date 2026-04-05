@@ -37,16 +37,16 @@ function computeCAFromEntries(entries: CAScoreEntry[]): number | null {
 
 function caColor(ca: number | null) {
   if (ca === null) return 'var(--text-muted)'
-  if (ca >= 24) return '#15803d'
-  if (ca >= 18) return '#C9A84C'
-  if (ca >= 12) return '#d97706'
+  if (ca >= 40) return '#15803d'
+  if (ca >= 30) return '#C9A84C'
+  if (ca >= 20) return '#d97706'
   return '#b91c1c'
 }
 function caBg(ca: number | null) {
   if (ca === null) return 'var(--surface-2)'
-  if (ca >= 24) return 'rgba(22,163,74,0.08)'
-  if (ca >= 18) return 'rgba(201,168,76,0.1)'
-  if (ca >= 12) return 'rgba(217,119,6,0.08)'
+  if (ca >= 40) return 'rgba(22,163,74,0.08)'
+  if (ca >= 30) return 'rgba(201,168,76,0.1)'
+  if (ca >= 20) return 'rgba(217,119,6,0.08)'
   return 'rgba(185,28,28,0.08)'
 }
 
@@ -166,12 +166,12 @@ export default function CAScoresPage() {
           </div>
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(20px,4vw,26px)', fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Cumulative Assessments</h1>
           <p style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', marginTop: 3 }}>
-            CA = (Σ&nbsp;scores ÷ Σ&nbsp;max) × 30 &mdash; always scales to max&nbsp;30
+            CA = (Σ&nbsp;scores ÷ Σ&nbsp;max) × 50 &mdash; always scales to max&nbsp;50
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 9, padding: '8px 14px', flexShrink: 0 }}>
           <ClipboardList size={14} color="var(--gold)" />
-          <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--navy)', fontWeight: 600 }}>CA → max 30</span>
+          <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--navy)', fontWeight: 600 }}>CA → max 50</span>
         </div>
       </div>
 
@@ -248,7 +248,7 @@ export default function CAScoresPage() {
               </div>
               <p style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', marginTop: 10 }}>
                 Each student&apos;s score will be added as a new entry. Their CA is always{' '}
-                <strong>(sum of all scores ÷ sum of all max scores) × 30</strong>.
+                <strong>(sum of all scores ÷ sum of all max scores) × 50</strong>.
               </p>
             </div>
 
@@ -329,7 +329,7 @@ export default function CAScoresPage() {
                 <div style={{ minWidth: 560 }}>
                   {/* Header */}
                   <div style={{ display: 'grid', gridTemplateColumns: '36px 1fr 120px 80px 80px 28px', gap: 8, padding: '10px 20px', background: 'var(--gold-pale)', borderBottom: '1px solid var(--border)' }}>
-                    {['#', 'Student', 'Student ID', 'Entries', 'CA /30', ''].map(h => (
+                    {['#', 'Student', 'Student ID', 'Entries', 'CA /50', ''].map(h => (
                       <div key={h} style={{ fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</div>
                     ))}
                   </div>
@@ -404,7 +404,7 @@ export default function CAScoresPage() {
                             {/* Running CA breakdown */}
                             <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border-soft)', fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-secondary)' }}>
                               Total: {studentEntries.reduce((s, e) => s + e.score, 0).toFixed(1)} / {studentEntries.reduce((s, e) => s + e.maxScore, 0).toFixed(1)} →{' '}
-                              CA = <strong style={{ color: caColor(ca) }}>{ca ?? '—'} / 30</strong>
+                              CA = <strong style={{ color: caColor(ca) }}>{ca ?? '—'} / 50</strong>
                             </div>
                           </div>
                         )}
