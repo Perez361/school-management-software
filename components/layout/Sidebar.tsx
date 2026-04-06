@@ -37,10 +37,11 @@ const ALL_NAV_GROUPS = [
   {
     label: 'Administration',
     items: [
-      { label: 'Billing',  href: '/billing',  icon: Receipt },
-      { label: 'Reports',  href: '/reports',  icon: FileText },
-      { label: 'Users',    href: '/users',    icon: ShieldCheck },
-      { label: 'Settings', href: '/settings', icon: Settings },
+      { label: 'Billing',          href: '/billing',    icon: Receipt },
+      { label: 'Reports',          href: '/reports',    icon: FileText },
+      { label: 'Year-End Promotion', href: '/promotion', icon: GraduationCap },
+      { label: 'Users',            href: '/users',      icon: ShieldCheck },
+      { label: 'Settings',         href: '/settings',   icon: Settings },
     ],
   },
 ]

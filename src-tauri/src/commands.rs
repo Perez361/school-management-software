@@ -90,6 +90,7 @@ pub fn get_classes() -> Result<Vec<Class>, String> {
     let mut stmt = conn.prepare(
         "SELECT c.id, c.name, c.level, c.section, COUNT(s.id) as student_count
          FROM Class c LEFT JOIN Student s ON s.classId = c.id
+           AND s.deleted_at IS NULL AND (s.status IS NULL OR s.status = 'active')
          GROUP BY c.id ORDER BY c.name"
     ).map_err(|e| e.to_string())?;
 
@@ -125,7 +126,7 @@ pub fn delete_class(id: i64) -> Result<(), String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
     // Guard: refuse if any students are enrolled
     let count: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM Student WHERE classId = ?1 AND deleted_at IS NULL",
+        "SELECT COUNT(*) FROM Student WHERE classId = ?1 AND deleted_at IS NULL AND (status IS NULL OR status = 'active')",
         params![id],
         |r| r.get(0),
     ).unwrap_or(0);
@@ -355,11 +356,12 @@ pub fn get_students(class_id: Option<i64>, q: Option<String>) -> Result<Vec<Stud
         "SELECT s.id, s.studentId, s.name, s.gender, s.dob, s.phone, s.address,
                 s.classId, s.parentId, s.createdAt, s.photo,
                 c.id, c.name,
-                p.id, p.name, p.phone, p.email
+                p.id, p.name, p.phone, p.email,
+                COALESCE(s.status, 'active')
          FROM Student s
          JOIN Class c ON c.id = s.classId
          LEFT JOIN Parent p ON p.id = s.parentId
-         WHERE s.deleted_at IS NULL"
+         WHERE s.deleted_at IS NULL AND (s.status IS NULL OR s.status = 'active')"
     );
 
     if class_id.is_some() { sql.push_str(" AND s.classId = ?"); }
@@ -384,6 +386,7 @@ pub fn get_students(class_id: Option<i64>, q: Option<String>) -> Result<Vec<Stud
             gender: row.get(3)?, dob: row.get(4)?, phone: row.get(5)?,
             address: row.get(6)?, class_id: row.get(7)?,
             parent_id: parent_id_val, created_at: row.get(9)?, photo,
+            status: row.get(17).unwrap_or_else(|_| "active".to_string()),
             class: Some(ClassBasic { id: row.get(11)?, name: row.get(12)? }),
             parent,
         })
@@ -412,7 +415,8 @@ pub fn get_student(id: i64) -> Result<Student, String> {
         "SELECT s.id, s.studentId, s.name, s.gender, s.dob, s.phone, s.address,
                 s.classId, s.parentId, s.createdAt, s.photo,
                 c.id, c.name,
-                p.id, p.name, p.phone, p.email
+                p.id, p.name, p.phone, p.email,
+                COALESCE(s.status, 'active')
          FROM Student s
          JOIN Class c ON c.id = s.classId
          LEFT JOIN Parent p ON p.id = s.parentId
@@ -434,6 +438,7 @@ pub fn get_student(id: i64) -> Result<Student, String> {
                 gender: row.get(3)?, dob: row.get(4)?, phone: row.get(5)?,
                 address: row.get(6)?, class_id: row.get(7)?,
                 parent_id: parent_id_val, created_at: row.get(9)?, photo,
+                status: row.get(17).unwrap_or_else(|_| "active".to_string()),
                 class: Some(ClassBasic { id: row.get(11)?, name: row.get(12)? }),
                 parent,
             })
@@ -896,12 +901,13 @@ pub fn get_payment_summary(class_id: Option<i64>, term: Option<String>) -> Resul
 pub fn get_settings() -> Result<Option<SchoolSettings>, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
     let result = conn.query_row(
-        "SELECT id, schoolName, motto, address, phone, email, logo, currentTerm, currentYear FROM SchoolSettings LIMIT 1",
+        "SELECT id, schoolName, motto, address, phone, email, logo, currentTerm, currentYear, nextTermName, nextTermFee FROM SchoolSettings LIMIT 1",
         [],
         |row| Ok(SchoolSettings {
             id: row.get(0)?, school_name: row.get(1)?, motto: row.get(2)?,
             address: row.get(3)?, phone: row.get(4)?, email: row.get(5)?,
             logo: row.get(6)?, current_term: row.get(7)?, current_year: row.get(8)?,
+            next_term_name: row.get(9)?, next_term_fee: row.get(10)?,
         }),
     );
     match result {
@@ -920,18 +926,79 @@ pub fn upsert_settings(input: UpsertSettingsInput) -> Result<SchoolSettings, Str
 
     if let Some(id) = existing {
         conn.execute(
-            "UPDATE SchoolSettings SET schoolName=?1, motto=?2, address=?3, phone=?4, email=?5, currentTerm=?6, currentYear=?7 WHERE id=?8",
-            params![input.school_name, input.motto, input.address, input.phone, input.email, input.current_term, input.current_year, id],
+            "UPDATE SchoolSettings SET schoolName=?1, motto=?2, address=?3, phone=?4, email=?5, currentTerm=?6, currentYear=?7, nextTermName=?8, nextTermFee=?9 WHERE id=?10",
+            params![input.school_name, input.motto, input.address, input.phone, input.email, input.current_term, input.current_year, input.next_term_name, input.next_term_fee, id],
         ).map_err(|e| e.to_string())?;
-        Ok(SchoolSettings { id, school_name: input.school_name, motto: input.motto, address: input.address, phone: input.phone, email: input.email, logo: None, current_term: input.current_term, current_year: input.current_year })
+        Ok(SchoolSettings { id, school_name: input.school_name, motto: input.motto, address: input.address, phone: input.phone, email: input.email, logo: None, current_term: input.current_term, current_year: input.current_year, next_term_name: input.next_term_name, next_term_fee: input.next_term_fee })
     } else {
         conn.execute(
-            "INSERT INTO SchoolSettings (schoolName, motto, address, phone, email, currentTerm, currentYear) VALUES (?1,?2,?3,?4,?5,?6,?7)",
-            params![input.school_name, input.motto, input.address, input.phone, input.email, input.current_term, input.current_year],
+            "INSERT INTO SchoolSettings (schoolName, motto, address, phone, email, currentTerm, currentYear, nextTermName, nextTermFee) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)",
+            params![input.school_name, input.motto, input.address, input.phone, input.email, input.current_term, input.current_year, input.next_term_name, input.next_term_fee],
         ).map_err(|e| e.to_string())?;
         let id = conn.last_insert_rowid();
-        Ok(SchoolSettings { id, school_name: input.school_name, motto: input.motto, address: input.address, phone: input.phone, email: input.email, logo: None, current_term: input.current_term, current_year: input.current_year })
+        Ok(SchoolSettings { id, school_name: input.school_name, motto: input.motto, address: input.address, phone: input.phone, email: input.email, logo: None, current_term: input.current_term, current_year: input.current_year, next_term_name: input.next_term_name, next_term_fee: input.next_term_fee })
     }
+}
+
+// ─── PROMOTION ───────────────────────────────────────────────────────────────
+
+#[command]
+pub fn promote_class(input: PromoteClassInput) -> Result<PromoteResult, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let now = chrono::Local::now().format("%Y-%m-%dT%H:%M:%S").to_string();
+
+    // Fetch all active students currently in this class
+    let mut stmt = conn.prepare(
+        "SELECT id FROM Student WHERE classId = ?1 AND deleted_at IS NULL AND (status IS NULL OR status = 'active')"
+    ).map_err(|e| e.to_string())?;
+    let all_ids: Vec<i64> = stmt
+        .query_map(params![input.class_id], |r| r.get(0))
+        .map_err(|e| e.to_string())?
+        .filter_map(|r| r.ok())
+        .collect();
+
+    let repeat_set: std::collections::HashSet<i64> =
+        input.repeat_student_ids.iter().cloned().collect();
+
+    let mut promoted = 0i64;
+    let mut repeated = 0i64;
+    let mut graduated = 0i64;
+
+    for sid in &all_ids {
+        if repeat_set.contains(sid) {
+            // Student stays in same class — no classId change
+            repeated += 1;
+        } else if let Some(next_id) = input.next_class_id {
+            // Promote to next class
+            conn.execute(
+                "UPDATE Student SET classId = ?1, updated_at = ?2 WHERE id = ?3",
+                params![next_id, now, sid],
+            ).map_err(|e| e.to_string())?;
+            // Queue sync
+            if let Ok(sync_id) = conn.query_row::<String, _, _>(
+                "SELECT sync_id FROM Student WHERE id = ?1", params![sid], |r| r.get(0)
+            ) {
+                let payload = sync::build_payload(&conn, "Student", &sync_id).unwrap_or_default();
+                sync::queue_change(&conn, "Student", &sync_id, payload);
+            }
+            promoted += 1;
+        } else {
+            // Graduate — mark status and keep classId for record reference
+            conn.execute(
+                "UPDATE Student SET status = 'graduated', updated_at = ?1 WHERE id = ?2",
+                params![now, sid],
+            ).map_err(|e| e.to_string())?;
+            if let Ok(sync_id) = conn.query_row::<String, _, _>(
+                "SELECT sync_id FROM Student WHERE id = ?1", params![sid], |r| r.get(0)
+            ) {
+                let payload = sync::build_payload(&conn, "Student", &sync_id).unwrap_or_default();
+                sync::queue_change(&conn, "Student", &sync_id, payload);
+            }
+            graduated += 1;
+        }
+    }
+
+    Ok(PromoteResult { promoted, repeated, graduated })
 }
 
 // ─── REPORT CARD ─────────────────────────────────────────────────────────────

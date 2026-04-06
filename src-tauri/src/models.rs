@@ -57,6 +57,7 @@ pub struct Student {
     pub parent_id: Option<i64>,
     #[serde(rename = "createdAt")]
     pub created_at: String,
+    pub status: String,
     pub class: Option<ClassBasic>,
     pub parent: Option<ParentBasic>,
 }
@@ -152,6 +153,10 @@ pub struct SchoolSettings {
     pub current_term: String,
     #[serde(rename = "currentYear")]
     pub current_year: String,
+    #[serde(rename = "nextTermName")]
+    pub next_term_name: Option<String>,
+    #[serde(rename = "nextTermFee")]
+    pub next_term_fee: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -356,6 +361,10 @@ pub struct UpsertSettingsInput {
     pub current_term: String,
     #[serde(rename = "currentYear")]
     pub current_year: String,
+    #[serde(rename = "nextTermName")]
+    pub next_term_name: Option<String>,
+    #[serde(rename = "nextTermFee")]
+    pub next_term_fee: Option<f64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -468,4 +477,21 @@ pub struct UpdateUserInput {
 pub struct ChangePasswordInput {
     pub user_id: i64,
     pub new_password: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PromoteClassInput {
+    #[serde(rename = "classId")]
+    pub class_id: i64,
+    #[serde(rename = "nextClassId")]
+    pub next_class_id: Option<i64>,   // None = graduate (JHS 3)
+    #[serde(rename = "repeatStudentIds")]
+    pub repeat_student_ids: Vec<i64>, // students who stay in same class
+}
+
+#[derive(Debug, Serialize)]
+pub struct PromoteResult {
+    pub promoted: i64,
+    pub repeated: i64,
+    pub graduated: i64,
 }

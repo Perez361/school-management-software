@@ -8,6 +8,7 @@ import RoleGuard from '@/components/RoleGuard'
 interface SettingsFormData {
   schoolName: string; motto?: string; address?: string
   phone?: string; email?: string; currentTerm: string; currentYear: string
+  nextTermName?: string; nextTermFee?: string
 }
 
 const labelStyle: React.CSSProperties = { display: 'block', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6, letterSpacing: '0.01em' }
@@ -19,7 +20,8 @@ function SettingsForm({ settings }: { settings: SchoolSettings | null }) {
       schoolName: settings.schoolName, motto: settings.motto ?? '', address: settings.address ?? '',
       phone: settings.phone ?? '', email: settings.email ?? '',
       currentTerm: settings.currentTerm, currentYear: settings.currentYear,
-    } : { schoolName: '', currentTerm: 'Term 1', currentYear: '2024' }
+      nextTermName: settings.nextTermName ?? '', nextTermFee: settings.nextTermFee != null ? String(settings.nextTermFee) : '',
+    } : { schoolName: '', currentTerm: 'Term 1', currentYear: '' }
   })
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -31,6 +33,8 @@ function SettingsForm({ settings }: { settings: SchoolSettings | null }) {
       await api.upsertSettings({
         schoolName: data.schoolName, motto: data.motto, address: data.address,
         phone: data.phone, email: data.email, currentTerm: data.currentTerm, currentYear: data.currentYear,
+        nextTermName: data.nextTermName || null,
+        nextTermFee: data.nextTermFee ? parseFloat(data.nextTermFee) : null,
       })
       setSaved(true); setTimeout(() => setSaved(false), 3000)
     } catch (e: any) { setError(e.message || String(e)) }
@@ -64,7 +68,7 @@ function SettingsForm({ settings }: { settings: SchoolSettings | null }) {
       <div style={sectionStyle}>
         <div style={sectionHeaderStyle}>
           <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Calendar size={15} color="var(--gold)" /></div>
-          <div><div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Academic Period</div><div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>Controls the current term shown on the dashboard</div></div>
+          <div><div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Academic Period</div><div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>Sets the active term and year — used as default across CA, attendance, and reports</div></div>
         </div>
         <div style={{ ...sectionBodyStyle, flexDirection: 'row', flexWrap: 'wrap' } as React.CSSProperties}>
           <div style={{ flex: 1, minWidth: 140 }}>
@@ -75,10 +79,36 @@ function SettingsForm({ settings }: { settings: SchoolSettings | null }) {
           </div>
           <div style={{ flex: 1, minWidth: 140 }}>
             <label style={labelStyle}>Academic Year</label>
-            <select {...register('currentYear')} style={{ ...inputStyle, cursor: 'pointer' } as React.CSSProperties}>
-              <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option>
+            <input {...register('currentYear')} style={inputStyle} placeholder="e.g. 2024/2025" />
+          </div>
+        </div>
+      </div>
+
+      <div style={sectionStyle}>
+        <div style={sectionHeaderStyle}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Calendar size={15} color="var(--gold)" /></div>
+          <div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Next Term Fees</div>
+            <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>Set by admin or bursar at end of term — prints on the terminal report card</div>
+          </div>
+        </div>
+        <div style={{ ...sectionBodyStyle, flexDirection: 'row', flexWrap: 'wrap' } as React.CSSProperties}>
+          <div style={{ flex: 1, minWidth: 160 }}>
+            <label style={labelStyle}>Next Term Name</label>
+            <select {...register('nextTermName')} style={{ ...inputStyle, cursor: 'pointer' } as React.CSSProperties}>
+              <option value="">Not set</option>
+              <option value="Term 1">Term 1</option>
+              <option value="Term 2">Term 2</option>
+              <option value="Term 3">Term 3</option>
             </select>
           </div>
+          <div style={{ flex: 1, minWidth: 160 }}>
+            <label style={labelStyle}>Fees Amount (GHS)</label>
+            <input {...register('nextTermFee')} type="number" min="0" step="0.01" style={inputStyle} placeholder="e.g. 350.00" />
+          </div>
+        </div>
+        <div style={{ padding: '0 22px 16px', fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>
+          Leave blank if fees for the next term have not been decided yet.
         </div>
       </div>
 

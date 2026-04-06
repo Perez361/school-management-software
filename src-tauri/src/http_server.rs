@@ -246,6 +246,12 @@ async fn h_upsert_settings(Json(b): Json<UpsertSettingsBody>) -> Result<impl Int
     upsert_settings(b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
 
+// Promotion
+#[derive(Deserialize)] struct PromoteClassBody { input: PromoteClassInput }
+async fn h_promote_class(Json(b): Json<PromoteClassBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    promote_class(b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
 // Reports
 #[derive(Deserialize)] struct GetReportCardBody {
     #[serde(rename = "studentId")] student_id: i64,
@@ -359,6 +365,7 @@ pub fn build_router() -> Router {
         .route("/api/get_payment_summary",post(h_get_payment_summary))
         .route("/api/get_settings",       post(h_get_settings))
         .route("/api/upsert_settings",    post(h_upsert_settings))
+        .route("/api/promote_class",      post(h_promote_class))
         .route("/api/get_report_card",    post(h_get_report_card))
         .route("/api/get_dashboard_stats",post(h_get_dashboard_stats))
         .route("/api/get_top_students",   post(h_get_top_students))

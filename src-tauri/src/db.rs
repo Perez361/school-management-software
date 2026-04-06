@@ -160,6 +160,10 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
     // ─── Additive ALTER TABLE migrations (idempotent) ────────────────────────
     let _ = conn.execute("ALTER TABLE Parent ADD COLUMN photo TEXT ", []);
     let _ = conn.execute("ALTER TABLE Student ADD COLUMN photo TEXT ", []);
+    let _ = conn.execute("ALTER TABLE SchoolSettings ADD COLUMN nextTermName TEXT ", []);
+    let _ = conn.execute("ALTER TABLE SchoolSettings ADD COLUMN nextTermFee REAL NOT NULL DEFAULT 0 ", []);
+    // status: 'active' | 'graduated' | 'transferred'
+    let _ = conn.execute("ALTER TABLE Student ADD COLUMN status TEXT NOT NULL DEFAULT 'active' ", []);
 
     // ─── Sync schema additions ────────────────────────────────────────────────
     // ADD COLUMN is idempotent: rusqlite returns an error if the column already

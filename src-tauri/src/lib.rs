@@ -74,6 +74,8 @@ pub fn run() {
             // Settings
             get_settings,
             upsert_settings,
+            // Promotion
+            promote_class,
             // Reports
             get_report_card,
             // Dashboard

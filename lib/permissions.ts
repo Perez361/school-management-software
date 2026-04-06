@@ -24,6 +24,7 @@ export type Feature =
   | 'attendance'
   | 'billing'
   | 'reports'
+  | 'promotion'       // year-end promotion (admin only)
   | 'settings'
   | 'users'           // user management (admin only)
 
@@ -32,7 +33,7 @@ const PERMISSIONS: Record<AppRole, Feature[]> = {
     'dashboard', 'students', 'students:write',
     'parents', 'staff', 'classes',
     'ca-scores', 'exam-records', 'results', 'attendance', 'billing', 'reports',
-    'settings', 'users',
+    'promotion', 'settings', 'users',
   ],
   teacher: [
     'dashboard', 'students',
@@ -68,6 +69,7 @@ export function allowedRoutes(role: string | undefined | null): Set<string> {
     attendance:      '/attendance',
     billing:     '/billing',
     reports:     '/reports',
+    promotion:   '/promotion',
     settings:    '/settings',
     users:       '/users',
   }

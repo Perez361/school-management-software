@@ -56,6 +56,7 @@ export interface Student {
   classId: number
   parentId?: number | null
   createdAt: string
+  status: string   // 'active' | 'graduated' | 'transferred'
   class?: { id: number; name: string } | null
   parent?: { id: number; name: string; phone: string; email?: string | null } | null
 }
@@ -104,6 +105,8 @@ export interface SchoolSettings {
   email?: string | null
   currentTerm: string
   currentYear: string
+  nextTermName?: string | null
+  nextTermFee?: number | null
 }
 
 export interface User {
@@ -451,9 +454,18 @@ export const api = {
 
   upsertSettings: (input: {
     schoolName: string; motto?: string; address?: string; phone?: string;
-    email?: string; currentTerm: string; currentYear: string
+    email?: string; currentTerm: string; currentYear: string;
+    nextTermName?: string | null; nextTermFee?: number | null
   }): Promise<SchoolSettings> =>
     call('upsert_settings', { input }),
+
+  // Promotion
+  promoteClass: (input: {
+    classId: number
+    nextClassId: number | null   // null = graduate (JHS 3)
+    repeatStudentIds: number[]
+  }): Promise<{ promoted: number; repeated: number; graduated: number }> =>
+    call('promote_class', { input }),
 
   // Reports
   getReportCard: (studentId: number, term: string, year: string): Promise<ReportCardData> =>

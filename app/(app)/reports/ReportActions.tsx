@@ -1,7 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Download, Loader } from 'lucide-react'
-import { api, Class } from '@/lib/api'
+import { api, Class, SchoolSettings } from '@/lib/api'
 
 interface Props {
   type: 'report-card' | 'class-list' | 'fee-invoice'
@@ -12,7 +12,18 @@ interface Props {
 export default function ReportActions({ type, classes, schoolName }: Props) {
   const [selectedClass, setSelectedClass] = useState('')
   const [term, setTerm] = useState('Term 1')
-  const [year, setYear] = useState('2024/2025')
+  const [year, setYear] = useState('')
+  const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(null)
+
+  useEffect(() => {
+    api.getSettings().then(s => {
+      if (s) {
+        setSchoolSettings(s)
+        setTerm(s.currentTerm)
+        setYear(s.currentYear)
+      }
+    }).catch(() => {})
+  }, [])
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
 
@@ -21,7 +32,7 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
     setLoading(true); setMsg('')
     try {
       if (type === 'class-list') await generateClassList(parseInt(selectedClass))
-      else if (type === 'report-card') await generateReportCards(parseInt(selectedClass), term, year)
+      else if (type === 'report-card') await generateReportCards(parseInt(selectedClass), term, year, schoolSettings)
       else if (type === 'fee-invoice') await generateFeeInvoices(parseInt(selectedClass), term, year)
       setMsg('✅ PDF generated and downloaded!')
     } catch (e: any) {
@@ -62,7 +73,7 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
     doc.save(`class-list-${cls?.name}-${year}.pdf`)
   }
 
-  async function generateReportCards(classId: number, term: string, year: string) {
+  async function generateReportCards(classId: number, term: string, year: string, settings: SchoolSettings | null) {
     const students = await api.getStudents({ classId })
     if (students.length === 0) throw new Error('No students in this class')
     const { jsPDF } = await import('jspdf')
@@ -213,6 +224,17 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
         const balColor: [number, number, number] = b.balance > 0 ? [185, 28, 28] : [22, 163, 74]
         doc.setTextColor(...balColor); doc.setFont('helvetica', 'bold')
         doc.text(`Bal: GHS ${b.balance.toFixed(2)}`, 158, cy + 5.5)
+        cy += 10
+      }
+
+      // ── Next term fees ────────────────────────────────────
+      if (settings?.nextTermFee && settings.nextTermFee > 0) {
+        doc.setFillColor(240, 248, 255); doc.rect(8, cy, pw - 16, 8, 'F')
+        doc.setDrawColor(100, 140, 200); doc.setLineWidth(0.3); doc.rect(8, cy, pw - 16, 8, 'S')
+        doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 60, 130)
+        doc.text(`${settings.nextTermName ?? 'Next Term'} Fees:`, 11, cy + 5.5)
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXT)
+        doc.text(`GHS ${settings.nextTermFee.toFixed(2)} — Please pay promptly at the start of term.`, 55, cy + 5.5)
         cy += 10
       }
 

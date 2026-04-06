@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import { Save, CheckCircle, ClipboardList, Users, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { CheckCircle, ClipboardList, Users, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import { api, Student, Subject, Class, CAScoreEntry } from '@/lib/api'
 import { useLiveData } from '@/lib/live-data'
 
@@ -58,7 +58,7 @@ export default function CAScoresPage() {
   const [classId,      setClassId]     = useState('')
   const [subjectId,    setSubjectId]   = useState('')
   const [term,         setTerm]        = useState('Term 1')
-  const [year,         setYear]        = useState(String(new Date().getFullYear()))
+  const [year,         setYear]        = useState('')
   const [tab,          setTab]         = useState<'entry' | 'summary'>('entry')
 
   // Batch entry state
@@ -76,8 +76,12 @@ export default function CAScoresPage() {
   const [deleting,     setDeleting]    = useState<number | null>(null)
 
   useEffect(() => {
-    Promise.all([api.getClasses(), api.getSubjects()]).then(([c, s]) => {
+    Promise.all([api.getClasses(), api.getSubjects(), api.getSettings()]).then(([c, s, settings]) => {
       setClasses(c); setSubjects(s)
+      if (settings) {
+        setTerm(settings.currentTerm)
+        setYear(settings.currentYear)
+      }
     })
   }, [])
 
@@ -203,9 +207,7 @@ export default function CAScoresPage() {
             </div>
             <div>
               <label style={labelStyle}>Year</label>
-              <select style={selectStyle} value={year} onChange={e => setYear(e.target.value)}>
-                {[2023,2024,2025,2026,2027].map(y => <option key={y}>{y}</option>)}
-              </select>
+              <input style={inputStyle} value={year} onChange={e => setYear(e.target.value)} placeholder="e.g. 2024/2025" />
             </div>
           </div>
         </div>
