@@ -47,14 +47,6 @@ export default function BillingPage() {
   const collectionRate = summary.total > 0 ? Math.round((summary.collected / summary.total) * 100) : 0
   const isFiltered = !!(classFilter || termFilter || statusFilter)
 
-  function applyFilter(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const fd = new FormData(e.currentTarget)
-    setClassFilter(fd.get('classId') as string ?? '')
-    setTermFilter(fd.get('term') as string ?? '')
-    setStatusFilter(fd.get('status') as string ?? '')
-    setPage(1)
-  }
 
   const totalPages = Math.ceil(payments.length / PAGE_SIZE)
   const paged = payments.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -120,34 +112,35 @@ export default function BillingPage() {
             <span style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Filter Records</span>
           </div>
           <div style={{ padding: 'clamp(12px,2vw,16px) clamp(14px,3vw,22px)' }}>
-            <form onSubmit={applyFilter} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10, alignItems: 'flex-end' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10, alignItems: 'flex-end' }}>
               <div>
                 <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Class</label>
-                <select name="classId" defaultValue={classFilter} style={selStyle}>
+                <select value={classFilter} onChange={e => { setClassFilter(e.target.value); setPage(1) }} style={selStyle}>
                   <option value="">All Classes</option>
                   {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Term</label>
-                <select name="term" defaultValue={termFilter} style={selStyle}>
+                <select value={termFilter} onChange={e => { setTermFilter(e.target.value); setPage(1) }} style={selStyle}>
                   <option value="">All Terms</option>
                   <option>Term 1</option><option>Term 2</option><option>Term 3</option>
                 </select>
               </div>
               <div>
                 <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Status</label>
-                <select name="status" defaultValue={statusFilter} style={selStyle}>
+                <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1) }} style={selStyle}>
                   <option value="">All Status</option>
                   <option value="paid">Fully Paid</option>
                   <option value="owing">Has Balance</option>
                 </select>
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button type="submit" style={{ flex: 1, padding: '9px 16px', background: 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>Apply</button>
-                {isFiltered && <button type="button" onClick={() => { setClassFilter(''); setTermFilter(''); setStatusFilter(''); setPage(1) }} style={{ flex: 1, padding: '9px 14px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>Clear</button>}
-              </div>
-            </form>
+              {isFiltered && (
+                <div>
+                  <button onClick={() => { setClassFilter(''); setTermFilter(''); setStatusFilter(''); setPage(1) }} style={{ width: '100%', padding: '9px 14px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer' }}>Clear Filters</button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

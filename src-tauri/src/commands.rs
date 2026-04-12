@@ -639,7 +639,7 @@ pub fn upsert_result(input: CreateResultInput) -> Result<ResultRow, String> {
 }
 
 // ─── CUMULATIVE ASSESSMENTS ───────────────────────────────────────────────────
-// Formula: CA = (Σscore / ΣmaxScore) × 30  — always 0–30 regardless of entry count
+// Formula: CA = (Σscore / ΣmaxScore) × 50  — always 0–50 regardless of entry count
 
 /// Returns per-student computed CA (aggregated from CAScoreEntry rows).
 /// Still returns the CAScore type so the Results page works unchanged.
@@ -654,7 +654,7 @@ pub fn get_ca_scores(
     let mut stmt = conn.prepare(
         "SELECT e.studentId, e.subjectId, e.term, e.year,
                 s.id, s.name, s.studentId, c.id, c.name,
-                ROUND(SUM(e.score) * 30.0 / SUM(e.maxScore), 2) AS computedCA
+                ROUND(SUM(e.score) * 50.0 / SUM(e.maxScore), 2) AS computedCA
          FROM CAScoreEntry e
          JOIN Student s ON s.id = e.studentId
          JOIN Class c ON c.id = s.classId
@@ -1090,10 +1090,18 @@ pub struct DashboardStats {
 #[command]
 pub fn get_dashboard_stats() -> Result<DashboardStats, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
-    let total_students: i64 = conn.query_row("SELECT COUNT(*) FROM Student", [], |r| r.get(0)).unwrap_or(0);
-    let total_parents: i64 = conn.query_row("SELECT COUNT(*) FROM Parent", [], |r| r.get(0)).unwrap_or(0);
-    let total_staff: i64 = conn.query_row("SELECT COUNT(*) FROM Staff", [], |r| r.get(0)).unwrap_or(0);
-    let total_classes: i64 = conn.query_row("SELECT COUNT(*) FROM Class", [], |r| r.get(0)).unwrap_or(0);
+    let total_students: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Student WHERE deleted_at IS NULL AND (status IS NULL OR status='active')",
+        [], |r| r.get(0)).unwrap_or(0);
+    let total_parents: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Parent WHERE deleted_at IS NULL",
+        [], |r| r.get(0)).unwrap_or(0);
+    let total_staff: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Staff WHERE deleted_at IS NULL",
+        [], |r| r.get(0)).unwrap_or(0);
+    let total_classes: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Class WHERE deleted_at IS NULL",
+        [], |r| r.get(0)).unwrap_or(0);
     let total_collected: f64 = conn.query_row("SELECT COALESCE(SUM(paid),0) FROM Payment", [], |r| r.get(0)).unwrap_or(0.0);
     let total_outstanding: f64 = conn.query_row("SELECT COALESCE(SUM(balance),0) FROM Payment", [], |r| r.get(0)).unwrap_or(0.0);
     Ok(DashboardStats { total_students, total_parents, total_staff, total_classes, total_collected, total_outstanding })
@@ -1121,6 +1129,89 @@ pub fn get_top_students() -> Result<Vec<TopStudent>, String> {
         student_id: row.get(0)?, name: row.get(1)?, class: row.get(2)?, avg: row.get(3)?
     })).map_err(|e| e.to_string())?;
 
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+// ─── CHART DATA ──────────────────────────────────────────────────────────────
+
+#[derive(serde::Serialize)]
+pub struct GenderStats {
+    pub male: i64,
+    pub female: i64,
+}
+
+#[command]
+pub fn get_gender_stats() -> Result<GenderStats, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let male: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Student WHERE deleted_at IS NULL AND (status IS NULL OR status='active') AND LOWER(gender)='male'",
+        [], |r| r.get(0),
+    ).unwrap_or(0);
+    let female: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Student WHERE deleted_at IS NULL AND (status IS NULL OR status='active') AND LOWER(gender)='female'",
+        [], |r| r.get(0),
+    ).unwrap_or(0);
+    Ok(GenderStats { male, female })
+}
+
+#[derive(serde::Serialize)]
+pub struct ClassFeeStats {
+    pub class: String,
+    pub collected: f64,
+    pub outstanding: f64,
+}
+
+#[command]
+pub fn get_fee_by_class(term: Option<String>) -> Result<Vec<ClassFeeStats>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let sql = if term.is_some() {
+        "SELECT c.name, COALESCE(SUM(p.paid),0), COALESCE(SUM(p.balance),0)
+         FROM Class c
+         LEFT JOIN Student s ON s.classId = c.id AND s.deleted_at IS NULL
+         LEFT JOIN Payment p ON p.studentId = s.id AND p.term = ?1
+         GROUP BY c.id, c.name ORDER BY c.name"
+    } else {
+        "SELECT c.name, COALESCE(SUM(p.paid),0), COALESCE(SUM(p.balance),0)
+         FROM Class c
+         LEFT JOIN Student s ON s.classId = c.id AND s.deleted_at IS NULL
+         LEFT JOIN Payment p ON p.studentId = s.id
+         GROUP BY c.id, c.name ORDER BY c.name"
+    };
+
+    let map_row = |row: &rusqlite::Row| Ok(ClassFeeStats {
+        class: row.get(0)?, collected: row.get(1)?, outstanding: row.get(2)?,
+    });
+    let mut stmt = conn.prepare(sql).map_err(|e| e.to_string())?;
+    let rows: Vec<ClassFeeStats> = if let Some(t) = term {
+        stmt.query_map(rusqlite::params![t], map_row)
+    } else {
+        stmt.query_map([], map_row)
+    }.map_err(|e: rusqlite::Error| e.to_string())?
+    .filter_map(|r: Result<ClassFeeStats, rusqlite::Error>| r.ok())
+    .filter(|r| r.collected > 0.0 || r.outstanding > 0.0)
+    .collect();
+    Ok(rows)
+}
+
+#[derive(serde::Serialize)]
+pub struct ClassEnrolmentStats {
+    pub class: String,
+    pub count: i64,
+}
+
+#[command]
+pub fn get_enrolment_by_class() -> Result<Vec<ClassEnrolmentStats>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let mut stmt = conn.prepare(
+        "SELECT c.name, COUNT(s.id)
+         FROM Class c
+         LEFT JOIN Student s ON s.classId = c.id AND s.deleted_at IS NULL
+           AND (s.status IS NULL OR s.status = 'active')
+         GROUP BY c.id, c.name ORDER BY c.name"
+    ).map_err(|e| e.to_string())?;
+    let rows = stmt.query_map([], |row| Ok(ClassEnrolmentStats {
+        class: row.get(0)?, count: row.get(1)?,
+    })).map_err(|e| e.to_string())?;
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 

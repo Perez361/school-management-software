@@ -27,7 +27,7 @@ export default function ExamRecordsPage() {
   const [subjects,  setSubjects]  = useState<Subject[]>([])
   const [classId,   setClassId]   = useState('')
   const [term,      setTerm]      = useState('Term 1')
-  const [year,      setYear]      = useState(String(new Date().getFullYear()))
+  const [year,      setYear]      = useState('')
   const [subjectId, setSubjectId] = useState('')
   const [caScores,  setCAScores]  = useState<Record<number, number | null>>({})
   const [scores,    setScores]    = useState<Record<number, string>>({})
@@ -36,8 +36,9 @@ export default function ExamRecordsPage() {
   const [error,     setError]     = useState('')
 
   useEffect(() => {
-    Promise.all([api.getClasses(), api.getSubjects()]).then(([c, s]) => {
+    Promise.all([api.getClasses(), api.getSubjects(), api.getSettings()]).then(([c, s, settings]) => {
       setClasses(c); setSubjects(s)
+      if (settings) { setTerm(settings.currentTerm); setYear(settings.currentYear) }
     })
   }, [])
 
@@ -63,15 +64,13 @@ export default function ExamRecordsPage() {
       caRows.forEach(ca => { caMap[ca.studentId] = ca.computedCA ?? null })
       setCAScores(caMap)
 
-      // Pre-fill existing exam scores (stored at 100-point scale)
-      setScores(prev => {
-        const updated: Record<number, string> = {}
-        students.forEach(s => { updated[s.id] = prev[s.id] ?? '' })
-        resultRows
-          .filter(r => r.subjectId === sid)
-          .forEach(r => { updated[r.studentId] = String(r.exam) })
-        return updated
-      })
+      // Pre-fill existing exam scores (stored at 100-point scale); always start fresh per subject
+      const updated: Record<number, string> = {}
+      students.forEach(s => { updated[s.id] = '' })
+      resultRows
+        .filter(r => r.subjectId === sid)
+        .forEach(r => { updated[r.studentId] = String(r.exam) })
+      setScores(updated)
     })
   }, [classId, subjectId, term, year, students])
 
@@ -134,7 +133,7 @@ export default function ExamRecordsPage() {
             <div><label style={labelStyle}>Class *</label><select style={selectStyle} value={classId} onChange={e => setClassId(e.target.value)}><option value="">Select class</option>{classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
             <div><label style={labelStyle}>Subject *</label><select style={selectStyle} value={subjectId} onChange={e => setSubjectId(e.target.value)}><option value="">Select subject</option>{subjects.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}</select></div>
             <div><label style={labelStyle}>Term *</label><select style={selectStyle} value={term} onChange={e => setTerm(e.target.value)}><option>Term 1</option><option>Term 2</option><option>Term 3</option></select></div>
-            <div><label style={labelStyle}>Year *</label><select style={selectStyle} value={year} onChange={e => setYear(e.target.value)}>{[2023,2024,2025,2026,2027].map(y => <option key={y}>{y}</option>)}</select></div>
+            <div><label style={labelStyle}>Year *</label><input style={selectStyle} value={year} onChange={e => setYear(e.target.value)} placeholder="e.g. 2024/2025" /></div>
           </div>
         </div>
 

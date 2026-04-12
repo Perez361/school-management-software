@@ -112,7 +112,7 @@ function SettingsForm({ settings }: { settings: SchoolSettings | null }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <button type="submit" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: saving ? 'var(--surface-2)' : 'var(--navy)', color: saving ? 'var(--text-muted)' : 'var(--gold-pale)', border: saving ? '1px solid var(--border)' : 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', boxShadow: saving ? 'none' : '0 2px 10px rgba(139,26,26,0.2)' }}>
           <Save size={15} />{saving ? 'Saving…' : 'Save Settings'}
         </button>

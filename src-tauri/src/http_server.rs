@@ -271,6 +271,19 @@ async fn h_get_top_students() -> Result<impl IntoResponse, (StatusCode, String)>
     get_top_students().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
 
+async fn h_get_gender_stats() -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_gender_stats().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+#[derive(Deserialize)] struct GetFeeByClassBody { term: Option<String> }
+async fn h_get_fee_by_class(Json(b): Json<GetFeeByClassBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_fee_by_class(b.term).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
+async fn h_get_enrolment_by_class() -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_enrolment_by_class().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
 // Sync
 async fn h_get_sync_status() -> Result<impl IntoResponse, (StatusCode, String)> {
     get_sync_status().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
@@ -367,8 +380,11 @@ pub fn build_router() -> Router {
         .route("/api/upsert_settings",    post(h_upsert_settings))
         .route("/api/promote_class",      post(h_promote_class))
         .route("/api/get_report_card",    post(h_get_report_card))
-        .route("/api/get_dashboard_stats",post(h_get_dashboard_stats))
-        .route("/api/get_top_students",   post(h_get_top_students))
+        .route("/api/get_dashboard_stats",    post(h_get_dashboard_stats))
+        .route("/api/get_top_students",       post(h_get_top_students))
+        .route("/api/get_gender_stats",       post(h_get_gender_stats))
+        .route("/api/get_fee_by_class",       post(h_get_fee_by_class))
+        .route("/api/get_enrolment_by_class", post(h_get_enrolment_by_class))
         .route("/api/get_sync_status",    post(h_get_sync_status))
         .route("/api/trigger_sync",       post(h_trigger_sync))
         .route("/api/save_sync_config",   post(h_save_sync_config))

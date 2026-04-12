@@ -49,13 +49,6 @@ export default function StudentsPage() {
     }
   }
 
-  function handleFilter(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const fd = new FormData(e.currentTarget)
-    setQuery(fd.get('q') as string ?? '')
-    setClassFilter(fd.get('class') as string ?? '')
-    setPage(1)
-  }
 
   const totalPages = Math.ceil(students.length / PAGE_SIZE)
   const paged = students.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -83,26 +76,36 @@ export default function StudentsPage() {
 
         {/* Search & Filter */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 'clamp(12px,2vw,16px) clamp(14px,3vw,20px)' }}>
-          <form onSubmit={handleFilter} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 10, alignItems: 'flex-end' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 10, alignItems: 'flex-end' }}>
             <div style={{ gridColumn: 'span 2' }}>
               <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Search</label>
               <div style={{ position: 'relative' }}>
                 <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
-                <input name="q" defaultValue={query} placeholder="Search by name…" style={{ width: '100%', padding: '9px 13px 9px 36px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }} />
+                <input
+                  value={query}
+                  onChange={e => { setQuery(e.target.value); setPage(1) }}
+                  placeholder="Type to search by name…"
+                  style={{ width: '100%', padding: '9px 13px 9px 36px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+                />
               </div>
             </div>
             <div>
               <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Class</label>
-              <select name="class" defaultValue={classFilter} style={{ width: '100%', padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', cursor: 'pointer' }}>
+              <select
+                value={classFilter}
+                onChange={e => { setClassFilter(e.target.value); setPage(1) }}
+                style={{ width: '100%', padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', cursor: 'pointer' }}
+              >
                 <option value="">All Classes</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="submit" style={{ flex: 1, padding: '9px 16px', background: 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Search</button>
-              <button type="button" onClick={() => { setQuery(''); setClassFilter(''); setPage(1) }} style={{ padding: '9px 14px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer' }}>Clear</button>
-            </div>
-          </form>
+            {(query || classFilter) && (
+              <div>
+                <button onClick={() => { setQuery(''); setClassFilter(''); setPage(1) }} style={{ width: '100%', padding: '9px 14px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer' }}>Clear</button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Table */}

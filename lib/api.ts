@@ -187,6 +187,10 @@ export interface TopStudent {
   avg: number
 }
 
+export interface GenderStats { male: number; female: number }
+export interface ClassFeeStats { class: string; collected: number; outstanding: number }
+export interface ClassEnrolmentStats { class: string; count: number }
+
 export interface AppUser {
   id: number
   username: string
@@ -477,6 +481,15 @@ export const api = {
 
   getTopStudents: (): Promise<TopStudent[]> =>
     call('get_top_students'),
+
+  getGenderStats: (): Promise<GenderStats> =>
+    call('get_gender_stats'),
+
+  getFeeByClass: (term?: string): Promise<ClassFeeStats[]> =>
+    call('get_fee_by_class', { term: term ?? null }),
+
+  getEnrolmentByClass: (): Promise<ClassEnrolmentStats[]> =>
+    call('get_enrolment_by_class'),
 
   // User management
   getUsers: (): Promise<AppUser[]> =>

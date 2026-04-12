@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { TrendingUp, Receipt, Award, ArrowUpRight, Users, UserSquare2, BookOpen, UserCheck } from 'lucide-react'
-import { api, DashboardStats, TopStudent, Payment, SchoolSettings } from '@/lib/api'
+import { api, DashboardStats, TopStudent, Payment, SchoolSettings, GenderStats, ClassFeeStats, ClassEnrolmentStats } from '@/lib/api'
 import { useLiveData } from '@/lib/live-data'
+import { useAuth } from '@/lib/auth-context'
 import DashboardCharts from './DashboardCharts'
 import QuickActions from './QuickActions'
 
@@ -16,10 +17,14 @@ const STAT_CONFIG = [
 
 export default function DashboardPage() {
   const { version } = useLiveData()
+  const { user } = useAuth()
   const [stats, setStats]               = useState<DashboardStats | null>(null)
   const [topStudents, setTopStudents]   = useState<TopStudent[]>([])
   const [recentPayments, setRecentPayments] = useState<Payment[]>([])
   const [settings, setSettings]         = useState<SchoolSettings | null>(null)
+  const [genderStats, setGenderStats]   = useState<GenderStats>({ male: 0, female: 0 })
+  const [feeByClass, setFeeByClass]     = useState<ClassFeeStats[]>([])
+  const [enrolByClass, setEnrolByClass] = useState<ClassEnrolmentStats[]>([])
 
   useEffect(() => {
     Promise.all([
@@ -27,12 +32,20 @@ export default function DashboardPage() {
       api.getTopStudents(),
       api.getPayments(),
       api.getSettings(),
-    ]).then(([s, top, pays, cfg]) => {
+      api.getGenderStats(),
+      api.getEnrolmentByClass(),
+    ]).then(([s, top, pays, cfg, gender, enrol]) => {
       setStats(s)
       setTopStudents(top)
       setRecentPayments(pays.slice(0, 6))
       setSettings(cfg)
-    })
+      setGenderStats(gender)
+      setEnrolByClass(enrol)
+      // Fetch fee by class using the current term
+      return api.getFeeByClass(cfg?.currentTerm ?? undefined)
+    }).then(fees => {
+      setFeeByClass(fees)
+    }).catch(() => {})
   }, [version])
 
   const collected      = stats?.totalCollected ?? 0
@@ -57,7 +70,7 @@ export default function DashboardPage() {
               <span style={{ fontFamily: 'system-ui', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Overview</span>
             </div>
             <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(20px,4vw,28px)', fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>School Dashboard</h1>
-            <p style={{ fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>Welcome back, Administrator</p>
+            <p style={{ fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>Welcome back, {user?.name ?? 'Administrator'}</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--navy)', borderRadius: 10, padding: '8px 14px', border: '1px solid rgba(201,168,76,0.2)', flexShrink: 0 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--gold)', display: 'inline-block' }} />
@@ -211,7 +224,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <DashboardCharts />
+        <DashboardCharts
+          feeByClass={feeByClass}
+          enrolmentByClass={enrolByClass}
+          genderStats={genderStats}
+          termLabel={termLabel}
+        />
       </div>
     </div>
   )

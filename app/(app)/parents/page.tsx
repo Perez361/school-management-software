@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, UserCheck, Phone, Mail, MapPin, Trash2 } from 'lucide-react'
+import { Plus, UserCheck, Phone, Mail, MapPin, Trash2, Search } from 'lucide-react'
 import { api, Parent } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
@@ -18,6 +18,7 @@ export default function ParentsPage() {
 
   const [parents, setParents]     = useState<Parent[]>([])
   const [loading, setLoading]     = useState(true)
+  const [query, setQuery]         = useState('')
   const [page, setPage]           = useState(1)
   const [deleting, setDeleting]   = useState<number | null>(null)
   const [confirmId, setConfirmId] = useState<number | null>(null)
@@ -38,8 +39,11 @@ export default function ParentsPage() {
     }
   }
 
-  const totalPages = Math.ceil(parents.length / PAGE_SIZE)
-  const paged = parents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const filtered = query.trim()
+    ? parents.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || (p.phone ?? '').includes(query) || (p.email ?? '').toLowerCase().includes(query.toLowerCase()))
+    : parents
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
@@ -57,7 +61,19 @@ export default function ParentsPage() {
         </Link>
       </div>
 
-      <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)' }}>
+      <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Search */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 'clamp(12px,2vw,16px) clamp(14px,3vw,20px)' }}>
+          <div style={{ position: 'relative', maxWidth: 360 }}>
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+            <input
+              value={query}
+              onChange={e => { setQuery(e.target.value); setPage(1) }}
+              placeholder="Search by name, phone, or email…"
+              style={{ width: '100%', padding: '9px 13px 9px 36px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
+        </div>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui' }}>
@@ -114,19 +130,19 @@ export default function ParentsPage() {
                     </td>
                   </tr>
                 ))}
-                {!loading && parents.length === 0 && (
+                {!loading && filtered.length === 0 && (
                   <tr><td colSpan={4}>
                     <div className="empty-state">
                       <div className="empty-icon-wrap"><UserCheck size={24} color="var(--gold)" /></div>
-                      <div className="empty-title">No parents registered yet</div>
-                      <Link href="/parents/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Add First Parent</Link>
+                      <div className="empty-title">{parents.length === 0 ? 'No parents registered yet' : 'No parents match your search'}</div>
+                      {parents.length === 0 && <Link href="/parents/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Add First Parent</Link>}
                     </div>
                   </td></tr>
                 )}
               </tbody>
             </table>
           </div>
-          <Pagination page={page} totalPages={totalPages} totalItems={parents.length} pageSize={PAGE_SIZE} onPage={setPage} />
+          <Pagination page={page} totalPages={totalPages} totalItems={filtered.length} pageSize={PAGE_SIZE} onPage={setPage} />
         </div>
       </div>
     </div>

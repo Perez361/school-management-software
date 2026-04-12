@@ -81,6 +81,9 @@ pub fn run() {
             // Dashboard
             get_dashboard_stats,
             get_top_students,
+            get_gender_stats,
+            get_fee_by_class,
+            get_enrolment_by_class,
             // User management
             get_users,
             create_user,

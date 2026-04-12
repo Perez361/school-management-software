@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, UserSquare2, Trash2 } from 'lucide-react'
+import { Plus, UserSquare2, Trash2, Search } from 'lucide-react'
 import { api, Staff } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
@@ -25,6 +25,7 @@ export default function StaffPage() {
 
   const [staff, setStaff]       = useState<Staff[]>([])
   const [loading, setLoading]   = useState(true)
+  const [query, setQuery]       = useState('')
   const [page, setPage]         = useState(1)
   const [deleting, setDeleting] = useState<number | null>(null)
   const [confirmId, setConfirmId] = useState<number | null>(null)
@@ -50,8 +51,11 @@ export default function StaffPage() {
     return acc
   }, {} as Record<string, number>)
 
-  const totalPages = Math.ceil(staff.length / PAGE_SIZE)
-  const paged = staff.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const filtered = query.trim()
+    ? staff.filter(s => s.name.toLowerCase().includes(query.toLowerCase()) || s.role.toLowerCase().includes(query.toLowerCase()) || (s.subject ?? '').toLowerCase().includes(query.toLowerCase()))
+    : staff
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
@@ -80,7 +84,19 @@ export default function StaffPage() {
         </Link>
       </div>
 
-      <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)' }}>
+      <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Search */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 'clamp(12px,2vw,16px) clamp(14px,3vw,20px)' }}>
+          <div style={{ position: 'relative', maxWidth: 360 }}>
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+            <input
+              value={query}
+              onChange={e => { setQuery(e.target.value); setPage(1) }}
+              placeholder="Search by name, role, or subject…"
+              style={{ width: '100%', padding: '9px 13px 9px 36px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
+        </div>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui' }}>
@@ -140,19 +156,19 @@ export default function StaffPage() {
                     </tr>
                   )
                 })}
-                {!loading && staff.length === 0 && (
+                {!loading && filtered.length === 0 && (
                   <tr><td colSpan={7}>
                     <div className="empty-state">
                       <div className="empty-icon-wrap"><UserSquare2 size={24} color="var(--gold)" /></div>
-                      <div className="empty-title">No staff members yet</div>
-                      <Link href="/staff/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Add First Staff Member</Link>
+                      <div className="empty-title">{staff.length === 0 ? 'No staff members yet' : 'No staff match your search'}</div>
+                      {staff.length === 0 && <Link href="/staff/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'var(--navy)', color: 'var(--gold-pale)', borderRadius: 9, textDecoration: 'none', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}><Plus size={13} /> Add First Staff Member</Link>}
                     </div>
                   </td></tr>
                 )}
               </tbody>
             </table>
           </div>
-          <Pagination page={page} totalPages={totalPages} totalItems={staff.length} pageSize={PAGE_SIZE} onPage={setPage} />
+          <Pagination page={page} totalPages={totalPages} totalItems={filtered.length} pageSize={PAGE_SIZE} onPage={setPage} />
         </div>
       </div>
     </div>

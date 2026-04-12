@@ -27,9 +27,15 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(false)
   const [classId, setClassId] = useState(searchParams.get('classId') ?? '')
   const [term,    setTerm]    = useState(searchParams.get('term') ?? 'Term 1')
-  const [year,    setYear]    = useState(searchParams.get('year') ?? '2024')
+  const [year,    setYear]    = useState(searchParams.get('year') ?? '')
 
-  useEffect(() => { api.getClasses().then(setClasses) }, [])
+  useEffect(() => {
+    Promise.all([api.getClasses(), api.getSettings()]).then(([cls, settings]) => {
+      setClasses(cls)
+      if (!searchParams.get('term') && settings) setTerm(settings.currentTerm)
+      if (!searchParams.get('year') && settings) setYear(settings.currentYear)
+    })
+  }, [])
 
   const loadResults = useCallback(async () => {
     if (!classId) return
@@ -50,7 +56,7 @@ export default function ResultsPage() {
     const fd = new FormData(e.currentTarget)
     setClassId(fd.get('classId') as string ?? '')
     setTerm(fd.get('term') as string ?? 'Term 1')
-    setYear(fd.get('year') as string ?? '2024')
+    setYear(fd.get('year') as string ?? '')
   }
 
   return (
@@ -82,9 +88,7 @@ export default function ResultsPage() {
             </div>
             <div>
               <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5, letterSpacing: '0.04em' }}>Year</label>
-              <select name="year" defaultValue={year} style={selStyle}>
-                <option>2024</option><option>2023</option><option>2025</option>
-              </select>
+              <input name="year" value={year} onChange={e => setYear(e.target.value)} placeholder="e.g. 2024/2025" style={selStyle} />
             </div>
             <button type="submit" style={{ padding: '9px 20px', background: 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>View Results</button>
           </form>
