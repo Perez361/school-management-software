@@ -64,7 +64,7 @@ export default function ParentsPage() {
       <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Search */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 'clamp(12px,2vw,16px) clamp(14px,3vw,20px)' }}>
-          <div style={{ position: 'relative', maxWidth: 360 }}>
+          <div style={{ position: 'relative', width: '100%' }}>
             <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
             <input
               value={query}
@@ -76,7 +76,7 @@ export default function ParentsPage() {
         </div>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui', minWidth: 440 }}>
               <thead>
                 <tr style={{ background: 'var(--gold-pale)', borderBottom: '1px solid var(--border)' }}>
                   {['Parent / Guardian', 'Contact', 'Students', 'Address', 'Actions'].map(h => (

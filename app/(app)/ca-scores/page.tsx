@@ -221,7 +221,7 @@ export default function CAScoresPage() {
 
         {/* Tabs */}
         {ready && (
-          <div style={{ display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 4, width: 'fit-content' }}>
+          <div className="tab-switcher-mobile" style={{ display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 4, width: 'fit-content' }}>
             {(['entry', 'summary'] as const).map(t => (
               <button key={t} onClick={() => setTab(t)} style={{
                 padding: '8px 20px', borderRadius: 9, border: 'none', cursor: 'pointer',

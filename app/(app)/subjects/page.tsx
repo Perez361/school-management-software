@@ -130,7 +130,7 @@ export default function SubjectsPage() {
             <span style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)', flex: 1 }}>All Subjects</span>
             <div style={{ position: 'relative' }}>
               <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search…" style={{ ...inp, paddingLeft: 30, width: 180 }} />
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search…" style={{ ...inp, paddingLeft: 30, width: 'clamp(120px, 30vw, 180px)' }} />
             </div>
           </div>
 

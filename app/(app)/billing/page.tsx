@@ -164,7 +164,7 @@ export default function BillingPage() {
             </div>
           </div>
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui', minWidth: 600 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui', minWidth: 560 }}>
               <thead>
                 <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
                   {['Student', 'Class', 'Fee Type', 'Term', 'Billed', 'Paid', 'Balance', 'Status'].map(h => (

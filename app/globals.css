@@ -581,3 +581,111 @@ select.input { cursor: pointer; }
   .stat-card { padding: 14px; }
   .stat-card::after { height: 2px; }
 }
+
+/* ══════════════════════════════════════════════════════
+   ADDITIONAL MOBILE POLISH
+   ══════════════════════════════════════════════════════ */
+
+/* ── Tab switchers — full width on mobile ────────────── */
+@media (max-width: 768px) {
+  /* Any inline tab switcher with width:fit-content */
+  .tab-switcher-mobile {
+    width: 100% !important;
+  }
+  /* Make tab buttons equal-width */
+  .tab-switcher-mobile button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* Demo banner — prevent overflow, allow text to wrap */
+  .demo-banner-text {
+    font-size: 11px !important;
+  }
+  .demo-banner-text span {
+    display: none; /* hide the clock icon on tiny screens */
+  }
+
+  /* Tables: ensure all .table-container children scroll */
+  .table-container,
+  div[style*="overflow-x: auto"],
+  div[style*="overflowX: auto"] {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Search boxes always full-width on mobile */
+  .search-wrap { max-width: none !important; width: 100%; }
+
+  /* Grids that use auto-fit: floor minmax on mobile */
+  /* results ranking+scores side-by-side → stacked */
+
+  /* Status button rows in attendance — tighter on phones */
+  .attendance-status-row {
+    gap: 4px !important;
+  }
+  .attendance-status-row button {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+
+  /* Billing / students table: reduce padding on mobile */
+  .table th,
+  .table td { padding: 9px 10px !important; }
+
+  /* Action buttons in tables — smaller on mobile */
+  .action-link,
+  .action-link-ghost {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+
+  /* Page body bottom padding for mobile nav/safe area */
+  .page-body { padding-bottom: 24px; }
+
+  /* Mono tags smaller on mobile */
+  .mono-tag { font-size: 10px; padding: 2px 5px; }
+
+  /* Card table header smaller on very small screens */
+  .card-table-title { font-size: 13px; }
+
+  /* Prevent horizontal bleed from wide inline-grid layouts */
+  .main-content { overflow-x: hidden; }
+
+  /* Filters: inputs full width */
+  div[style*="gridTemplateColumns"] select,
+  div[style*="gridTemplateColumns"] input {
+    min-width: 0;
+  }
+
+  /* Attendance daily – status buttons wrap tightly */
+  div[style*="flexWrap: 'wrap'"] {
+    gap: 6px;
+  }
+}
+
+/* ── Phones (≤ 480px) additional ────────────────────── */
+@media (max-width: 480px) {
+  /* Shrink table cell padding further */
+  .table th { padding: 8px 8px !important; font-size: 9px !important; }
+  .table td { padding: 8px 8px !important; font-size: 12px !important; }
+
+  /* Tighten page padding */
+  .page-body { padding: 10px 12px; }
+
+  /* Section cards */
+  .section-card-body  { padding: 12px; }
+  .section-card-header { padding: 10px 12px; }
+
+  /* Avatars — tiny on phone */
+  .avatar-lg { width: 40px; height: 40px; font-size: 12px; }
+
+  /* Badges — no overflow */
+  .badge { font-size: 10px; padding: 2px 7px; }
+
+  /* Stats strip labels smaller */
+  .stats-strip-label { font-size: 9px; }
+
+  /* Term badge smaller */
+  .term-badge { padding: 7px 12px; }
+  .term-badge-text { font-size: 11px; }
+}

@@ -128,7 +128,7 @@ export default function AttendancePage() {
       <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* Tab switcher */}
-        <div style={{ display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 4, width: 'fit-content' }}>
+        <div className="tab-switcher-mobile" style={{ display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 4, width: 'fit-content' }}>
           {([['daily', CalendarCheck, 'Daily Record'], ['summary', BarChart2, 'Term Summary']] as const).map(([t, Icon, label]) => (
             <button key={t} onClick={() => setTab(t)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 9, border: 'none', background: tab === t ? 'var(--navy)' : 'transparent', color: tab === t ? 'var(--gold-pale)' : 'var(--text-secondary)', fontFamily: 'system-ui', fontSize: 13, fontWeight: tab === t ? 600 : 400, cursor: 'pointer', transition: 'all 0.15s' }}>
               <Icon size={14} /> {label}
@@ -209,45 +209,50 @@ export default function AttendancePage() {
 
             {!sumLoading && summaryRows.length > 0 && (
               <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
-                {/* column header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 70px 70px 70px 70px 70px', gap: 0, padding: '10px 20px', borderBottom: '1px solid var(--border)', background: 'var(--gold-pale)' }}>
-                  {['Student', 'ID', 'Days', 'Present', 'Absent', 'Late', 'Excused', 'Rate'].map(h => (
-                    <div key={h} style={{ fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{h}</div>
-                  ))}
+                {/* Scroll wrapper — needed for 8-column layout on mobile */}
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+                  <div style={{ minWidth: 580 }}>
+                    {/* column header */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 70px 70px 70px 70px 70px', gap: 0, padding: '10px 20px', borderBottom: '1px solid var(--border)', background: 'var(--gold-pale)' }}>
+                      {['Student', 'ID', 'Days', 'Present', 'Absent', 'Late', 'Excused', 'Rate'].map(h => (
+                        <div key={h} style={{ fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{h}</div>
+                      ))}
+                    </div>
+                    {summaryRows.map((r, i) => {
+                      const rate = r.totalDays > 0 ? Math.round((r.present / r.totalDays) * 100) : 0
+                      const rateColor = rate >= 80 ? '#15803d' : rate >= 60 ? '#b45309' : '#b91c1c'
+                      return (
+                        <div key={r.studentId} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 70px 70px 70px 70px 70px', gap: 0, padding: '12px 20px', borderBottom: i < summaryRows.length - 1 ? '1px solid var(--border-soft)' : 'none', alignItems: 'center' }}>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{r.studentName}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>{r.studentCode}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)' }}>{r.totalDays}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#15803d', fontWeight: 600 }}>{r.present}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c', fontWeight: 600 }}>{r.absent}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#b45309', fontWeight: 600 }}>{r.late}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#6b7280' }}>{r.excused}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: rateColor }}>{rate}%</div>
+                        </div>
+                      )
+                    })}
+                    {/* Footer totals */}
+                    {(() => {
+                      const total = summaryRows.reduce((a, r) => ({ totalDays: a.totalDays + r.totalDays, present: a.present + r.present, absent: a.absent + r.absent, late: a.late + r.late, excused: a.excused + r.excused }), { totalDays: 0, present: 0, absent: 0, late: 0, excused: 0 })
+                      const avgRate = total.totalDays > 0 ? Math.round((total.present / total.totalDays) * 100) : 0
+                      return (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 70px 70px 70px 70px 70px', gap: 0, padding: '11px 20px', background: 'var(--gold-pale)', borderTop: '2px solid var(--border)' }}>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>Totals ({summaryRows.length} students)</div>
+                          <div />
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700 }}>{total.totalDays}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#15803d' }}>{total.present}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{total.absent}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#b45309' }}>{total.late}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#6b7280' }}>{total.excused}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: avgRate >= 80 ? '#15803d' : avgRate >= 60 ? '#b45309' : '#b91c1c' }}>{avgRate}%</div>
+                        </div>
+                      )
+                    })()}
+                  </div>
                 </div>
-                {summaryRows.map((r, i) => {
-                  const rate = r.totalDays > 0 ? Math.round((r.present / r.totalDays) * 100) : 0
-                  const rateColor = rate >= 80 ? '#15803d' : rate >= 60 ? '#b45309' : '#b91c1c'
-                  return (
-                    <div key={r.studentId} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 70px 70px 70px 70px 70px', gap: 0, padding: '12px 20px', borderBottom: i < summaryRows.length - 1 ? '1px solid var(--border-soft)' : 'none', alignItems: 'center' }}>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{r.studentName}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>{r.studentCode}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)' }}>{r.totalDays}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#15803d', fontWeight: 600 }}>{r.present}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c', fontWeight: 600 }}>{r.absent}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#b45309', fontWeight: 600 }}>{r.late}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#6b7280' }}>{r.excused}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: rateColor }}>{rate}%</div>
-                    </div>
-                  )
-                })}
-                {/* Footer totals */}
-                {(() => {
-                  const total = summaryRows.reduce((a, r) => ({ totalDays: a.totalDays + r.totalDays, present: a.present + r.present, absent: a.absent + r.absent, late: a.late + r.late, excused: a.excused + r.excused }), { totalDays: 0, present: 0, absent: 0, late: 0, excused: 0 })
-                  const avgRate = total.totalDays > 0 ? Math.round((total.present / total.totalDays) * 100) : 0
-                  return (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 70px 70px 70px 70px 70px', gap: 0, padding: '11px 20px', background: 'var(--gold-pale)', borderTop: '2px solid var(--border)' }}>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>Totals ({summaryRows.length} students)</div>
-                      <div />
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700 }}>{total.totalDays}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#15803d' }}>{total.present}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{total.absent}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#b45309' }}>{total.late}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#6b7280' }}>{total.excused}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: avgRate >= 80 ? '#15803d' : avgRate >= 60 ? '#b45309' : '#b91c1c' }}>{avgRate}%</div>
-                    </div>
-                  )
-                })()}
               </div>
             )}
           </>
