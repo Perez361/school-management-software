@@ -4,7 +4,7 @@ use std::path::PathBuf;
 pub fn get_db_path() -> PathBuf {
     let app_dir = dirs::data_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join("com.adahigh.sms");
+        .join("com.acs.sms");
     std::fs::create_dir_all(&app_dir).unwrap();
     app_dir.join("school.db")
 }

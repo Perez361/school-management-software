@@ -67,7 +67,7 @@ console.log('\n🗄️  Checking database...')
 // Tauri app-data path on Windows
 const appDataDir = path.join(
   os.homedir(),
-  'AppData', 'Local', 'com.adahigh.sms'
+  'AppData', 'Local', 'com.acs.sms'
 )
 const targetDb = path.join(appDataDir, 'school.db')
 const sourceDb = path.join(ROOT, 'school.db')
