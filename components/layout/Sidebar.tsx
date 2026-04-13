@@ -6,10 +6,11 @@ import { useAuth } from '@/lib/auth-context'
 import {
   LayoutDashboard, Users, UserCheck, UserSquare2, BookOpen,
   FileText, Receipt, BarChart3, Settings, GraduationCap, LogOut,
-  ChevronRight, Menu, X, ClipboardList, ShieldCheck, PenLine, CalendarCheck,
+  ChevronRight, Menu, X, ClipboardList, ShieldCheck, PenLine, CalendarCheck, Bell,
 } from 'lucide-react'
 import SyncStatusBar from './SyncStatusBar'
 import { allowedRoutes } from '@/lib/permissions'
+import { useNotifications } from '@/lib/notifications-context'
 
 const ALL_NAV_GROUPS = [
   {
@@ -27,7 +28,8 @@ const ALL_NAV_GROUPS = [
   {
     label: 'Academics',
     items: [
-      { label: 'Classes',                href: '/classes',    icon: BookOpen },
+      { label: 'Classes',                href: '/classes',       icon: BookOpen },
+      { label: 'Subjects',               href: '/subjects',      icon: BookOpen },
       { label: 'Cumulative Assessments', href: '/ca-scores',     icon: ClipboardList },
       { label: 'Exam Records',           href: '/exam-records',  icon: PenLine },
       { label: 'Results',                href: '/results',        icon: BarChart3 },
@@ -62,6 +64,7 @@ export default function Sidebar() {
   const pathname = usePathname()
   const router   = useRouter()
   const { user, logout } = useAuth()
+  const { unreadCount, openPanel } = useNotifications()
 
   // Filter nav to only routes the current user's role can access
   const allowed = allowedRoutes(user?.role)
@@ -104,6 +107,19 @@ export default function Sidebar() {
             <div className="sidebar-logo-title">Ambassadors</div>
             <div className="sidebar-logo-sub">Management System</div>
           </div>
+          {/* Notification bell */}
+          <button
+            onClick={openPanel}
+            aria-label="Notifications"
+            style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', padding: 4, flexShrink: 0 }}
+          >
+            <Bell size={16} />
+            {unreadCount > 0 && (
+              <span style={{ position: 'absolute', top: 0, right: 0, minWidth: 14, height: 14, borderRadius: 7, background: '#dc2626', color: '#fff', fontFamily: 'system-ui', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', lineHeight: 1, transform: 'translate(30%, -20%)' }}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
           {/* Close button — visible only on mobile */}
           <button className="sidebar-close-btn" onClick={() => setOpen(false)} aria-label="Close menu">
             <X size={16} />
@@ -172,7 +188,19 @@ export default function Sidebar() {
           <Menu size={20} />
         </button>
         <span className="mobile-topbar-title">Ambassadors</span>
-        <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'rgba(201,168,76,0.5)' }}>{pageTitle}</span>
+        <span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'rgba(201,168,76,0.5)', flex: 1 }}>{pageTitle}</span>
+        <button
+          onClick={openPanel}
+          aria-label="Notifications"
+          style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', padding: 6 }}
+        >
+          <Bell size={18} />
+          {unreadCount > 0 && (
+            <span style={{ position: 'absolute', top: 2, right: 2, minWidth: 14, height: 14, borderRadius: 7, background: '#dc2626', color: '#fff', fontFamily: 'system-ui', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* ── Desktop sidebar (always visible) / Mobile drawer ── */}

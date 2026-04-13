@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { GraduationCap, ArrowRight, RotateCcw, CheckCircle, AlertCircle, Users, ChevronDown } from 'lucide-react'
-import { api, Student, Class } from '@/lib/api'
+import { api, Student, Class, ResultRow } from '@/lib/api'
 import { GHANA_CLASSES } from '@/lib/school-data'
 import RoleGuard from '@/components/RoleGuard'
 
@@ -29,6 +29,7 @@ export default function PromotionPage() {
   const [classes, setClasses] = useState<Class[]>([])
   const [classId, setClassId] = useState('')
   const [students, setStudents] = useState<Student[]>([])
+  const [avgScores, setAvgScores] = useState<Record<number, number>>({})
   const [decisions, setDecisions] = useState<Record<number, Decision>>({})
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -41,13 +42,34 @@ export default function PromotionPage() {
   }, [])
 
   useEffect(() => {
-    if (!classId) { setStudents([]); setDecisions({}); setResult(null); setConfirmed(false); return }
+    if (!classId) { setStudents([]); setDecisions({}); setAvgScores({}); setResult(null); setConfirmed(false); return }
     setLoading(true)
-    api.getStudents({ classId: parseInt(classId) }).then(data => {
+    Promise.all([
+      api.getStudents({ classId: parseInt(classId) }),
+      api.getResults({ classId: parseInt(classId) }),
+    ]).then(([data, results]) => {
       setStudents(data)
       const init: Record<number, Decision> = {}
       data.forEach(s => { init[s.id] = 'promote' })
       setDecisions(init)
+      // Compute per-student average from the most recent term's results
+      const byStudent: Record<number, ResultRow[]> = {}
+      for (const r of results) {
+        if (!byStudent[r.studentId]) byStudent[r.studentId] = []
+        byStudent[r.studentId].push(r)
+      }
+      const avgs: Record<number, number> = {}
+      for (const [sid, rows] of Object.entries(byStudent)) {
+        // Use the most recent year+term set
+        const termKeys = [...new Set(rows.map(r => `${r.year}|${r.term}`))].sort().reverse()
+        const latestKey = termKeys[0]
+        if (latestKey) {
+          const [ly, lt] = latestKey.split('|')
+          const latest = rows.filter(r => r.year === ly && r.term === lt)
+          avgs[Number(sid)] = latest.reduce((s, r) => s + r.total, 0) / latest.length
+        }
+      }
+      setAvgScores(avgs)
       setResult(null)
       setConfirmed(false)
     }).finally(() => setLoading(false))
@@ -198,19 +220,22 @@ export default function PromotionPage() {
                 </div>
 
                 {/* Column headers */}
-                <div style={{ display: 'grid', gridTemplateColumns: '36px 1fr 110px 180px', gap: 8, padding: '9px 20px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
-                  {['#', 'Student', 'ID', 'Decision'].map(h => (
+                <div style={{ display: 'grid', gridTemplateColumns: '36px 1fr 80px 70px 180px', gap: 8, padding: '9px 20px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+                  {['#', 'Student', 'ID', 'Avg', 'Decision'].map(h => (
                     <div key={h} style={{ fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</div>
                   ))}
                 </div>
 
                 {students.map((s, i) => {
                   const d = decisions[s.id] ?? 'promote'
+                  const avg = avgScores[s.id]
+                  const avgColor = avg == null ? 'var(--text-muted)' : avg >= 70 ? '#15803d' : avg >= 50 ? '#b45309' : '#b91c1c'
                   return (
-                    <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 110px 180px', gap: 8, padding: '10px 20px', alignItems: 'center', borderBottom: i < students.length - 1 ? '1px solid var(--border-soft)' : 'none', background: i % 2 === 0 ? 'transparent' : 'rgba(201,168,76,0.015)' }}>
+                    <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 80px 70px 180px', gap: 8, padding: '10px 20px', alignItems: 'center', borderBottom: i < students.length - 1 ? '1px solid var(--border-soft)' : 'none', background: i % 2 === 0 ? 'transparent' : 'rgba(201,168,76,0.015)' }}>
                       <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>{i + 1}</div>
                       <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
-                      <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 8px', borderRadius: 5 }}>{s.studentId}</div>
+                      <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 6px', borderRadius: 5 }}>{s.studentId}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: avgColor }}>{avg != null ? `${avg.toFixed(1)}%` : '—'}</div>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button
                           onClick={() => setDecisions(prev => ({ ...prev, [s.id]: 'promote' }))}

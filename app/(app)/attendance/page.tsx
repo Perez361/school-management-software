@@ -1,12 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { CalendarCheck, Save, CheckCircle2, XCircle, Clock, MinusCircle } from 'lucide-react'
+import { CalendarCheck, Save, CheckCircle2, XCircle, Clock, MinusCircle, BarChart2 } from 'lucide-react'
 import { api, Class, Student } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
 
 type Status = 'present' | 'absent' | 'late' | 'excused'
+type Tab = 'daily' | 'summary'
 
 const STATUS_OPTIONS: { value: Status; label: string; color: string; bg: string; icon: React.ReactNode }[] = [
   { value: 'present', label: 'Present', color: '#15803d', bg: 'rgba(22,163,74,0.1)', icon: <CheckCircle2 size={14} /> },
@@ -23,6 +24,7 @@ export default function AttendancePage() {
   const router = useRouter()
   useEffect(() => { if (!can('attendance')) router.replace('/dashboard') }, [can, router])
 
+  const [tab, setTab]             = useState<Tab>('daily')
   const [classes, setClasses]     = useState<Class[]>([])
   const [classId, setClassId]     = useState('')
   const [date, setDate]           = useState(new Date().toISOString().split('T')[0])
@@ -35,11 +37,21 @@ export default function AttendancePage() {
   const [saved, setSaved]         = useState(false)
   const [error, setError]         = useState('')
 
+  // Summary tab state
+  const [sumClassId, setSumClassId] = useState('')
+  const [sumTerm, setSumTerm]       = useState('')
+  const [sumYear, setSumYear]       = useState('')
+  const [summaryRows, setSummaryRows] = useState<{ studentId: number; studentName: string; studentCode: string; totalDays: number; present: number; absent: number; late: number; excused: number }[]>([])
+  const [sumLoading, setSumLoading] = useState(false)
+
   // Load settings for default term/year
   useEffect(() => {
     Promise.all([api.getClasses(), api.getSettings()]).then(([cls, settings]) => {
       setClasses(cls)
-      if (settings) { setTerm(settings.currentTerm); setYear(settings.currentYear) }
+      if (settings) {
+        setTerm(settings.currentTerm); setYear(settings.currentYear)
+        setSumTerm(settings.currentTerm); setSumYear(settings.currentYear)
+      }
     })
   }, [])
 
@@ -81,7 +93,17 @@ export default function AttendancePage() {
     }
   }
 
-  const summary = Object.values(statuses).reduce((acc, s) => { acc[s] = (acc[s] || 0) + 1; return acc }, {} as Record<string, number>)
+  // Load class attendance summary
+  useEffect(() => {
+    if (!sumClassId || !sumTerm || !sumYear) return
+    setSumLoading(true)
+    api.getClassAttendanceSummary({ classId: parseInt(sumClassId), term: sumTerm, year: sumYear })
+      .then(setSummaryRows)
+      .catch(console.error)
+      .finally(() => setSumLoading(false))
+  }, [sumClassId, sumTerm, sumYear])
+
+  const dailySummary = Object.values(statuses).reduce((acc, s) => { acc[s] = (acc[s] || 0) + 1; return acc }, {} as Record<string, number>)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
@@ -93,9 +115,9 @@ export default function AttendancePage() {
             <span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Academics</span>
           </div>
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(20px,4vw,26px)', fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em' }}>Attendance</h1>
-          <p style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>Record daily class attendance</p>
+          <p style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{tab === 'daily' ? 'Record daily class attendance' : 'View term attendance summary by class'}</p>
         </div>
-        {students.length > 0 && (
+        {tab === 'daily' && students.length > 0 && (
           <button onClick={handleSave} disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: saved ? '#15803d' : 'var(--navy)', color: 'var(--gold-pale)', border: 'none', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
             {saved ? <CheckCircle2 size={15} /> : <Save size={15} />}
             {saving ? 'Saving…' : saved ? 'Saved!' : 'Save Attendance'}
@@ -105,8 +127,16 @@ export default function AttendancePage() {
 
       <div style={{ padding: 'clamp(12px,3vw,24px) clamp(16px,4vw,32px)', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        {/* Filters */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 'clamp(14px,2vw,20px)' }}>
+        {/* Tab switcher */}
+        <div style={{ display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 4, width: 'fit-content' }}>
+          {([['daily', CalendarCheck, 'Daily Record'], ['summary', BarChart2, 'Term Summary']] as const).map(([t, Icon, label]) => (
+            <button key={t} onClick={() => setTab(t)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 9, border: 'none', background: tab === t ? 'var(--navy)' : 'transparent', color: tab === t ? 'var(--gold-pale)' : 'var(--text-secondary)', fontFamily: 'system-ui', fontSize: 13, fontWeight: tab === t ? 600 : 400, cursor: 'pointer', transition: 'all 0.15s' }}>
+              <Icon size={14} /> {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'daily' && <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 'clamp(14px,2vw,20px)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 14 }}>
             <div>
               <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Class</label>
@@ -131,16 +161,107 @@ export default function AttendancePage() {
               <input value={year} onChange={e => setYear(e.target.value)} placeholder="e.g. 2024/2025" style={{ ...inp, width: '100%' }} />
             </div>
           </div>
-        </div>
+        </div>}
 
+        {tab === 'summary' && (
+          <>
+            {/* Summary filters */}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 'clamp(14px,2vw,20px)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Class</label>
+                  <select value={sumClassId} onChange={e => setSumClassId(e.target.value)} style={{ ...inp, width: '100%', cursor: 'pointer' }}>
+                    <option value="">Select class</option>
+                    {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Term</label>
+                  <select value={sumTerm} onChange={e => setSumTerm(e.target.value)} style={{ ...inp, width: '100%', cursor: 'pointer' }}>
+                    <option value="">Select term</option>
+                    {['Term 1','Term 2','Term 3'].map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Year</label>
+                  <input value={sumYear} onChange={e => setSumYear(e.target.value)} placeholder="e.g. 2024/2025" style={{ ...inp, width: '100%' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Summary table */}
+            {sumLoading && (
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+                {[1,2,3,4,5].map(i => (
+                  <div key={i} style={{ padding: '13px 20px', borderBottom: '1px solid var(--border-soft)', display: 'flex', gap: 16 }}>
+                    <div className="skeleton skeleton-text" style={{ width: 180 }} />
+                    <div className="skeleton skeleton-text" style={{ width: 80 }} />
+                    <div className="skeleton skeleton-text" style={{ width: 60 }} />
+                    <div className="skeleton skeleton-text" style={{ width: 60 }} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!sumLoading && sumClassId && sumTerm && sumYear && summaryRows.length === 0 && (
+              <div style={{ textAlign: 'center', padding: 40, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-muted)' }}>No attendance records found for this selection.</div>
+            )}
+
+            {!sumLoading && summaryRows.length > 0 && (
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+                {/* column header */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 70px 70px 70px 70px 70px', gap: 0, padding: '10px 20px', borderBottom: '1px solid var(--border)', background: 'var(--gold-pale)' }}>
+                  {['Student', 'ID', 'Days', 'Present', 'Absent', 'Late', 'Excused', 'Rate'].map(h => (
+                    <div key={h} style={{ fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{h}</div>
+                  ))}
+                </div>
+                {summaryRows.map((r, i) => {
+                  const rate = r.totalDays > 0 ? Math.round((r.present / r.totalDays) * 100) : 0
+                  const rateColor = rate >= 80 ? '#15803d' : rate >= 60 ? '#b45309' : '#b91c1c'
+                  return (
+                    <div key={r.studentId} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 70px 70px 70px 70px 70px', gap: 0, padding: '12px 20px', borderBottom: i < summaryRows.length - 1 ? '1px solid var(--border-soft)' : 'none', alignItems: 'center' }}>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{r.studentName}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>{r.studentCode}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)' }}>{r.totalDays}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#15803d', fontWeight: 600 }}>{r.present}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c', fontWeight: 600 }}>{r.absent}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#b45309', fontWeight: 600 }}>{r.late}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 13, color: '#6b7280' }}>{r.excused}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: rateColor }}>{rate}%</div>
+                    </div>
+                  )
+                })}
+                {/* Footer totals */}
+                {(() => {
+                  const total = summaryRows.reduce((a, r) => ({ totalDays: a.totalDays + r.totalDays, present: a.present + r.present, absent: a.absent + r.absent, late: a.late + r.late, excused: a.excused + r.excused }), { totalDays: 0, present: 0, absent: 0, late: 0, excused: 0 })
+                  const avgRate = total.totalDays > 0 ? Math.round((total.present / total.totalDays) * 100) : 0
+                  return (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 80px 70px 70px 70px 70px 70px', gap: 0, padding: '11px 20px', background: 'var(--gold-pale)', borderTop: '2px solid var(--border)' }}>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>Totals ({summaryRows.length} students)</div>
+                      <div />
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700 }}>{total.totalDays}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#15803d' }}>{total.present}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{total.absent}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#b45309' }}>{total.late}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: '#6b7280' }}>{total.excused}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: avgRate >= 80 ? '#15803d' : avgRate >= 60 ? '#b45309' : '#b91c1c' }}>{avgRate}%</div>
+                    </div>
+                  )
+                })()}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'daily' && (<>
         {error && <div style={{ padding: '12px 16px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>{error}</div>}
 
-        {/* Summary badges */}
+        {/* Status badges */}
         {students.length > 0 && (
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {STATUS_OPTIONS.map(s => (
               <span key={s.value} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, background: s.bg, color: s.color, fontFamily: 'system-ui', fontSize: 12, fontWeight: 600 }}>
-                {s.icon} {summary[s.value] || 0} {s.label}
+                {s.icon} {dailySummary[s.value] || 0} {s.label}
               </span>
             ))}
           </div>
@@ -203,6 +324,7 @@ export default function AttendancePage() {
             })}
           </div>
         )}
+        </>)}
       </div>
     </div>
   )

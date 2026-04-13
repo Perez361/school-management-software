@@ -160,6 +160,14 @@ async fn h_get_subjects() -> Result<impl IntoResponse, (StatusCode, String)> {
 async fn h_create_subject(Json(b): Json<CreateSubjectBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
     create_subject(b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
+#[derive(Deserialize)] struct UpdateSubjectBody { id: i64, input: CreateSubjectInput }
+async fn h_update_subject(Json(b): Json<UpdateSubjectBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    update_subject(b.id, b.input).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+#[derive(Deserialize)] struct DeleteSubjectBody { id: i64 }
+async fn h_delete_subject(Json(b): Json<DeleteSubjectBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    delete_subject(b.id).map(|_| Json(serde_json::Value::Null)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
 
 // Results
 #[derive(Deserialize)] struct GetResultsBody {
@@ -284,6 +292,11 @@ async fn h_get_enrolment_by_class() -> Result<impl IntoResponse, (StatusCode, St
     get_enrolment_by_class().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
 
+// Notifications
+async fn h_get_notifications() -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_notifications().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
+
 // Sync
 async fn h_get_sync_status() -> Result<impl IntoResponse, (StatusCode, String)> {
     get_sync_status().map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
@@ -337,6 +350,10 @@ async fn h_get_attendance(Json(b): Json<GetAttendanceBody>) -> Result<impl IntoR
 async fn h_get_attendance_summary(Json(b): Json<GetAttendanceSummaryBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
     get_attendance_summary(b.student_id, b.term, b.year).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
 }
+#[derive(Deserialize)] struct GetClassAttSummaryBody { #[serde(rename = "classId")] class_id: i64, term: String, year: String }
+async fn h_get_class_attendance_summary(Json(b): Json<GetClassAttSummaryBody>) -> Result<impl IntoResponse, (StatusCode, String)> {
+    get_class_attendance_summary(b.class_id, b.term, b.year).map(|v| Json(v)).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))
+}
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
@@ -366,6 +383,8 @@ pub fn build_router() -> Router {
         .route("/api/delete_student",     post(h_delete_student))
         .route("/api/get_subjects",       post(h_get_subjects))
         .route("/api/create_subject",     post(h_create_subject))
+        .route("/api/update_subject",     post(h_update_subject))
+        .route("/api/delete_subject",     post(h_delete_subject))
         .route("/api/get_results",        post(h_get_results))
         .route("/api/upsert_result",      post(h_upsert_result))
         .route("/api/get_ca_scores",          post(h_get_ca_scores))
@@ -395,7 +414,9 @@ pub fn build_router() -> Router {
         .route("/api/change_user_password",  post(h_change_user_password))
         .route("/api/record_attendance",     post(h_record_attendance))
         .route("/api/get_attendance",        post(h_get_attendance))
-        .route("/api/get_attendance_summary",post(h_get_attendance_summary))
+        .route("/api/get_attendance_summary",      post(h_get_attendance_summary))
+        .route("/api/get_class_attendance_summary", post(h_get_class_attendance_summary))
+        .route("/api/get_notifications",            post(h_get_notifications))
         .layer(middleware::from_fn(require_auth));
 
     // Public routes (login)

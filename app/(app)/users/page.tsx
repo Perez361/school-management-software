@@ -2,8 +2,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { api, AppUser } from '@/lib/api'
-import { Plus, Pencil, Trash2, KeyRound, ShieldCheck, X, Eye, EyeOff } from 'lucide-react'
+import { api, AppUser, Staff } from '@/lib/api'
+import { Plus, Pencil, Trash2, KeyRound, ShieldCheck, X, Eye, EyeOff, UserSquare2 } from 'lucide-react'
 
 const ROLES = ['admin', 'teacher', 'accountant'] as const
 
@@ -30,24 +30,56 @@ const labelStyle: React.CSSProperties = {
   color: 'var(--text-secondary)', marginBottom: 6,
 }
 
+// Maps a staff role string to the closest system user role
+function mapStaffRole(staffRole: string): 'admin' | 'teacher' | 'accountant' {
+  const r = staffRole.toLowerCase()
+  if (r.includes('admin') || r.includes('principal') || r.includes('head') || r.includes('director')) return 'admin'
+  if (r.includes('account') || r.includes('bursar') || r.includes('finance')) return 'accountant'
+  return 'teacher'
+}
+
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
 function UserModal({
-  user, onClose, onSaved,
+  user, onClose, onSaved, existingUsers,
 }: {
   user: AppUser | null
   onClose: () => void
   onSaved: () => void
+  existingUsers: AppUser[]
 }) {
   const isEdit = !!user
   const [name, setName]         = useState(user?.name ?? '')
   const [username, setUsername] = useState(user?.username ?? '')
   const [email, setEmail]       = useState(user?.email ?? '')
-  const [role, setRole]         = useState(user?.role ?? 'teacher')
+  const [role, setRole]         = useState<string>(user?.role ?? 'teacher')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw]     = useState(false)
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState('')
+
+  // Staff picker (create mode only)
+  const [staff, setStaff]               = useState<Staff[]>([])
+  const [selectedStaffId, setSelectedStaffId] = useState('')
+
+  useEffect(() => {
+    if (!isEdit) api.getStaff().then(setStaff).catch(() => {})
+  }, [isEdit])
+
+  const existingEmails = new Set(existingUsers.map(u => u.email.toLowerCase()))
+
+  function handleStaffPick(staffId: string) {
+    setSelectedStaffId(staffId)
+    if (!staffId) return
+    const s = staff.find(st => String(st.id) === staffId)
+    if (!s) return
+    setName(s.name)
+    if (s.email) setEmail(s.email)
+    setRole(mapStaffRole(s.role))
+    // Suggest username from first name, lowercased
+    const suggested = s.name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '')
+    setUsername(suggested)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -64,9 +96,11 @@ function UserModal({
     finally { setSaving(false) }
   }
 
+  const pickedStaff = staff.find(s => String(s.id) === selectedStaffId)
+
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
-      <div style={{ background: 'var(--surface)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 460, border: '1px solid var(--border)' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 480, border: '1px solid var(--border)', maxHeight: '90vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
           <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 18, fontWeight: 700, color: 'var(--navy)', margin: 0 }}>
             {isEdit ? 'Edit User' : 'Create User'}
@@ -75,6 +109,42 @@ function UserModal({
             <X size={18} />
           </button>
         </div>
+
+        {/* Staff picker — new user only */}
+        {!isEdit && staff.length > 0 && (
+          <div style={{ marginBottom: 20, padding: '14px 16px', background: 'var(--cream)', border: '1.5px solid var(--border)', borderRadius: 12 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+              <UserSquare2 size={13} /> Load from staff record
+            </label>
+            <select
+              value={selectedStaffId}
+              onChange={e => handleStaffPick(e.target.value)}
+              style={{ ...inputStyle, cursor: 'pointer' }}
+            >
+              <option value="">— Select a staff member —</option>
+              {staff.map(s => {
+                const hasAccount = s.email ? existingEmails.has(s.email.toLowerCase()) : false
+                return (
+                  <option key={s.id} value={s.id}>
+                    {s.name} · {s.role}{hasAccount ? ' (has account)' : ''}
+                  </option>
+                )
+              })}
+            </select>
+            {pickedStaff && (
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(22,101,52,0.06)', border: '1px solid rgba(22,101,52,0.15)', borderRadius: 8 }}>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(22,101,52,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: '#15803d', flexShrink: 0 }}>
+                  {pickedStaff.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 600, color: 'var(--navy)' }}>{pickedStaff.name}</div>
+                  <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>{pickedStaff.role}{pickedStaff.email ? ` · ${pickedStaff.email}` : ''}</div>
+                </div>
+                <div style={{ marginLeft: 'auto', fontFamily: 'system-ui', fontSize: 10, color: '#15803d', fontWeight: 600 }}>Fields filled ✓</div>
+              </div>
+            )}
+          </div>
+        )}
 
         {error && <div style={{ marginBottom: 16, padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: '#b91c1c' }}>{error}</div>}
 
@@ -307,11 +377,12 @@ export default function UsersPage() {
       </div>
 
       {/* Modals */}
-      {(editUser === 'new' || (editUser && editUser !== 'new')) && (
+      {editUser !== undefined && (
         <UserModal
           user={editUser === 'new' ? null : editUser}
           onClose={() => setEditUser(undefined)}
           onSaved={load}
+          existingUsers={users}
         />
       )}
       {pwUser && <PasswordModal user={pwUser} onClose={() => setPwUser(null)} />}

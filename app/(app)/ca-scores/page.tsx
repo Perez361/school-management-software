@@ -117,6 +117,13 @@ export default function CAScoresPage() {
     if (isNaN(mx) || mx <= 0) { setBatchError('Enter a valid max score'); return }
     const filled = Object.entries(batchScores).filter(([, v]) => v.trim() !== '')
     if (filled.length === 0) { setBatchError('Enter at least one score'); return }
+    // Validate each score does not exceed maxScore
+    const overLimit = filled.filter(([, v]) => parseFloat(v) > mx)
+    if (overLimit.length > 0) {
+      setBatchError(`${overLimit.length} score(s) exceed the max score of ${mx}. Please correct them.`); return
+    }
+    const negative = filled.filter(([, v]) => parseFloat(v) < 0)
+    if (negative.length > 0) { setBatchError('Scores cannot be negative.'); return }
     setSaving(true); setSaved(false); setBatchError('')
     try {
       await api.batchAddCAEntries({
@@ -292,13 +299,25 @@ export default function CAScoresPage() {
                       <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>{i + 1}</div>
                       <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
                       <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 8px', borderRadius: 5 }}>{s.studentId}</div>
-                      <input
-                        type="number" min="0" step="0.5"
-                        placeholder="—"
-                        value={batchScores[s.id] ?? ''}
-                        onChange={e => setBatchScores(prev => ({ ...prev, [s.id]: e.target.value }))}
-                        style={{ width: '100%', padding: '6px 10px', textAlign: 'center', background: 'var(--surface-2)', border: `1.5px solid ${batchScores[s.id] ? 'var(--navy)' : 'var(--border)'}`, borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none' }}
-                      />
+                      {(() => {
+                        const val = batchScores[s.id] ?? ''
+                        const mx = parseFloat(maxScore)
+                        const exceedsMax = val !== '' && !isNaN(mx) && parseFloat(val) > mx
+                        const isNeg = val !== '' && parseFloat(val) < 0
+                        const invalid = exceedsMax || isNeg
+                        return (
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type="number" min="0" step="0.5"
+                              placeholder="—"
+                              value={val}
+                              onChange={e => setBatchScores(prev => ({ ...prev, [s.id]: e.target.value }))}
+                              style={{ width: '100%', padding: '6px 10px', textAlign: 'center', background: invalid ? '#fef2f2' : 'var(--surface-2)', border: `1.5px solid ${invalid ? '#fecaca' : val ? 'var(--navy)' : 'var(--border)'}`, borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: invalid ? '#b91c1c' : 'var(--text-primary)', outline: 'none' }}
+                            />
+                            {exceedsMax && <div style={{ position: 'absolute', top: '100%', left: 0, fontSize: 10, color: '#b91c1c', fontFamily: 'system-ui', whiteSpace: 'nowrap', marginTop: 2 }}>Max is {mx}</div>}
+                          </div>
+                        )
+                      })()}
                     </div>
                   ))}
                 </div>

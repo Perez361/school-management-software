@@ -146,9 +146,12 @@ export default function StudentsPage() {
                         <Link href={`/students/detail?id=${s.id}`} className="action-link">View</Link>
                         <Link href={`/students/edit?id=${s.id}`} className="action-link-ghost">Edit</Link>
                         {confirmId === s.id ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                            <button onClick={() => handleDelete(s.id)} disabled={deleting === s.id} style={{ fontSize: 11, padding: '3px 9px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>{deleting === s.id ? '…' : 'Confirm'}</button>
-                            <button onClick={() => setConfirmId(null)} style={{ fontSize: 11, padding: '3px 9px', background: 'var(--border)', color: 'var(--text-secondary)', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
+                          <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 3 }}>
+                            <span style={{ fontFamily: 'system-ui', fontSize: 10, color: '#b91c1c', fontWeight: 600, maxWidth: 180 }}>Deletes all results, attendance & billing records.</span>
+                            <span style={{ display: 'inline-flex', gap: 5 }}>
+                              <button onClick={() => handleDelete(s.id)} disabled={deleting === s.id} style={{ fontSize: 11, padding: '3px 9px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>{deleting === s.id ? '…' : 'Delete'}</button>
+                              <button onClick={() => setConfirmId(null)} style={{ fontSize: 11, padding: '3px 9px', background: 'var(--border)', color: 'var(--text-secondary)', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
+                            </span>
                           </span>
                         ) : (
                           <button onClick={() => setConfirmId(s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: 4, display: 'flex', alignItems: 'center' }} title="Delete"><Trash2 size={14} /></button>

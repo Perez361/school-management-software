@@ -58,6 +58,8 @@ pub fn run() {
             // Subjects
             get_subjects,
             create_subject,
+            update_subject,
+            delete_subject,
             // Results
             get_results,
             upsert_result,
@@ -94,6 +96,9 @@ pub fn run() {
             record_attendance,
             get_attendance,
             get_attendance_summary,
+            get_class_attendance_summary,
+            // Notifications
+            get_notifications,
             // Sync
             get_sync_status,
             trigger_sync,

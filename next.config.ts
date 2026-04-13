@@ -1,12 +1,13 @@
 import type { NextConfig } from 'next'
 
-const isDev = process.env.NODE_ENV === 'development'
+const isDev    = process.env.NODE_ENV === 'development'
+const isDemo   = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 
 const nextConfig: NextConfig = {
-  // output: 'export' is needed for `next build` (Rust binary embeds the static files).
-  // In `next dev` we skip it so that rewrites work and the dev server proxies
-  // /api/* to the Rust HTTP server on port 7770.
-  output: isDev ? undefined : 'export',
+  // `output: 'export'` is needed when the Rust binary embeds the static files.
+  // Skip it in dev (rewrites must work) and for Vercel demo deployments (static
+  // export strips API routes and disables dynamic routing features we rely on).
+  output: isDev || isDemo ? undefined : 'export',
   trailingSlash: true,
   typescript: {
     ignoreBuildErrors: true,

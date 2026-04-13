@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
-import { Plus, Receipt, AlertCircle, CheckCircle, TrendingUp, Filter } from 'lucide-react'
+import { Plus, Receipt, AlertCircle, CheckCircle, TrendingUp, Filter, Search } from 'lucide-react'
 import { api, Payment, Class, PaymentSummary } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
@@ -27,6 +27,7 @@ export default function BillingPage() {
   const [classFilter,  setClassFilter]  = useState(searchParams.get('classId') ?? '')
   const [termFilter,   setTermFilter]   = useState(searchParams.get('term') ?? '')
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? '')
+  const [searchQuery,  setSearchQuery]  = useState('')
   const [page, setPage] = useState(1)
 
   const load = useCallback(async () => {
@@ -45,11 +46,13 @@ export default function BillingPage() {
   useEffect(() => { load() }, [load])
 
   const collectionRate = summary.total > 0 ? Math.round((summary.collected / summary.total) * 100) : 0
-  const isFiltered = !!(classFilter || termFilter || statusFilter)
+  const isFiltered = !!(classFilter || termFilter || statusFilter || searchQuery)
 
-
-  const totalPages = Math.ceil(payments.length / PAGE_SIZE)
-  const paged = payments.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const searched = searchQuery.trim()
+    ? payments.filter(p => p.student?.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.feeType.toLowerCase().includes(searchQuery.toLowerCase()))
+    : payments
+  const totalPages = Math.ceil(searched.length / PAGE_SIZE)
+  const paged = searched.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const selStyle: React.CSSProperties = { padding: '9px 13px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', borderRadius: 8, fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-primary)', outline: 'none', width: '100%' }
 
@@ -113,6 +116,13 @@ export default function BillingPage() {
           </div>
           <div style={{ padding: 'clamp(12px,2vw,16px) clamp(14px,3vw,22px)' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10, alignItems: 'flex-end' }}>
+              <div style={{ gridColumn: 'span 2' }}>
+                <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Search</label>
+                <div style={{ position: 'relative' }}>
+                  <Search size={13} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                  <input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setPage(1) }} placeholder="Student name or fee type…" style={{ ...selStyle, paddingLeft: 32 }} />
+                </div>
+              </div>
               <div>
                 <label style={{ display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5 }}>Class</label>
                 <select value={classFilter} onChange={e => { setClassFilter(e.target.value); setPage(1) }} style={selStyle}>
@@ -137,7 +147,7 @@ export default function BillingPage() {
               </div>
               {isFiltered && (
                 <div>
-                  <button onClick={() => { setClassFilter(''); setTermFilter(''); setStatusFilter(''); setPage(1) }} style={{ width: '100%', padding: '9px 14px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer' }}>Clear Filters</button>
+                  <button onClick={() => { setClassFilter(''); setTermFilter(''); setStatusFilter(''); setSearchQuery(''); setPage(1) }} style={{ width: '100%', padding: '9px 14px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 9, fontFamily: 'system-ui', fontSize: 13, cursor: 'pointer' }}>Clear All</button>
                 </div>
               )}
             </div>
@@ -150,14 +160,14 @@ export default function BillingPage() {
             <Receipt size={14} color="#15803d" />
             <div>
               <div style={{ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>Payment Records</div>
-              <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>{payments.length} record{payments.length !== 1 ? 's' : ''} total</div>
+              <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>{searched.length} record{searched.length !== 1 ? 's' : ''}{isFiltered ? ' (filtered)' : ' total'}</div>
             </div>
           </div>
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui', minWidth: 600 }}>
               <thead>
                 <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
-                  {['Student', 'Class', 'Fee Type', 'Term', 'Amount', 'Paid', 'Balance', 'Status'].map(h => (
+                  {['Student', 'Class', 'Fee Type', 'Term', 'Billed', 'Paid', 'Balance', 'Status'].map(h => (
                     <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>

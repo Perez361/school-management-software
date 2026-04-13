@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import Sidebar from '@/components/layout/Sidebar'
 import { LiveDataProvider } from '@/lib/live-data'
+import { NotificationsProvider } from '@/lib/notifications-context'
+import NotificationPanel from '@/components/layout/NotificationPanel'
 
 const DEMO_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 
@@ -72,12 +74,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         On desktop the sidebar sits as a flex child side-by-side with main-content.
       */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
-        <Sidebar />
-        <main className="main-content">
-          <LiveDataProvider>
-            {children}
-          </LiveDataProvider>
-        </main>
+        <NotificationsProvider>
+          <Sidebar />
+          <main className="main-content">
+            <LiveDataProvider>
+              {children}
+            </LiveDataProvider>
+          </main>
+          <NotificationPanel />
+        </NotificationsProvider>
       </div>
     </div>
   )

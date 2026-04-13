@@ -17,6 +17,8 @@ pub struct Parent {
     pub email: Option<String>,
     pub address: Option<String>,
     pub photo: Option<String>,
+    #[serde(rename = "studentCount")]
+    pub student_count: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -473,6 +475,21 @@ pub struct UpdateUserInput {
     pub name: Option<String>,
 }
 
+// ─── Notifications ───────────────────────────────────────────────────────────
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AppNotification {
+    pub id: String,
+    pub kind: String,       // "absent" | "fee_owed" | "poor_performance"
+    pub title: String,
+    pub body: String,
+    pub severity: String,   // "warning" | "error"
+    #[serde(rename = "studentId")]
+    pub student_id: i64,
+    #[serde(rename = "studentName")]
+    pub student_name: String,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct ChangePasswordInput {
     pub user_id: i64,
@@ -494,4 +511,20 @@ pub struct PromoteResult {
     pub promoted: i64,
     pub repeated: i64,
     pub graduated: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct StudentAttendanceSummary {
+    #[serde(rename = "studentId")]
+    pub student_id: i64,
+    #[serde(rename = "studentName")]
+    pub student_name: String,
+    #[serde(rename = "studentCode")]
+    pub student_code: String,
+    #[serde(rename = "totalDays")]
+    pub total_days: i64,
+    pub present: i64,
+    pub absent: i64,
+    pub late: i64,
+    pub excused: i64,
 }

@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Edit, FileText, Receipt } from 'lucide-react'
-import { api, Student, ResultRow, Payment } from '@/lib/api'
+import { ArrowLeft, Edit, FileText, Receipt, ArrowRightLeft, CheckCircle2 } from 'lucide-react'
+import { api, Student, ResultRow, Payment, Class } from '@/lib/api'
 
 function getGrade(total: number) {
   if (total >= 80) return 'A'
@@ -23,18 +23,41 @@ export default function StudentDetail() {
   const [results, setResults] = useState<ResultRow[]>([])
   const [payments, setPayments] = useState<Payment[]>([])
   const [loading, setLoading] = useState(true)
+  const [classes, setClasses] = useState<Class[]>([])
+  const [transferring, setTransferring] = useState(false)
+  const [newClassId, setNewClassId] = useState('')
+  const [transferSaving, setTransferSaving] = useState(false)
+  const [transferDone, setTransferDone] = useState(false)
 
   useEffect(() => {
     Promise.all([
       api.getStudent(studentId),
       api.getResults({ studentId }),
       api.getPayments(),
-    ]).then(([s, r, p]) => {
+      api.getClasses(),
+    ]).then(([s, r, p, cls]) => {
       setStudent(s)
       setResults(r)
       setPayments(p.filter(pay => pay.studentId === studentId))
+      setClasses(cls)
     }).finally(() => setLoading(false))
   }, [studentId])
+
+  async function handleTransfer() {
+    if (!newClassId || !student) return
+    setTransferSaving(true)
+    try {
+      const updated = await api.updateStudent(student.id, { classId: parseInt(newClassId) })
+      setStudent(prev => prev ? { ...prev, classId: updated.classId, class: updated.class } : prev)
+      setTransferDone(true)
+      setTransferring(false)
+      setTimeout(() => setTransferDone(false), 3000)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setTransferSaving(false)
+    }
+  }
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'system-ui', color: 'var(--text-muted)' }}>
@@ -85,7 +108,28 @@ export default function StudentDetail() {
               {student.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </div>
             <div style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: 'var(--navy)', marginBottom: 6 }}>{student.name}</div>
-            <span style={{ background: 'rgba(139,26,26,0.07)', color: 'var(--navy)', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>{student.class?.name}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <span style={{ background: 'rgba(139,26,26,0.07)', color: 'var(--navy)', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>
+                {transferDone ? <span style={{ color: '#15803d' }}>✓ Transferred</span> : student.class?.name}
+              </span>
+              {!transferring && (
+                <button onClick={() => { setTransferring(true); setNewClassId(String(student.classId)) }} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 20, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontFamily: 'system-ui', fontSize: 10, fontWeight: 600, cursor: 'pointer' }}>
+                  <ArrowRightLeft size={10} /> Transfer
+                </button>
+              )}
+            </div>
+            {transferring && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <select value={newClassId} onChange={e => setNewClassId(e.target.value)} style={{ padding: '5px 10px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--surface-2)', fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-primary)', outline: 'none' }}>
+                  <option value="">Select class</option>
+                  {classes.filter(c => c.id !== student.classId).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+                <button onClick={handleTransfer} disabled={!newClassId || transferSaving} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: 'var(--navy)', color: 'var(--gold-pale)', fontFamily: 'system-ui', fontSize: 12, fontWeight: 600, cursor: !newClassId || transferSaving ? 'not-allowed' : 'pointer' }}>
+                  {transferSaving ? '…' : 'Confirm'}
+                </button>
+                <button onClick={() => setTransferring(false)} style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontFamily: 'system-ui', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+              </div>
+            )}
           </div>
           <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
             {([

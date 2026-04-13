@@ -29,6 +29,7 @@ export interface Parent {
   email?: string | null
   address?: string | null
   photo?: string | null
+  studentCount?: number
   students?: Student[]
 }
 
@@ -199,6 +200,16 @@ export interface AppUser {
   name: string
 }
 
+export interface AppNotification {
+  id: string
+  kind: 'absent' | 'fee_owed' | 'poor_performance' | 'unassigned_staff' | 'empty_class' | 'no_parent'
+  title: string
+  body: string
+  severity: 'info' | 'warning' | 'error'
+  studentId: number
+  studentName: string
+}
+
 export interface SyncStatus {
   enabled: boolean
   pending: number
@@ -231,6 +242,8 @@ export function clearAuthToken(): void {
 const isTauri: boolean =
   typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 
+const IS_DEMO = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+
 /**
  * Core dispatcher.
  * params is the exact object that `invoke(command, params)` would receive,
@@ -240,6 +253,11 @@ async function call<T>(
   command: string,
   params: Record<string, unknown> = {},
 ): Promise<T> {
+  if (IS_DEMO) {
+    const { demoCall } = await import('@/lib/demo-data')
+    return demoCall(command, params) as T
+  }
+
   if (isTauri) {
     const { invoke } = await import('@tauri-apps/api/core')
     return invoke<T>(command, params)
@@ -276,6 +294,11 @@ async function call<T>(
 // ─── Login (special — browser returns { user, token }) ───────────────────────
 
 async function loginCall(email: string, password: string): Promise<User> {
+  if (IS_DEMO) {
+    // Demo login: any credentials accepted, return a fixed admin user
+    return { id: 1, name: 'Demo Admin', email, role: 'admin', username: 'demo' }
+  }
+
   if (isTauri) {
     const { invoke } = await import('@tauri-apps/api/core')
     return invoke<User>('login', { input: { email, password } })
@@ -379,6 +402,12 @@ export const api = {
 
   createSubject: (input: { name: string; code: string }): Promise<Subject> =>
     call('create_subject', { input }),
+
+  updateSubject: (id: number, input: { name: string; code: string }): Promise<Subject> =>
+    call('update_subject', { id, input }),
+
+  deleteSubject: (id: number): Promise<void> =>
+    call('delete_subject', { id }),
 
   // Results
   getResults: (params?: {
@@ -521,6 +550,15 @@ export const api = {
     studentId: number; term: string; year: string
   }): Promise<AttendanceSummary> =>
     call('get_attendance_summary', { studentId: params.studentId, term: params.term, year: params.year }),
+
+  getClassAttendanceSummary: (params: {
+    classId: number; term: string; year: string
+  }): Promise<{ studentId: number; studentName: string; studentCode: string; totalDays: number; present: number; absent: number; late: number; excused: number }[]> =>
+    call('get_class_attendance_summary', { classId: params.classId, term: params.term, year: params.year }),
+
+  // Notifications
+  getNotifications: (): Promise<AppNotification[]> =>
+    call('get_notifications'),
 
   // Sync
   getSyncStatus: (): Promise<SyncStatus> =>

@@ -79,7 +79,7 @@ export default function ParentsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui' }}>
               <thead>
                 <tr style={{ background: 'var(--gold-pale)', borderBottom: '1px solid var(--border)' }}>
-                  {['Parent / Guardian', 'Contact', 'Address', 'Actions'].map(h => (
+                  {['Parent / Guardian', 'Contact', 'Students', 'Address', 'Actions'].map(h => (
                     <th key={h} style={{ padding: '11px 18px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -90,6 +90,7 @@ export default function ParentsPage() {
                     <tr key={i} style={{ borderBottom: '1px solid var(--border-soft)' }}>
                       <td style={{ padding: '13px 18px' }}><div style={{ display: 'flex', alignItems: 'center', gap: 11 }}><div className="skeleton skeleton-avatar" style={{ width: 36, height: 36, flexShrink: 0 }} /><div className="skeleton skeleton-text" style={{ width: 140 }} /></div></td>
                       <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 120 }} /></td>
+                      <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 40 }} /></td>
                       <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text" style={{ width: 160 }} /></td>
                       <td style={{ padding: '13px 18px' }}><div className="skeleton skeleton-text skeleton-btn" style={{ width: 60, height: 28 }} /></td>
                     </tr>
@@ -106,9 +107,14 @@ export default function ParentsPage() {
                     </td>
                     <td style={{ padding: '13px 18px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Phone size={11} color="var(--text-muted)" /><span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>{p.phone}</span></div>
-                        {p.email && <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Mail size={11} color="var(--text-muted)" /><span style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>{p.email}</span></div>}
+                        <a href={`tel:${p.phone}`} style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}><Phone size={11} color="var(--text-muted)" /><span style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>{p.phone}</span></a>
+                        {p.email && <a href={`mailto:${p.email}`} style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}><Mail size={11} color="var(--text-muted)" /><span style={{ fontFamily: 'system-ui', fontSize: 11, color: '#2563eb' }}>{p.email}</span></a>}
                       </div>
+                    </td>
+                    <td style={{ padding: '13px 18px' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 24, height: 24, borderRadius: 12, background: (p.studentCount ?? 0) > 0 ? 'rgba(22,163,74,0.1)' : 'var(--border-soft)', color: (p.studentCount ?? 0) > 0 ? '#15803d' : 'var(--text-muted)', fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, padding: '0 7px' }}>
+                        {p.studentCount ?? 0}
+                      </span>
                     </td>
                     <td style={{ padding: '13px 18px' }}>
                       {p.address
@@ -131,7 +137,7 @@ export default function ParentsPage() {
                   </tr>
                 ))}
                 {!loading && filtered.length === 0 && (
-                  <tr><td colSpan={4}>
+                  <tr><td colSpan={5}>
                     <div className="empty-state">
                       <div className="empty-icon-wrap"><UserCheck size={24} color="var(--gold)" /></div>
                       <div className="empty-title">{parents.length === 0 ? 'No parents registered yet' : 'No parents match your search'}</div>

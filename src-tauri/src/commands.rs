@@ -152,7 +152,12 @@ pub fn delete_class(id: i64) -> Result<(), String> {
 pub fn get_parents() -> Result<Vec<Parent>, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
     let mut stmt = conn.prepare(
-        "SELECT id, name, phone, email, address, photo FROM Parent WHERE deleted_at IS NULL ORDER BY name"
+        "SELECT p.id, p.name, p.phone, p.email, p.address, p.photo, \
+         COUNT(s.id) AS student_count \
+         FROM Parent p \
+         LEFT JOIN Student s ON s.parent_id = p.id AND s.deleted_at IS NULL \
+         WHERE p.deleted_at IS NULL \
+         GROUP BY p.id ORDER BY p.name"
     ).map_err(|e| e.to_string())?;
 
     let rows = stmt.query_map([], |row| Ok(Parent {
@@ -162,6 +167,7 @@ pub fn get_parents() -> Result<Vec<Parent>, String> {
         email: row.get(3)?,
         address: row.get(4)?,
         photo: row.get(5)?,
+        student_count: row.get(6)?,
     })).map_err(|e| e.to_string())?;
 
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
@@ -179,7 +185,7 @@ pub fn create_parent(input: CreateParentInput) -> Result<Parent, String> {
     let id = conn.last_insert_rowid();
     let payload = sync::build_payload(&conn, "Parent", &sync_id).unwrap_or_default();
     sync::queue_change(&conn, "Parent", &sync_id, payload);
-    Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address, photo: input.photo })
+    Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address, photo: input.photo, student_count: 0 })
 }
 
 #[command]
@@ -196,7 +202,10 @@ pub fn update_parent(id: i64, input: UpdateParentInput) -> Result<Parent, String
         let payload = sync::build_payload(&conn, "Parent", &sync_id).unwrap_or_default();
         sync::queue_change(&conn, "Parent", &sync_id, payload);
     }
-    Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address, photo: input.photo })
+    let student_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Student WHERE parent_id=?1 AND deleted_at IS NULL", params![id], |r| r.get(0)
+    ).unwrap_or(0);
+    Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address, photo: input.photo, student_count })
 }
 
 // ─── STAFF ───────────────────────────────────────────────────────────────────
@@ -544,6 +553,40 @@ pub fn create_subject(input: CreateSubjectInput) -> Result<Subject, String> {
     let payload = sync::build_payload(&conn, "Subject", &sync_id).unwrap_or_default();
     sync::queue_change(&conn, "Subject", &sync_id, payload);
     Ok(Subject { id, name: input.name, code })
+}
+
+#[command]
+pub fn update_subject(id: i64, input: CreateSubjectInput) -> Result<Subject, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let code = input.code.to_uppercase();
+    let updated_at = chrono::Utc::now().to_rfc3339();
+    conn.execute(
+        "UPDATE Subject SET name=?1, code=?2, updated_at=?3 WHERE id=?4",
+        params![input.name, code, updated_at, id],
+    ).map_err(|e| e.to_string())?;
+    let sync_id: String = conn.query_row("SELECT sync_id FROM Subject WHERE id=?1", params![id], |r| r.get(0))
+        .unwrap_or_default();
+    if !sync_id.is_empty() {
+        let payload = sync::build_payload(&conn, "Subject", &sync_id).unwrap_or_default();
+        sync::queue_change(&conn, "Subject", &sync_id, payload);
+    }
+    Ok(Subject { id, name: input.name, code })
+}
+
+#[command]
+pub fn delete_subject(id: i64) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    // Guard: refuse if any results reference this subject
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM Result WHERE subjectId = ?1",
+        params![id], |r| r.get(0),
+    ).unwrap_or(0);
+    if count > 0 {
+        return Err(format!("Cannot delete — {} result record(s) reference this subject.", count));
+    }
+    conn.execute("DELETE FROM Subject WHERE id=?1", params![id])
+        .map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 // ─── RESULTS ─────────────────────────────────────────────────────────────────
@@ -1215,6 +1258,198 @@ pub fn get_enrolment_by_class() -> Result<Vec<ClassEnrolmentStats>, String> {
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+
+#[command]
+pub fn get_notifications() -> Result<Vec<AppNotification>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let mut notifs: Vec<AppNotification> = Vec::new();
+
+    // 1. Absent students — any absence recorded in the last 7 days
+    {
+        let mut stmt = conn.prepare(
+            "SELECT s.id, s.name, COUNT(*) as absent_days, MAX(a.date) as last_date \
+             FROM Attendance a \
+             JOIN Student s ON s.id = a.student_id AND s.deleted_at IS NULL \
+             WHERE a.status = 'absent' AND a.date >= date('now', '-7 days') \
+             GROUP BY s.id \
+             ORDER BY absent_days DESC, last_date DESC \
+             LIMIT 25"
+        ).map_err(|e| e.to_string())?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_,i64>(0)?, row.get::<_,String>(1)?,
+                row.get::<_,i64>(2)?, row.get::<_,String>(3)?))
+        }).map_err(|e| e.to_string())?;
+
+        for row in rows {
+            let (sid, sname, days, last) = row.map_err(|e| e.to_string())?;
+            let severity = if days >= 3 { "error" } else { "warning" };
+            let plural = if days == 1 { "day" } else { "days" };
+            notifs.push(AppNotification {
+                id:           format!("absent_{}_{}", sid, last.replace('-', "")),
+                kind:         "absent".into(),
+                title:        format!("Absent {} {}", days, plural),
+                body:         format!("{} was absent {} {} this week (last: {})", sname, days, plural, last),
+                severity:     severity.into(),
+                student_id:   sid,
+                student_name: sname,
+            });
+        }
+    }
+
+    // 2. Outstanding fees — any student with a positive balance
+    {
+        let mut stmt = conn.prepare(
+            "SELECT s.id, s.name, SUM(p.balance) as total_balance \
+             FROM Payment p \
+             JOIN Student s ON s.id = p.student_id AND s.deleted_at IS NULL \
+             WHERE p.balance > 0 \
+             GROUP BY s.id \
+             ORDER BY total_balance DESC \
+             LIMIT 25"
+        ).map_err(|e| e.to_string())?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_,i64>(0)?, row.get::<_,String>(1)?, row.get::<_,f64>(2)?))
+        }).map_err(|e| e.to_string())?;
+
+        for row in rows {
+            let (sid, sname, bal) = row.map_err(|e| e.to_string())?;
+            notifs.push(AppNotification {
+                id:           format!("fee_{}_{}", sid, bal as i64),
+                kind:         "fee_owed".into(),
+                title:        "Outstanding fees".into(),
+                body:         format!("{} owes GHS {:.2} in unpaid fees", sname, bal),
+                severity:     "warning".into(),
+                student_id:   sid,
+                student_name: sname,
+            });
+        }
+    }
+
+    // 3. Poor performance — avg < 50 in the student's most recent recorded term
+    {
+        let mut stmt = conn.prepare(
+            "SELECT s.id, s.name, r.term, r.year, ROUND(AVG(r.total), 1) as avg_score \
+             FROM Result r \
+             JOIN Student s ON s.id = r.student_id AND s.deleted_at IS NULL \
+             WHERE (r.year || '|' || r.term) = ( \
+               SELECT r2.year || '|' || r2.term FROM Result r2 \
+               WHERE r2.student_id = r.student_id \
+               ORDER BY r2.year DESC, r2.term DESC LIMIT 1 \
+             ) \
+             GROUP BY s.id, r.term, r.year \
+             HAVING AVG(r.total) < 50.0 \
+             ORDER BY avg_score ASC \
+             LIMIT 25"
+        ).map_err(|e| e.to_string())?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_,i64>(0)?, row.get::<_,String>(1)?,
+                row.get::<_,String>(2)?, row.get::<_,String>(3)?, row.get::<_,f64>(4)?))
+        }).map_err(|e| e.to_string())?;
+
+        for row in rows {
+            let (sid, sname, term, year, avg) = row.map_err(|e| e.to_string())?;
+            let severity = if avg < 40.0 { "error" } else { "warning" };
+            notifs.push(AppNotification {
+                id:           format!("perf_{}_{}_{}", sid, term.replace(' ', ""), year.replace('/', "")),
+                kind:         "poor_performance".into(),
+                title:        "Low academic performance".into(),
+                body:         format!("{} averaged {:.1}% in {} {}", sname, avg, term, year),
+                severity:     severity.into(),
+                student_id:   sid,
+                student_name: sname,
+            });
+        }
+    }
+
+    // 4. Teachers with no class assigned (optional / info-level)
+    {
+        let mut stmt = conn.prepare(
+            "SELECT id, name FROM Staff \
+             WHERE class_id IS NULL AND deleted_at IS NULL AND role = 'teacher' \
+             ORDER BY name LIMIT 10"
+        ).map_err(|e| e.to_string())?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_,i64>(0)?, row.get::<_,String>(1)?))
+        }).map_err(|e| e.to_string())?;
+
+        for row in rows {
+            let (sid, sname) = row.map_err(|e| e.to_string())?;
+            notifs.push(AppNotification {
+                id:           format!("unassigned_staff_{}", sid),
+                kind:         "unassigned_staff".into(),
+                title:        "Teacher has no class".into(),
+                body:         format!("{} is a teacher but has not been assigned to any class", sname),
+                severity:     "info".into(),
+                student_id:   sid,
+                student_name: sname,
+            });
+        }
+    }
+
+    // 5. Classes with no active students enrolled
+    {
+        let mut stmt = conn.prepare(
+            "SELECT c.id, c.name FROM Class c \
+             WHERE c.deleted_at IS NULL \
+               AND NOT EXISTS ( \
+                 SELECT 1 FROM Student s \
+                 WHERE s.class_id = c.id AND s.deleted_at IS NULL AND s.status = 'active' \
+               ) \
+             ORDER BY c.name LIMIT 10"
+        ).map_err(|e| e.to_string())?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_,i64>(0)?, row.get::<_,String>(1)?))
+        }).map_err(|e| e.to_string())?;
+
+        for row in rows {
+            let (cid, cname) = row.map_err(|e| e.to_string())?;
+            notifs.push(AppNotification {
+                id:           format!("empty_class_{}", cid),
+                kind:         "empty_class".into(),
+                title:        "Empty class".into(),
+                body:         format!("{} has no students enrolled", cname),
+                severity:     "info".into(),
+                student_id:   cid,
+                student_name: cname,
+            });
+        }
+    }
+
+    // 6. Active students with no parent / guardian linked
+    {
+        let mut stmt = conn.prepare(
+            "SELECT s.id, s.name FROM Student s \
+             WHERE s.deleted_at IS NULL AND s.status = 'active' AND s.parent_id IS NULL \
+             ORDER BY s.name LIMIT 20"
+        ).map_err(|e| e.to_string())?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_,i64>(0)?, row.get::<_,String>(1)?))
+        }).map_err(|e| e.to_string())?;
+
+        for row in rows {
+            let (sid, sname) = row.map_err(|e| e.to_string())?;
+            notifs.push(AppNotification {
+                id:           format!("no_parent_{}", sid),
+                kind:         "no_parent".into(),
+                title:        "No parent linked".into(),
+                body:         format!("{} has no parent or guardian assigned", sname),
+                severity:     "info".into(),
+                student_id:   sid,
+                student_name: sname,
+            });
+        }
+    }
+
+    Ok(notifs)
+}
+
 // ─── SYNC ─────────────────────────────────────────────────────────────────────
 
 #[command]
@@ -1368,6 +1603,39 @@ pub fn get_attendance(class_id: i64, date: String) -> Result<Vec<AttendanceEntry
         id: row.get(0)?, student_id: row.get(1)?, name: row.get(2)?,
         status: row.get(3)?, date: row.get(4)?,
     })).map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[command]
+pub fn get_class_attendance_summary(class_id: i64, term: String, year: String) -> Result<Vec<StudentAttendanceSummary>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let mut stmt = conn.prepare(
+        "SELECT s.id, s.name, s.studentId,
+                COUNT(a.id) as total_days,
+                SUM(CASE WHEN a.status='present' THEN 1 ELSE 0 END) as present,
+                SUM(CASE WHEN a.status='absent'  THEN 1 ELSE 0 END) as absent,
+                SUM(CASE WHEN a.status='late'    THEN 1 ELSE 0 END) as late,
+                SUM(CASE WHEN a.status='excused' THEN 1 ELSE 0 END) as excused
+         FROM Student s
+         LEFT JOIN Attendance a ON a.studentId = s.id AND a.term = ?2 AND a.year = ?3
+         WHERE s.classId = ?1 AND s.deleted_at IS NULL AND (s.status IS NULL OR s.status = 'active')
+         GROUP BY s.id
+         ORDER BY s.name"
+    ).map_err(|e| e.to_string())?;
+
+    let rows = stmt.query_map(params![class_id, term, year], |row| {
+        Ok(StudentAttendanceSummary {
+            student_id:   row.get(0)?,
+            student_name: row.get(1)?,
+            student_code: row.get(2)?,
+            total_days:   row.get(3)?,
+            present:      row.get(4)?,
+            absent:       row.get(5)?,
+            late:         row.get(6)?,
+            excused:      row.get(7)?,
+        })
+    }).map_err(|e| e.to_string())?;
+
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
