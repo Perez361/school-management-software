@@ -606,27 +606,11 @@ select.input { cursor: pointer; }
     display: none; /* hide the clock icon on tiny screens */
   }
 
-  /* Tables: ensure all .table-container children scroll */
-  .table-container,
-  div[style*="overflow-x: auto"],
-  div[style*="overflowX: auto"] {
-    -webkit-overflow-scrolling: touch;
-  }
+  /* Tables: ensure touch-scroll on all overflow containers */
+  .table-container { -webkit-overflow-scrolling: touch; }
 
   /* Search boxes always full-width on mobile */
   .search-wrap { max-width: none !important; width: 100%; }
-
-  /* Grids that use auto-fit: floor minmax on mobile */
-  /* results ranking+scores side-by-side → stacked */
-
-  /* Status button rows in attendance — tighter on phones */
-  .attendance-status-row {
-    gap: 4px !important;
-  }
-  .attendance-status-row button {
-    padding: 4px 8px !important;
-    font-size: 11px !important;
-  }
 
   /* Billing / students table: reduce padding on mobile */
   .table th,
@@ -639,7 +623,7 @@ select.input { cursor: pointer; }
     font-size: 11px;
   }
 
-  /* Page body bottom padding for mobile nav/safe area */
+  /* Page body bottom padding for mobile safe area */
   .page-body { padding-bottom: 24px; }
 
   /* Mono tags smaller on mobile */
@@ -648,19 +632,8 @@ select.input { cursor: pointer; }
   /* Card table header smaller on very small screens */
   .card-table-title { font-size: 13px; }
 
-  /* Prevent horizontal bleed from wide inline-grid layouts */
+  /* Prevent horizontal bleed from child elements wider than viewport */
   .main-content { overflow-x: hidden; }
-
-  /* Filters: inputs full width */
-  div[style*="gridTemplateColumns"] select,
-  div[style*="gridTemplateColumns"] input {
-    min-width: 0;
-  }
-
-  /* Attendance daily – status buttons wrap tightly */
-  div[style*="flexWrap: 'wrap'"] {
-    gap: 6px;
-  }
 }
 
 /* ── Phones (≤ 480px) additional ────────────────────── */

@@ -219,40 +219,45 @@ export default function PromotionPage() {
                   </div>
                 </div>
 
-                {/* Column headers */}
-                <div style={{ display: 'grid', gridTemplateColumns: '36px 1fr 80px 70px 180px', gap: 8, padding: '9px 20px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
-                  {['#', 'Student', 'ID', 'Avg', 'Decision'].map(h => (
-                    <div key={h} style={{ fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</div>
-                  ))}
-                </div>
-
-                {students.map((s, i) => {
-                  const d = decisions[s.id] ?? 'promote'
-                  const avg = avgScores[s.id]
-                  const avgColor = avg == null ? 'var(--text-muted)' : avg >= 70 ? '#15803d' : avg >= 50 ? '#b45309' : '#b91c1c'
-                  return (
-                    <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 80px 70px 180px', gap: 8, padding: '10px 20px', alignItems: 'center', borderBottom: i < students.length - 1 ? '1px solid var(--border-soft)' : 'none', background: i % 2 === 0 ? 'transparent' : 'rgba(201,168,76,0.015)' }}>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>{i + 1}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
-                      <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 6px', borderRadius: 5 }}>{s.studentId}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: avgColor }}>{avg != null ? `${avg.toFixed(1)}%` : '—'}</div>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button
-                          onClick={() => setDecisions(prev => ({ ...prev, [s.id]: 'promote' }))}
-                          style={{ flex: 1, padding: '5px 0', borderRadius: 7, border: `1.5px solid ${d === 'promote' ? actionColor : 'var(--border)'}`, background: d === 'promote' ? actionBg : 'transparent', color: d === 'promote' ? actionColor : 'var(--text-muted)', fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.12s' }}
-                        >
-                          {isJHS3 ? '🎓 Graduate' : '↑ Promote'}
-                        </button>
-                        <button
-                          onClick={() => setDecisions(prev => ({ ...prev, [s.id]: 'repeat' }))}
-                          style={{ flex: 1, padding: '5px 0', borderRadius: 7, border: `1.5px solid ${d === 'repeat' ? '#b45309' : 'var(--border)'}`, background: d === 'repeat' ? 'rgba(180,83,9,0.07)' : 'transparent', color: d === 'repeat' ? '#b45309' : 'var(--text-muted)', fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.12s' }}
-                        >
-                          ↺ Repeat
-                        </button>
-                      </div>
+                {/* Scroll wrapper — grid is 400px+ wide, needs scroll on mobile */}
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+                  <div style={{ minWidth: 420 }}>
+                    {/* Column headers */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '36px 1fr 80px 70px 180px', gap: 8, padding: '9px 20px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+                      {['#', 'Student', 'ID', 'Avg', 'Decision'].map(h => (
+                        <div key={h} style={{ fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</div>
+                      ))}
                     </div>
-                  )
-                })}
+
+                    {students.map((s, i) => {
+                      const d = decisions[s.id] ?? 'promote'
+                      const avg = avgScores[s.id]
+                      const avgColor = avg == null ? 'var(--text-muted)' : avg >= 70 ? '#15803d' : avg >= 50 ? '#b45309' : '#b91c1c'
+                      return (
+                        <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 80px 70px 180px', gap: 8, padding: '10px 20px', alignItems: 'center', borderBottom: i < students.length - 1 ? '1px solid var(--border-soft)' : 'none', background: i % 2 === 0 ? 'transparent' : 'rgba(201,168,76,0.015)' }}>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>{i + 1}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                          <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 6px', borderRadius: 5 }}>{s.studentId}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 12, fontWeight: 700, color: avgColor }}>{avg != null ? `${avg.toFixed(1)}%` : '—'}</div>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button
+                              onClick={() => setDecisions(prev => ({ ...prev, [s.id]: 'promote' }))}
+                              style={{ flex: 1, padding: '5px 0', borderRadius: 7, border: `1.5px solid ${d === 'promote' ? actionColor : 'var(--border)'}`, background: d === 'promote' ? actionBg : 'transparent', color: d === 'promote' ? actionColor : 'var(--text-muted)', fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.12s' }}
+                            >
+                              {isJHS3 ? '🎓 Graduate' : '↑ Promote'}
+                            </button>
+                            <button
+                              onClick={() => setDecisions(prev => ({ ...prev, [s.id]: 'repeat' }))}
+                              style={{ flex: 1, padding: '5px 0', borderRadius: 7, border: `1.5px solid ${d === 'repeat' ? '#b45309' : 'var(--border)'}`, background: d === 'repeat' ? 'rgba(180,83,9,0.07)' : 'transparent', color: d === 'repeat' ? '#b45309' : 'var(--text-muted)', fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.12s' }}
+                            >
+                              ↺ Repeat
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
             )}
 
