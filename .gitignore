@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# .env.production is safe to commit — contains only public demo flag, no secrets
+!.env.production
 
 # vercel
 .vercel

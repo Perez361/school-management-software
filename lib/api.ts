@@ -253,14 +253,15 @@ async function call<T>(
   command: string,
   params: Record<string, unknown> = {},
 ): Promise<T> {
-  if (IS_DEMO) {
-    const { demoCall } = await import('@/lib/demo-data')
-    return demoCall(command, params) as T
-  }
-
+  // Tauri IPC takes priority — even if DEMO_MODE env var is set in the build
   if (isTauri) {
     const { invoke } = await import('@tauri-apps/api/core')
     return invoke<T>(command, params)
+  }
+
+  if (IS_DEMO) {
+    const { demoCall } = await import('@/lib/demo-data')
+    return demoCall(command, params) as T
   }
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
