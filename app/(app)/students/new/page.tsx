@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save, UserPlus, Camera, X } from 'lucide-react'
 import { api, Class, Parent } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 
 interface StudentForm {
   name: string; gender: string; dob: string
@@ -25,7 +26,8 @@ export default function NewStudentPage() {
   const fileRef               = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    Promise.all([api.getClasses(), api.getParents()]).then(([c, p]) => { setClasses(c); setParents(p) })
+    api.getClasses().then(setClasses).catch(() => {})
+    api.getParents().then(setParents).catch(() => {})
   }, [])
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -39,7 +41,7 @@ export default function NewStudentPage() {
   async function onSubmit(data: StudentForm) {
     setLoading(true); setError('')
     try {
-      await api.createStudent({ name: data.name, gender: data.gender, dob: data.dob, classId: parseInt(data.classId), parentId: data.parentId ? parseInt(data.parentId) : undefined, phone: data.phone || undefined, address: data.address || undefined, photo: photo || undefined })
+      await api.createStudent({ name: toTitleCase(data.name), gender: data.gender, dob: data.dob, classId: parseInt(data.classId), parentId: data.parentId ? parseInt(data.parentId) : undefined, phone: data.phone || undefined, address: data.address || undefined, photo: photo || undefined })
       router.push('/students')
     } catch (e: any) { setError(e.message || String(e)) }
     finally { setLoading(false) }

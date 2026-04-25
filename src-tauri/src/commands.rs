@@ -155,7 +155,7 @@ pub fn get_parents() -> Result<Vec<Parent>, String> {
         "SELECT p.id, p.name, p.phone, p.email, p.address, p.photo, \
          COUNT(s.id) AS student_count \
          FROM Parent p \
-         LEFT JOIN Student s ON s.parent_id = p.id AND s.deleted_at IS NULL \
+         LEFT JOIN Student s ON s.parentId = p.id AND s.deleted_at IS NULL \
          WHERE p.deleted_at IS NULL \
          GROUP BY p.id ORDER BY p.name"
     ).map_err(|e| e.to_string())?;

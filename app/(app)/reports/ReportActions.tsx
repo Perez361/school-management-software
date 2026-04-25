@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Download, Loader } from 'lucide-react'
 import { api, Class, SchoolSettings, Student } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 
 interface Props {
   type: 'report-card' | 'class-list' | 'fee-invoice' | 'transcript'

@@ -21,7 +21,7 @@ export default function ExamRecordsPage() {
   const router = useRouter()
   useEffect(() => { if (!can('results')) router.replace('/dashboard') }, [can, router])
 
-  const { bump } = useLiveData()
+  const { version, bump } = useLiveData()
   const [classes,   setClasses]   = useState<Class[]>([])
   const [students,  setStudents]  = useState<Student[]>([])
   const [subjects,  setSubjects]  = useState<Subject[]>([])
@@ -40,7 +40,7 @@ export default function ExamRecordsPage() {
       setClasses(c); setSubjects(s)
       if (settings) { setTerm(settings.currentTerm); setYear(settings.currentYear) }
     })
-  }, [])
+  }, [version])
 
   useEffect(() => {
     if (!classId) { setStudents([]); setScores({}); setCAScores({}); return }

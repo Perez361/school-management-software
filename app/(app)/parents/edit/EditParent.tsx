@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save, Camera, X } from 'lucide-react'
 import { api } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 
 interface ParentForm {
   name: string
@@ -65,7 +66,7 @@ export default function EditParent() {
     setLoading(true); setError('')
     try {
       await api.updateParent(parentId, {
-        name: data.name,
+        name: toTitleCase(data.name),
         phone: data.phone,
         email: data.email || undefined,
         address: data.address || undefined,

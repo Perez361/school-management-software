@@ -83,7 +83,7 @@ export default function CAScoresPage() {
         setYear(settings.currentYear)
       }
     })
-  }, [])
+  }, [version])
 
   useEffect(() => {
     if (!classId) { setStudents([]); setBatchScores({}); return }

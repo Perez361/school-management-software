@@ -5,6 +5,7 @@ import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save, Camera, X } from 'lucide-react'
 import { api } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 
 interface ParentForm { name: string; phone: string; email?: string; address?: string }
 
@@ -30,7 +31,7 @@ export default function NewParentPage() {
   async function onSubmit(data: ParentForm) {
     setLoading(true); setError('')
     try {
-      await api.createParent({ name: data.name, phone: data.phone, email: data.email, address: data.address, photo: photo || undefined })
+      await api.createParent({ name: toTitleCase(data.name), phone: data.phone, email: data.email, address: data.address, photo: photo || undefined })
       router.push('/parents')
     } catch (e: any) { setError(e.message || String(e)) } finally { setLoading(false) }
   }

@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save, Trash2, Camera, X } from 'lucide-react'
 import { api, Class, Parent } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 
 interface StudentForm {
   name: string
@@ -45,13 +46,9 @@ export default function EditStudent() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    Promise.all([
-      api.getClasses(),
-      api.getParents(),
-      api.getStudent(studentId),
-    ]).then(([c, p, student]) => {
-      setClasses(c)
-      setParents(p)
+    api.getClasses().then(setClasses).catch(() => {})
+    api.getParents().then(setParents).catch(() => {})
+    api.getStudent(studentId).then(student => {
       setPhoto(student.photo ?? null)
       reset({
         name: student.name,
@@ -77,7 +74,7 @@ export default function EditStudent() {
     setLoading(true); setError('')
     try {
       await api.updateStudent(studentId, {
-        name: data.name,
+        name: toTitleCase(data.name),
         gender: data.gender,
         dob: data.dob,
         classId: parseInt(data.classId),

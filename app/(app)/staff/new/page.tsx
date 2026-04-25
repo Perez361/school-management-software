@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { api, Class } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 import { GHANA_SUBJECTS } from '@/lib/school-data'
 
 interface StaffForm { name: string; role: string; phone?: string; email?: string; subject?: string; classId?: string }
@@ -26,7 +27,7 @@ export default function NewStaffPage() {
     setLoading(true); setError('')
     try {
       await api.createStaff({
-        name: data.name, role: data.role,
+        name: toTitleCase(data.name), role: data.role,
         phone: data.phone || undefined,
         email: data.email || undefined,
         subject: data.subject || undefined,

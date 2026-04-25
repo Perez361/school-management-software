@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 import { api, Class } from '@/lib/api'
 import { GHANA_SUBJECTS } from '@/lib/school-data'
+import { toTitleCase } from '@/lib/utils'
 
 interface StaffForm {
   name: string
@@ -62,7 +63,7 @@ export default function EditStaff() {
     setLoading(true); setError('')
     try {
       await api.updateStaff(staffId, {
-        name: data.name,
+        name: toTitleCase(data.name),
         role: data.role,
         phone: data.phone || undefined,
         email: data.email || undefined,

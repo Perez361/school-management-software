@@ -24,7 +24,7 @@ export default function ParentsPage() {
   const [confirmId, setConfirmId] = useState<number | null>(null)
 
   useEffect(() => {
-    api.getParents().then(setParents).finally(() => setLoading(false))
+    api.getParents().then(setParents).catch(() => {}).finally(() => setLoading(false))
   }, [version])
 
   async function handleDelete(id: number) {
