@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { Plus, Receipt, AlertCircle, CheckCircle, TrendingUp, Filter, Search } from 'lucide-react'
 import { api, Payment, Class, PaymentSummary } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
 import Pagination from '@/components/Pagination'
@@ -194,9 +195,9 @@ export default function BillingPage() {
                     <td style={{ padding: '11px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                         <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--gold-pale)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--navy)', flexShrink: 0 }}>
-                          {p.student?.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          {p.student ? toTitleCase(p.student.name).split(' ').map(n => n[0]).join('').slice(0, 2) : ''}
                         </div>
-                        <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', whiteSpace: 'nowrap' }}>{p.student?.name}</span>
+                        <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', whiteSpace: 'nowrap' }}>{p.student ? toTitleCase(p.student.name) : ''}</span>
                       </div>
                     </td>
                     <td style={{ padding: '11px 14px' }}><span className="badge badge-blue">{p.student?.class.name}</span></td>

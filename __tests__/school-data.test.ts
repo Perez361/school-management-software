@@ -42,8 +42,8 @@ describe('GHANA_CLASSES', () => {
 })
 
 describe('GHANA_SUBJECTS', () => {
-  it('contains exactly 14 subjects', () => {
-    expect(GHANA_SUBJECTS).toHaveLength(14)
+  it('contains exactly 11 subjects', () => {
+    expect(GHANA_SUBJECTS).toHaveLength(11)
   })
 
   it('includes core GES subjects', () => {

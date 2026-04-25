@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { CheckCircle, ClipboardList, Users, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import { api, Student, Subject, Class, CAScoreEntry } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 import { useLiveData } from '@/lib/live-data'
 
 const labelStyle: React.CSSProperties = {
@@ -297,7 +298,7 @@ export default function CAScoresPage() {
                   {students.map((s, i) => (
                     <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 120px 120px', gap: 8, padding: '9px 20px', alignItems: 'center', borderBottom: i < students.length - 1 ? '1px solid var(--border-soft)' : 'none', background: i % 2 === 0 ? 'transparent' : 'rgba(201,168,76,0.015)' }}>
                       <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>{i + 1}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{toTitleCase(s.name)}</div>
                       <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 8px', borderRadius: 5 }}>{s.studentId}</div>
                       {(() => {
                         const val = batchScores[s.id] ?? ''
@@ -372,7 +373,7 @@ export default function CAScoresPage() {
                         {/* Row */}
                         <div style={{ display: 'grid', gridTemplateColumns: '36px 1fr 120px 80px 80px 28px', gap: 8, padding: '10px 20px', alignItems: 'center', background: i % 2 === 0 ? 'transparent' : 'rgba(201,168,76,0.015)' }}>
                           <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)' }}>{i + 1}</div>
-                          <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                          <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{toTitleCase(s.name)}</div>
                           <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 8px', borderRadius: 5 }}>{s.studentId}</div>
                           <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-secondary)' }}>
                             {studentEntries.length > 0 ? `${studentEntries.length} entries` : <span style={{ color: 'var(--border)' }}>—</span>}

@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Edit, FileText, Receipt, ArrowRightLeft, CheckCircle2 } from 'lucide-react'
 import { api, Student, ResultRow, Payment, Class } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 
 function getGrade(total: number) {
   if (total >= 80) return 'A'
@@ -92,7 +93,7 @@ export default function StudentDetail() {
               <div style={{ width: 24, height: 3, background: 'var(--gold)', borderRadius: 2 }} />
               <span style={{ fontFamily: 'system-ui', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700 }}>Students</span>
             </div>
-            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(18px,4vw,24px)', fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{student.name}</h1>
+            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(18px,4vw,24px)', fontWeight: 700, color: 'var(--navy)', letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{toTitleCase(student.name)}</h1>
             <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{student.studentId}</div>
           </div>
         </div>
@@ -105,9 +106,9 @@ export default function StudentDetail() {
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', alignSelf: 'start' }}>
           <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', borderBottom: '1px solid var(--border-soft)' }}>
             <div style={{ width: 64, height: 64, borderRadius: 16, background: 'var(--gold-pale)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif', fontSize: 22, fontWeight: 700, color: 'var(--navy)', marginBottom: 12 }}>
-              {student.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              {toTitleCase(student.name).split(' ').map(n => n[0]).join('').slice(0, 2)}
             </div>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: 'var(--navy)', marginBottom: 6 }}>{student.name}</div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 16, fontWeight: 700, color: 'var(--navy)', marginBottom: 6 }}>{toTitleCase(student.name)}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
               <span style={{ background: 'rgba(139,26,26,0.07)', color: 'var(--navy)', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>
                 {transferDone ? <span style={{ color: '#15803d' }}>✓ Transferred</span> : student.class?.name}
@@ -148,7 +149,7 @@ export default function StudentDetail() {
           {student.parent && (
             <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-soft)' }}>
               <div style={{ fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Parent / Guardian</div>
-              <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{student.parent.name}</div>
+              <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{toTitleCase(student.parent.name)}</div>
               <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{student.parent.phone}</div>
               {student.parent.email && <div style={{ fontFamily: 'system-ui', fontSize: 11, color: 'var(--text-muted)' }}>{student.parent.email}</div>}
             </div>

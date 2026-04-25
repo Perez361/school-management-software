@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Save, CheckCircle, BookOpen, Users, ClipboardList } from 'lucide-react'
 import { api, Student, Subject, Class, CAScore } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 import { useLiveData } from '@/lib/live-data'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
@@ -206,7 +207,7 @@ export default function ExamRecordsPage() {
                   return (
                     <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '36px 1fr 110px 110px 130px 80px', gap: 10, padding: '10px 20px', alignItems: 'center', borderBottom: i < students.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
                       <div style={{ fontFamily: 'system-ui', fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{i + 1}</div>
-                      <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                      <div style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{toTitleCase(s.name)}</div>
                       <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 8px', borderRadius: 5, width: 'fit-content' }}>{s.studentId}</div>
 
                       {/* CA — read-only */}

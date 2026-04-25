@@ -76,7 +76,7 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
     autoTable(doc, {
       startY: 44,
       head: [['#', 'Student ID', 'Full Name', 'Gender', 'Class', 'Parent/Guardian']],
-      body: students.map((s, i) => [i + 1, s.studentId, s.name, s.gender, s.class?.name || '', s.parent?.name || '—']),
+      body: students.map((s, i) => [i + 1, s.studentId, toTitleCase(s.name), s.gender, s.class?.name || '', s.parent ? toTitleCase(s.parent.name) : '—']),
       theme: 'grid',
       headStyles: { fillColor: [92, 15, 15], textColor: [201, 168, 76], fontSize: 9 },
       bodyStyles: { fontSize: 9, textColor: [44, 10, 10] },
@@ -263,7 +263,7 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
       doc.rect(MARGIN, infoTop, pw - MARGIN * 2, INFO_H, 'S')
 
       const infoLeft: [string, string][] = [
-        ['Name:',  data.student.name],
+        ['Name:',  toTitleCase(data.student.name)],
         ['ID:',    data.student.studentId],
         ['Class:', data.student.class],
       ]
@@ -429,7 +429,7 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
       doc.setTextColor(0)
       let y = 38; doc.setFontSize(10)
       doc.setFont('helvetica', 'bold'); doc.text('Student:', 14, y)
-      doc.setFont('helvetica', 'normal'); doc.text(student?.name ?? '', 45, y)
+      doc.setFont('helvetica', 'normal'); doc.text(student ? toTitleCase(student.name) : '', 45, y)
       doc.setFont('helvetica', 'bold'); doc.text('Class:', 110, y)
       doc.setFont('helvetica', 'normal'); doc.text(cls?.name || '', 130, y)
       y += 7
@@ -493,7 +493,7 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
     doc.rect(M, 36, pw - M * 2, 22, 'S')
     doc.setFontSize(8)
     const infoL: [string, string][] = [
-      ['Full Name:', student.name],
+      ['Full Name:', toTitleCase(student.name)],
       ['Student ID:', student.studentId],
       ['Class:', student.class?.name ?? ''],
     ]
@@ -595,11 +595,11 @@ export default function ReportActions({ type, classes, schoolName }: Props) {
     for (let p = 1; p <= pages; p++) {
       doc.setPage(p)
       doc.setFontSize(6.5); doc.setTextColor(160, 100, 100); doc.setFont('helvetica', 'italic')
-      doc.text(`${schoolName} — Official Academic Transcript — ${student.name}`, pw / 2, ph - 6, { align: 'center' })
+      doc.text(`${schoolName} — Official Academic Transcript — ${toTitleCase(student.name)}`, pw / 2, ph - 6, { align: 'center' })
       doc.text(`Page ${p} of ${pages}`, pw - M, ph - 6, { align: 'right' })
     }
 
-    doc.save(`transcript-${student.name.replace(/\s+/g, '-')}-${student.studentId}.pdf`)
+    doc.save(`transcript-${toTitleCase(student.name).replace(/\s+/g, '-')}-${student.studentId}.pdf`)
   }
 
   const labelStyle: React.CSSProperties = { display: 'block', fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 5, letterSpacing: '0.04em' }

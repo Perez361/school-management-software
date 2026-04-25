@@ -3,12 +3,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Trophy, BarChart2 } from 'lucide-react'
 import { api, Class, ResultRow } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 import { useLiveData } from '@/lib/live-data'
 
 function rankStudents(results: ResultRow[]) {
   const map: Record<number, { studentId: number; name: string; total: number; count: number }> = {}
   for (const r of results) {
-    if (!map[r.studentId]) map[r.studentId] = { studentId: r.studentId, name: r.student?.name ?? '', total: 0, count: 0 }
+    if (!map[r.studentId]) map[r.studentId] = { studentId: r.studentId, name: toTitleCase(r.student?.name ?? ''), total: 0, count: 0 }
     map[r.studentId].total += r.total; map[r.studentId].count++
   }
   const arr = Object.values(map).map(s => ({ ...s, avg: s.count > 0 ? s.total / s.count : 0 }))
@@ -178,7 +179,7 @@ export default function ResultsPage() {
                         const g = gm[r.grade] || gm['F']
                         return (
                           <tr key={r.id} style={{ borderBottom: i < results.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
-                            <td style={{ padding: '10px 14px', fontSize: 13, fontWeight: 600, color: 'var(--navy)', whiteSpace: 'nowrap' }}>{r.student?.name}</td>
+                            <td style={{ padding: '10px 14px', fontSize: 13, fontWeight: 600, color: 'var(--navy)', whiteSpace: 'nowrap' }}>{r.student ? toTitleCase(r.student.name) : ''}</td>
                             <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{r.subject?.name}</td>
                             <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--navy)' }}>{r.ca}</td>
                             <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--navy)' }}>{r.exam}</td>

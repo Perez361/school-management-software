@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Plus, UserSquare2, Trash2, Search } from 'lucide-react'
 import { api, Staff } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
 import Pagination from '@/components/Pagination'
@@ -127,9 +128,9 @@ export default function StaffPage() {
                       <td style={{ padding: '13px 18px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                           <div style={{ width: 34, height: 34, borderRadius: '50%', background: m.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: m.color, flexShrink: 0 }}>
-                            {s.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                            {toTitleCase(s.name).split(' ').map(n => n[0]).join('').slice(0, 2)}
                           </div>
-                          <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{s.name}</span>
+                          <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{toTitleCase(s.name)}</span>
                         </div>
                       </td>
                       <td style={{ padding: '13px 18px' }}><span className="mono-tag">{s.staffId}</span></td>

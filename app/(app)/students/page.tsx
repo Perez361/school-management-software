@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Plus, Search, UserCircle, Trash2 } from 'lucide-react'
 import { api, Student, Class } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
 import Pagination from '@/components/Pagination'
@@ -132,15 +133,15 @@ export default function StudentsPage() {
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--gold-pale)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 10, fontWeight: 700, color: 'var(--navy)', flexShrink: 0 }}>
-                          {s.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          {toTitleCase(s.name).split(' ').map(n => n[0]).join('').slice(0, 2)}
                         </div>
-                        <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', whiteSpace: 'nowrap' }}>{s.name}</span>
+                        <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)', whiteSpace: 'nowrap' }}>{toTitleCase(s.name)}</span>
                       </div>
                     </td>
                     <td style={{ padding: '12px 14px' }}><span className="mono-tag">{s.studentId}</span></td>
                     <td style={{ padding: '12px 14px' }}><span className="badge badge-blue">{s.class?.name}</span></td>
                     <td style={{ padding: '12px 14px', fontSize: 13, color: 'var(--text-secondary)' }}>{s.gender}</td>
-                    <td style={{ padding: '12px 14px', fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{s.parent?.name || <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
+                    <td style={{ padding: '12px 14px', fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{s.parent ? toTitleCase(s.parent.name) : <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         <Link href={`/students/detail?id=${s.id}`} className="action-link">View</Link>

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Plus, UserCheck, Phone, Mail, MapPin, Trash2, Search } from 'lucide-react'
 import { api, Parent } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 import { useAuth } from '@/lib/auth-context'
 import { useLiveData } from '@/lib/live-data'
 import Pagination from '@/components/Pagination'
@@ -100,9 +101,9 @@ export default function ParentsPage() {
                     <td style={{ padding: '13px 18px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                         <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', fontSize: 11, fontWeight: 700, color: '#15803d', flexShrink: 0 }}>
-                          {p.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          {toTitleCase(p.name).split(' ').map(n => n[0]).join('').slice(0, 2)}
                         </div>
-                        <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{p.name}</span>
+                        <span style={{ fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{toTitleCase(p.name)}</span>
                       </div>
                     </td>
                     <td style={{ padding: '13px 18px' }}>
