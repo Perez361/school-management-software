@@ -68,7 +68,7 @@ export default function AttendancePage() {
       studs.forEach(s => { map[s.id] = 'present' })
       existing.forEach(e => { map[e.studentId] = e.status as Status })
       setStatuses(map)
-    }).catch(console.error)
+    }).catch(() => {})
     .finally(() => setLoading(false))
   }, [classId, date])
 
@@ -99,7 +99,7 @@ export default function AttendancePage() {
     setSumLoading(true)
     api.getClassAttendanceSummary({ classId: parseInt(sumClassId), term: sumTerm, year: sumYear })
       .then(setSummaryRows)
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setSumLoading(false))
   }, [sumClassId, sumTerm, sumYear])
 

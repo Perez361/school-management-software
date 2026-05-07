@@ -203,7 +203,7 @@ pub fn update_parent(id: i64, input: UpdateParentInput) -> Result<Parent, String
         sync::queue_change(&conn, "Parent", &sync_id, payload);
     }
     let student_count: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM Student WHERE parent_id=?1 AND deleted_at IS NULL", params![id], |r| r.get(0)
+        "SELECT COUNT(*) FROM Student WHERE parentId=?1 AND deleted_at IS NULL", params![id], |r| r.get(0)
     ).unwrap_or(0);
     Ok(Parent { id, name: input.name, phone: input.phone, email: input.email, address: input.address, photo: input.photo, student_count })
 }
@@ -245,9 +245,9 @@ pub fn get_staff() -> Result<Vec<Staff>, String> {
 #[command]
 pub fn create_staff(input: CreateStaffInput) -> Result<Staff, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
-    let count: i64 = conn.query_row("SELECT COUNT(*) FROM Staff", [], |r| r.get(0))
+    let next_num: i64 = conn.query_row("SELECT COALESCE(MAX(id), 0) + 1 FROM Staff", [], |r| r.get(0))
         .map_err(|e| e.to_string())?;
-    let staff_id = format!("STF-{:03}", count + 1);
+    let staff_id = format!("STF-{:04}", next_num);
     let sync_id = uuid::Uuid::new_v4().to_string();
     let updated_at = chrono::Utc::now().to_rfc3339();
 
@@ -458,11 +458,11 @@ pub fn get_student(id: i64) -> Result<Student, String> {
 #[command]
 pub fn create_student(input: CreateStudentInput) -> Result<Student, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
-    let count: i64 = conn.query_row("SELECT COUNT(*) FROM Student", [], |r| r.get(0))
+    let next_num: i64 = conn.query_row("SELECT COALESCE(MAX(id), 0) + 1 FROM Student", [], |r| r.get(0))
         .map_err(|e| e.to_string())?;
 
     let year = chrono::Local::now().format("%Y").to_string();
-    let student_id = format!("ACC-{}-{:03}", year, count + 1);
+    let student_id = format!("ACC-{}-{:04}", year, next_num);
     let sync_id = uuid::Uuid::new_v4().to_string();
     let updated_at = chrono::Utc::now().to_rfc3339();
 
@@ -988,6 +988,7 @@ pub fn upsert_settings(input: UpsertSettingsInput) -> Result<SchoolSettings, Str
 #[command]
 pub fn promote_class(input: PromoteClassInput) -> Result<PromoteResult, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
+    conn.execute_batch("BEGIN").map_err(|e| e.to_string())?;
     let now = chrono::Local::now().format("%Y-%m-%dT%H:%M:%S").to_string();
 
     // Fetch all active students currently in this class
@@ -1041,6 +1042,7 @@ pub fn promote_class(input: PromoteClassInput) -> Result<PromoteResult, String> 
         }
     }
 
+    conn.execute_batch("COMMIT").map_err(|e| e.to_string())?;
     Ok(PromoteResult { promoted, repeated, graduated })
 }
 

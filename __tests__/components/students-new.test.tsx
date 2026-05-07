@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
 
@@ -104,7 +104,7 @@ describe('Add New Student page', () => {
     await userEvent.selectOptions(genderSelect, 'Male')
 
     const dateInput = document.querySelector('input[type="date"]')!
-    await userEvent.type(dateInput as Element, '2012-01-01')
+    fireEvent.change(dateInput, { target: { value: '2012-01-01' } })
 
     await waitFor(() => {
       expect(screen.getByText('JHS 1')).toBeInTheDocument()

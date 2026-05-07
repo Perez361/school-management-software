@@ -55,7 +55,7 @@ export default function NewStaffPage() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
             <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border-soft)', background: 'var(--gold-pale)', fontFamily: 'Georgia, serif', fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Staff Details</div>
             <div style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>{lbl('Full Name', true)}<input {...register('name', { required: true })} style={inp} placeholder="e.g. Mr. Emmanuel Asare" />{errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}</div>
+              <div>{lbl('Full Name', true)}<input {...register('name', { required: true, maxLength: 100 })} maxLength={100} style={inp} placeholder="e.g. Mr. Emmanuel Asare" />{errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}</div>
               <div>
                 {lbl('Role', true)}
                 <select {...register('role', { required: true })} style={{ ...inp, cursor: 'pointer' } as React.CSSProperties}>
@@ -83,8 +83,8 @@ export default function NewStaffPage() {
                 </div>
               )}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 14 }}>
-                <div>{lbl('Phone')}<input {...register('phone')} style={inp} placeholder="+233 XX XXX XXXX" /></div>
-                <div>{lbl('Email')}<input {...register('email')} type="email" style={inp} placeholder="staff@school.edu.gh" /></div>
+                <div>{lbl('Phone')}<input {...register('phone')} maxLength={20} style={inp} placeholder="+233 XX XXX XXXX" /></div>
+                <div>{lbl('Email')}<input {...register('email')} type="email" maxLength={150} style={inp} placeholder="staff@school.edu.gh" /></div>
               </div>
             </div>
           </div>

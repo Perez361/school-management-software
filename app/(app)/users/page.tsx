@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { api, AppUser, Staff } from '@/lib/api'
+import { toTitleCase } from '@/lib/utils'
 import { Plus, Pencil, Trash2, KeyRound, ShieldCheck, X, Eye, EyeOff, UserSquare2 } from 'lucide-react'
 
 const ROLES = ['admin', 'teacher', 'accountant'] as const
@@ -341,12 +342,12 @@ export default function UsersPage() {
                 <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px', borderBottom: i < users.length - 1 ? '1px solid var(--border-soft)' : undefined, flexWrap: 'wrap' }}>
                   {/* Avatar */}
                   <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--navy)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 14, fontWeight: 700, color: '#c9a84c', fontFamily: 'Georgia, serif' }}>
-                    {u.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                    {toTitleCase(u.name).split(' ').map(n => n[0]).join('').slice(0, 2)}
                   </div>
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <span style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{u.name}</span>
+                      <span style={{ fontFamily: 'system-ui', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{toTitleCase(u.name)}</span>
                       {isMe && <span style={{ fontFamily: 'system-ui', fontSize: 10, background: 'rgba(201,168,76,0.15)', color: 'var(--gold)', padding: '2px 7px', borderRadius: 10, fontWeight: 600 }}>You</span>}
                       <span style={{ fontFamily: 'system-ui', fontSize: 11, fontWeight: 600, color: rc.color, background: rc.bg, padding: '2px 9px', borderRadius: 20, textTransform: 'capitalize' }}>{u.role}</span>
                     </div>
@@ -393,7 +394,7 @@ export default function UsersPage() {
           <div style={{ background: 'var(--surface)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 380, border: '1px solid var(--border)' }}>
             <h3 style={{ fontFamily: 'Georgia, serif', fontSize: 17, fontWeight: 700, color: 'var(--navy)', marginBottom: 10 }}>Delete User?</h3>
             <p style={{ fontFamily: 'system-ui', fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>
-              Remove <strong>{delUser.name}</strong> ({delUser.role})? This cannot be undone.
+              Remove <strong>{toTitleCase(delUser.name)}</strong> ({delUser.role})? This cannot be undone.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button onClick={() => setDelUser(null)} style={{ padding: '9px 18px', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'system-ui', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: 'var(--text-secondary)' }}>Cancel</button>

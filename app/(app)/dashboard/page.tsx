@@ -27,24 +27,14 @@ export default function DashboardPage() {
   const [enrolByClass, setEnrolByClass] = useState<ClassEnrolmentStats[]>([])
 
   useEffect(() => {
-    Promise.all([
-      api.getDashboardStats(),
-      api.getTopStudents(),
-      api.getPayments(),
-      api.getSettings(),
-      api.getGenderStats(),
-      api.getEnrolmentByClass(),
-    ]).then(([s, top, pays, cfg, gender, enrol]) => {
-      setStats(s)
-      setTopStudents(top)
-      setRecentPayments(pays.slice(0, 6))
+    api.getDashboardStats().then(setStats).catch(() => {})
+    api.getTopStudents().then(setTopStudents).catch(() => {})
+    api.getPayments().then(pays => setRecentPayments(pays.slice(0, 6))).catch(() => {})
+    api.getGenderStats().then(setGenderStats).catch(() => {})
+    api.getEnrolmentByClass().then(setEnrolByClass).catch(() => {})
+    api.getSettings().then(cfg => {
       setSettings(cfg)
-      setGenderStats(gender)
-      setEnrolByClass(enrol)
-      // Fetch fee by class using the current term
-      return api.getFeeByClass(cfg?.currentTerm ?? undefined)
-    }).then(fees => {
-      setFeeByClass(fees)
+      api.getFeeByClass(cfg?.currentTerm ?? undefined).then(setFeeByClass).catch(() => {})
     }).catch(() => {})
   }, [version])
 

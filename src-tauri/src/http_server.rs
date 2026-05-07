@@ -1,5 +1,5 @@
 use axum::{
-    extract::Request,
+    extract::{ConnectInfo, Request},
     http::{header, Method, StatusCode},
     middleware::{self, Next},
     response::{IntoResponse, Response},
@@ -7,11 +7,40 @@ use axum::{
     Json, Router,
 };
 use serde::Deserialize;
-use tower_http::cors::{Any, CorsLayer};
+use std::{
+    collections::HashMap,
+    net::SocketAddr,
+    sync::Mutex,
+    time::{Duration, Instant},
+};
+use tower_http::cors::{Any, AllowOrigin, CorsLayer};
+use axum::http::HeaderValue;
 
 use crate::auth::{create_token, validate_token};
 use crate::commands::*;
 use crate::models::*;
+
+// ─── Login rate limiter ───────────────────────────────────────────────────────
+
+const MAX_ATTEMPTS: u32 = 10;
+const WINDOW_SECS: u64  = 60;
+
+struct RateEntry { attempts: u32, window_start: Instant }
+
+static RATE_MAP: Mutex<Option<HashMap<String, RateEntry>>> = Mutex::new(None);
+
+fn check_rate_limit(ip: &str) -> bool {
+    let mut guard = RATE_MAP.lock().unwrap_or_else(|e| e.into_inner());
+    let map = guard.get_or_insert_with(HashMap::new);
+    let now = Instant::now();
+    let entry = map.entry(ip.to_string()).or_insert(RateEntry { attempts: 0, window_start: now });
+    if now.duration_since(entry.window_start) >= Duration::from_secs(WINDOW_SECS) {
+        entry.attempts = 0;
+        entry.window_start = now;
+    }
+    entry.attempts += 1;
+    entry.attempts <= MAX_ATTEMPTS
+}
 
 pub const HTTP_PORT: u16 = 7770;
 
@@ -46,7 +75,14 @@ struct LoginResponse {
     token: String,
 }
 
-async fn handle_login(Json(body): Json<LoginBody>) -> Result<Json<LoginResponse>, (StatusCode, String)> {
+async fn handle_login(
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    Json(body): Json<LoginBody>,
+) -> Result<Json<LoginResponse>, (StatusCode, String)> {
+    let ip = addr.ip().to_string();
+    if !check_rate_limit(&ip) {
+        return Err((StatusCode::TOO_MANY_REQUESTS, "Too many login attempts. Try again in a minute.".into()));
+    }
     let user = login(body.input).map_err(|e| (StatusCode::UNAUTHORIZED, e))?;
     let token = create_token(user.id, &user.email, &user.role)
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))?;
@@ -361,7 +397,10 @@ pub fn build_router() -> Router {
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
         .allow_headers(Any)
-        .allow_origin(Any);
+        .allow_origin(AllowOrigin::predicate(|origin: &HeaderValue, _| {
+            origin.as_bytes().starts_with(b"http://localhost")
+                || origin.as_bytes().starts_with(b"http://127.0.0.1")
+        }));
 
     // Protected routes (require JWT)
     let protected = Router::new()
@@ -478,7 +517,8 @@ pub fn start(port: u16) {
             let listener = tokio::net::TcpListener::bind(&addr).await
                 .unwrap_or_else(|e| panic!("Cannot bind to {}: {}", addr, e));
             log::info!("HTTP server listening on {}", addr);
-            axum::serve(listener, app).await.expect("axum serve failed");
+            axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
+                .await.expect("axum serve failed");
         });
     });
 }

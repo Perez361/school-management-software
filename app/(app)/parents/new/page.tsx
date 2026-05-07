@@ -66,10 +66,10 @@ export default function NewParentPage() {
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
               </div>
-              <div>{lbl('Full Name', true)}<input {...register('name', { required: true })} style={inp} placeholder="e.g. Kwame Mensah" />{errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}</div>
-              <div>{lbl('Phone Number', true)}<input {...register('phone', { required: true })} style={inp} placeholder="+233 XX XXX XXXX" />{errors.phone && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Phone is required</p>}</div>
-              <div>{lbl('Email Address')}<input {...register('email')} type="email" style={inp} placeholder="parent@email.com" /></div>
-              <div>{lbl('Home Address')}<input {...register('address')} style={inp} placeholder="Town / Area, Region" /></div>
+              <div>{lbl('Full Name', true)}<input {...register('name', { required: true, maxLength: 100 })} maxLength={100} style={inp} placeholder="e.g. Kwame Mensah" />{errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}</div>
+              <div>{lbl('Phone Number', true)}<input {...register('phone', { required: true })} maxLength={20} style={inp} placeholder="+233 XX XXX XXXX" />{errors.phone && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Phone is required</p>}</div>
+              <div>{lbl('Email Address')}<input {...register('email')} type="email" maxLength={150} style={inp} placeholder="parent@email.com" /></div>
+              <div>{lbl('Home Address')}<input {...register('address')} maxLength={200} style={inp} placeholder="Town / Area, Region" /></div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>

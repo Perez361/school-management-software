@@ -42,7 +42,7 @@ export default function ResultsPage() {
     if (!classId) return
     setLoading(true)
     try { const r = await api.getResults({ classId: parseInt(classId), term, year }); setResults(r) }
-    catch (e) { console.error(e) }
+    catch { /* network / parse failures are non-fatal */ }
     finally { setLoading(false) }
   }, [classId, term, year, version])
 

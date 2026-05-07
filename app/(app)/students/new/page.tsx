@@ -96,7 +96,7 @@ export default function NewStudentPage() {
               </div>
               <div style={{ marginBottom: 14 }}>
                 {lbl('Full Name', true)}
-                <input {...register('name', { required: true })} style={inp} placeholder="e.g. Kofi Mensah" />
+                <input {...register('name', { required: true, maxLength: 100 })} maxLength={100} style={inp} placeholder="e.g. Kofi Mensah" />
                 {errors.name && <p style={{ color: '#b91c1c', fontSize: 11, marginTop: 4, fontFamily: 'system-ui' }}>Name is required</p>}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 14 }}>
@@ -114,11 +114,11 @@ export default function NewStudentPage() {
                 </div>
                 <div>
                   {lbl('Phone')}
-                  <input {...register('phone')} style={inp} placeholder="+233 XX XXX XXXX" />
+                  <input {...register('phone')} maxLength={20} style={inp} placeholder="+233 XX XXX XXXX" />
                 </div>
                 <div>
                   {lbl('Address')}
-                  <input {...register('address')} style={inp} placeholder="Town / Area, Region" />
+                  <input {...register('address')} maxLength={200} style={inp} placeholder="Town / Area, Region" />
                 </div>
               </div>
             </div>

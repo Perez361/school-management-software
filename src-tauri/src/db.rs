@@ -5,7 +5,7 @@ pub fn get_db_path() -> PathBuf {
     let app_dir = dirs::data_dir()
         .unwrap_or_else(|| PathBuf::from("."))
         .join("com.acs.sms");
-    std::fs::create_dir_all(&app_dir).unwrap();
+    let _ = std::fs::create_dir_all(&app_dir);
     app_dir.join("school.db")
 }
 
@@ -230,7 +230,7 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
         INSERT OR IGNORE INTO Subject (name, code) VALUES ('Social Studies',              'SOC');
         INSERT OR IGNORE INTO Subject (name, code) VALUES ('Religious & Moral Education', 'RME');
         INSERT OR IGNORE INTO Subject (name, code) VALUES ('Creative Arts & Design',      'CAD');
-        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Information & Commnunication Technology',                   'ICT');
+        INSERT OR IGNORE INTO Subject (name, code) VALUES ('Information & Communication Technology',                    'ICT');
         INSERT OR IGNORE INTO Subject (name, code) VALUES ('French',                      'FRE');
         INSERT OR IGNORE INTO Subject (name, code) VALUES ('Ghanaian Language',           'GHL');
         INSERT OR IGNORE INTO Subject (name, code) VALUES ('Physical Education',          'PE');

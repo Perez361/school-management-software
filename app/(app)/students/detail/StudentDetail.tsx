@@ -53,8 +53,8 @@ export default function StudentDetail() {
       setTransferDone(true)
       setTransferring(false)
       setTimeout(() => setTransferDone(false), 3000)
-    } catch (e) {
-      console.error(e)
+    } catch (e: any) {
+      setTransferring(false)
     } finally {
       setTransferSaving(false)
     }

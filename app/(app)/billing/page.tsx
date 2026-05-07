@@ -33,15 +33,13 @@ export default function BillingPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    try {
-      const [cls, pays, sum] = await Promise.all([
-        api.getClasses(),
-        api.getPayments({ classId: classFilter ? parseInt(classFilter) : undefined, term: termFilter || undefined, status: statusFilter || undefined }),
-        api.getPaymentSummary({ classId: classFilter ? parseInt(classFilter) : undefined, term: termFilter || undefined }),
-      ])
-      setClasses(cls); setPayments(pays); setSummary(sum)
-    } catch (err) { console.error(err) }
-    finally { setLoading(false) }
+    const opts = { classId: classFilter ? parseInt(classFilter) : undefined, term: termFilter || undefined, status: statusFilter || undefined }
+    await Promise.allSettled([
+      api.getClasses().then(setClasses),
+      api.getPayments(opts).then(setPayments),
+      api.getPaymentSummary({ classId: opts.classId, term: opts.term }).then(setSummary),
+    ])
+    setLoading(false)
   }, [classFilter, termFilter, statusFilter, version])
 
   useEffect(() => { load() }, [load])

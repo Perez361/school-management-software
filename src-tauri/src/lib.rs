@@ -4,6 +4,7 @@ mod commands;
 mod auth;
 mod http_server;
 pub(crate) mod sync;
+mod tests;
 
 use commands::*;
 

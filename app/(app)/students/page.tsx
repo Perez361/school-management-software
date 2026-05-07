@@ -27,13 +27,11 @@ export default function StudentsPage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [s, c] = await Promise.all([
-        api.getStudents({ q: query || undefined, classId: classFilter ? parseInt(classFilter) : undefined }),
-        api.getClasses(),
+      await Promise.allSettled([
+        api.getStudents({ q: query || undefined, classId: classFilter ? parseInt(classFilter) : undefined }).then(setStudents),
+        api.getClasses().then(setClasses),
       ])
-      setStudents(s); setClasses(c)
-    } catch (e) { console.error(e) }
-    finally { setLoading(false) }
+    } finally { setLoading(false) }
   }, [query, classFilter, version])
 
   useEffect(() => { load() }, [load])
